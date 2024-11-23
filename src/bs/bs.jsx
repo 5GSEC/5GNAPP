@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import './bs.css'; // Make sure to create this CSS file for styling
 import UeIcon from '../ue/ue';
+import BsSrc from './bs.png';
 
 
 const BsIcon = () => {
@@ -25,7 +26,7 @@ const BsIcon = () => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => mouseHover(false)}
         >
-            <img src="bs.svg" alt="BS Icon" className="bs-icon" />
+            <img src={BsSrc} alt="BS Icon" className="bs-icon" />
             {isHovered && (
                 <>
                     <div className="branches">
