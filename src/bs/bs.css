@@ -1,0 +1,54 @@
+.icon-container {
+    position: relative;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.bs-icon {
+    width: 50px;
+    height: 50px;
+    transition: transform 0.3s ease;
+}
+
+.icon-container.hovered .bs-icon {
+    transform: scale(1.5);
+}
+
+.branches {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+}
+
+.branch {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: lightgray;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+
+.arrow {
+    width: 1;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 10px solid black;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
