@@ -20,6 +20,7 @@ const UeIcon = ({ worstBreak, setWorstBreak, ueId, isHovered }) => {
     useEffect(() => {
         handleMouseActions()
         const fetchData = () => {
+            //TODO do the actual fetching t and decisions here setting curBreak as necessary
             const ueIcon = document.querySelector(`#${ueId}`);
             if (ueIcon) {
                 ueIcon.style.background = 'rgba(255, 0, 0, 0.25)';
@@ -31,7 +32,7 @@ const UeIcon = ({ worstBreak, setWorstBreak, ueId, isHovered }) => {
         const intervalId = setInterval(fetchData, 10000); // Run every 10 seconds
 
         return () => clearInterval(intervalId);
-    }, []);
+    }, []); // this just gets run all the time
 
     return (
         <div className="ue-container">

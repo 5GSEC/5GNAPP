@@ -2,6 +2,7 @@ import './App.css';
 import { BsIcon, BsIconProvider } from './bs/bs';
 
 function App() {
+  // this will be dynamically pulled from sql
   let bsIds = ['a', 'b', 'c'];
   return (
     <BsIconProvider>
