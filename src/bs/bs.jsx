@@ -22,7 +22,8 @@ const BsIcon = ({ bsId, backendEvents }) => {
     const iconContainerRef = useRef(null);
     const { hoveredId, setHoveredId, click, setClick } = useContext(HoverContext);
     //TODO dynamically pull from sql
-    let ueIds = ["a", "b", "c", "d", "e", "f"];
+    
+    // console.log(backendEvents)
     const mouseHover = () => {
         setTimeout(() => {
             if (iconContainerRef.current && iconContainerRef.current.matches(':hover')) {
@@ -46,9 +47,10 @@ const BsIcon = ({ bsId, backendEvents }) => {
         >
             <img src={BsSrc} alt="BS Icon" className="bs-icon" />
             <div className="branches">
-                {ueIds.map((ueId, index) => (
-                    <div key={index} className="branch" style={{ transform: `rotate(${everyOtherDegree(index, ueIds.length)}deg) translate(${isHovered ? 10 * ueIds.length + 100 : 50}px) rotate(-${everyOtherDegree(index, ueIds.length)}deg)`, zIndex: `0`, width: '0px', height: '0px'}}>
-                        <UeIcon ueId={`bs-${bsId}_ue-${ueId}`} isHovered={isHovered} click={click} backendEvent={backendEvents} />
+                {Array.from(Object.keys(backendEvents)).map((ueId, index) => (
+                    <div key={index} className="branch" style={{ transform: `rotate(${everyOtherDegree(index, Object.keys(backendEvents).length)}deg) translate(${isHovered ? 10 * Object.keys(backendEvents).length + 100 : 50}px) rotate(-${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)`, zIndex: `0`, width: '0px', height: '0px'}}>
+                        <p>{bsId}</p>
+                        <UeIcon ueId={ueId} isHovered={isHovered} click={click} backendEvent={backendEvents[ueId]} />
                     </div>
                 ))}
             </div>
