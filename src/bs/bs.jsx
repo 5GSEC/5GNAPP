@@ -20,7 +20,7 @@ function everyOtherDegree(index, length) {
 const BsIcon = ({ bsId, backendEvents }) => {
     const [isHovered, setIsHovered] = useState(false);
     const iconContainerRef = useRef(null);
-    const { hoveredId, setHoveredId, click, setClick } = useContext(HoverContext);
+    const { hoveredBsId, setHoveredBsId, setHoveredUeId, click, setClick } = useContext(HoverContext);
     //TODO dynamically pull from sql
     
     // console.log(backendEvents)
@@ -28,29 +28,35 @@ const BsIcon = ({ bsId, backendEvents }) => {
         setTimeout(() => {
             if (iconContainerRef.current && iconContainerRef.current.matches(':hover')) {
                 setIsHovered(true);
-                setHoveredId(bsId);
+                setHoveredBsId(bsId);
             } else if (click) {
                 setIsHovered(false);
-                setHoveredId(null);
+                setHoveredBsId(null);
             }
         }, 200)
     }
+
+    const handleMouseEnter = (ueId) => {
+        setHoveredUeId(ueId);
+        console.log(ueId)
+    };
+
 
     return (
         <div 
             ref={iconContainerRef}
             className={`icon-container ${isHovered ? 'hovered' : ''}`}
-            onMouseEnter={() => { setIsHovered(true); setHoveredId(bsId); }}
+            onMouseEnter={() => { setIsHovered(true); setHoveredBsId(bsId); }}
             onMouseLeave={() => mouseHover(false)}
             onContextMenu={(e) => { e.preventDefault(); click ? setClick(false) : setClick(true); }}
-            style={{ visibility: hoveredId && hoveredId !== bsId ? 'hidden' : 'visible' }}
+            style={{ visibility: hoveredBsId && hoveredBsId !== bsId ? 'hidden' : 'visible' }}
         >
             <img src={BsSrc} alt="BS Icon" className="bs-icon" />
             <div className="branches">
                 {Array.from(Object.keys(backendEvents)).map((ueId, index) => (
                     <div key={index} className="branch" style={{ transform: `rotate(${everyOtherDegree(index, Object.keys(backendEvents).length)}deg) translate(${isHovered ? 10 * Object.keys(backendEvents).length + 100 : 50}px) rotate(-${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)`, zIndex: `0`, width: '0px', height: '0px'}}>
                         <p>{bsId}</p>
-                        <UeIcon ueId={ueId} isHovered={isHovered} click={click} backendEvent={backendEvents[ueId]} />
+                        <UeIcon ueId={ueId} isHovered={isHovered} click={click} backendEvent={backendEvents[ueId]} setHoveredUeId={setHoveredUeId} handleMouseEnter={handleMouseEnter} />
                     </div>
                 ))}
             </div>
@@ -59,13 +65,14 @@ const BsIcon = ({ bsId, backendEvents }) => {
 };
 
 const BsIconProvider = ({ children }) => {
-    const [hoveredId, setHoveredId] = useState(null);
+    const [hoveredBsId, setHoveredBsId] = useState(null);
+    const [hoveredUeId, setHoveredUeId] = useState(null);
     const [click, setClick] = useState(true); // Add click state here
     return (
-        <HoverContext.Provider value={{ hoveredId, setHoveredId, click, setClick }}>
+        <HoverContext.Provider value={{ hoveredBsId, setHoveredBsId, hoveredUeId, setHoveredUeId, click, setClick }}>
             {children}
         </HoverContext.Provider>
     );
 };
 
-export { everyOtherDegree, BsIcon, BsIconProvider };
+export { everyOtherDegree, BsIcon, BsIconProvider, HoverContext };
