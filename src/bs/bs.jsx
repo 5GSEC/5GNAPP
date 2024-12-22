@@ -18,6 +18,10 @@ function everyOtherDegree(index, length) {
 }
 
 const BsIcon = ({ bsId, backendEvents }) => {
+    if (!backendEvents) {
+        console.log('no backend events')
+        backendEvents = {}
+    }
     const [isHovered, setIsHovered] = useState(false);
     const iconContainerRef = useRef(null);
     const { hoveredBsId, setHoveredBsId, setHoveredUeId, click, setClick } = useContext(HoverContext);
