@@ -1,6 +1,12 @@
 # 5GNAPP
 5G-native management platform
 
+## Run instructions
+
+In windows first run npm start then in another terminal run cd src then python server.py
+
+in linux just run ./start.sh
+
 ### `npm start`
 
 Runs the app in the development mode.\
@@ -23,3 +29,5 @@ The build is minified and the filenames include the hashes.\
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+
