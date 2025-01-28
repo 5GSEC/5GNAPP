@@ -59,7 +59,6 @@ const BsIcon = ({ bsId, backendEvents }) => {
             <div className="branches">
                 {Array.from(Object.keys(backendEvents)).map((ueId, index) => (
                     <div key={index} className="branch" style={{ transform: `rotate(${everyOtherDegree(index, Object.keys(backendEvents).length)}deg) translate(${isHovered ? 10 * Object.keys(backendEvents).length + 100 : 50}px) rotate(-${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)`, zIndex: `0`, width: '0px', height: '0px'}}>
-                        <p>{bsId}</p>
                         <UeIcon ueId={ueId} isHovered={isHovered} click={click} backendEvent={backendEvents[ueId]} setHoveredUeId={setHoveredUeId} handleMouseEnter={handleMouseEnter} />
                     </div>
                 ))}
