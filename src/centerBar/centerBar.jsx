@@ -4,6 +4,7 @@ import refreshIcond from './refresh.png'
 
 const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
     return (
+        
         <div style={{ display: "flex", gap: "2em" }}>
             <div>
                 <h2>Base Station Information</h2>

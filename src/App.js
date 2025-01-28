@@ -31,7 +31,8 @@ function AppContent() {
         backgroundColor: "#ffffff",
       }}
     >
-      <CenterBar  setEvent={setEvent} bsevent={bevent} bsId={hoveredBsId} ueId={hoveredUeId} />
+      <div style={{ height: "10em" }} /> {/* Add gap between CenterBar and the rest */}
+      <CenterBar setEvent={setEvent} bsevent={bevent} bsId={hoveredBsId} ueId={hoveredUeId} />
       <div
         className="App"
         style={{
