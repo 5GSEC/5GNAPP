@@ -8,9 +8,9 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
 
     useEffect(() => {
         if (backendEvent) {
-            const ueIcon = document.querySelector(`#${ueId}`);
+            const ueIcon = document.querySelector(`#_${ueId}`);
             if (ueIcon) {
-                if (backendEvent["level"] === "critical") {
+                if (backendEvent["level"] === "Critical") {
                     ueIcon.style.background = 'rgba(255, 0, 0, 0.25)';
                 } else {
                     ueIcon.style.background = 'rgba(0,0,0,0)';
@@ -44,7 +44,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
                 ref={ueIconRef}
                 onMouseEnter={() => setHoveredUeId(ueId)}
             >
-                <img src={cctvCamera} alt="UE Icon" className="ue-icon-img" id={ueId} style={{ width: '100%', height: '100%' }} />
+                <img src={cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
             </div>
             {showInfo && (
                 <div className="floating-window">

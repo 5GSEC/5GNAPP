@@ -1,28 +1,27 @@
-
 function fetchUserData(setEvent) {
-  console.log("fetched Uesr data")
-  
-  
-  //how do I know how much middle layer(e.g. a-a, a-b) there will be for each outer layer(e.g. a, b)?
-  let returned = {
-    "a": {
-      "a-a": {}, "a-b": {}, "a-c": {"level":"critical"}, "a-d": {}, "a-e": {}
-    },
-    "b": {
-      "b-a": {}, "b-b": {}, "b-c": {}, "b-d": {}, "b-e": {}, "b-f": {}, "b-g": {}, "b-h": {},
-    },
-    "c": {
-      "c-a": {}, "c-b": {}, "c-c": {}, "c-d": {}, "c-e": { "level": "critical" }, "c-f": {}, "c-g": {}
-    },
-  }
-  if (returned) {
-    setEvent(returned)
-  }
+  console.log("fetched User data");
+  fetch("http://localhost:8080/fetchUserData", {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("user data resolved");
+      setEvent(data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
 }
 
-
-
-export {fetchUserData };
+export { fetchUserData };
 //   async function fetchUserData() {
 
 //     //how do I know how much middle layer(e.g. a-a, a-b) there will be for each outer layer(e.g. a, b)?
@@ -91,4 +90,3 @@ export {fetchUserData };
 //       alert("Error reading the csv event file. Check the console for details.");
 //     }
 //   }
-    

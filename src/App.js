@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import "./App.css";
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
+import { fetchUserData } from "./fetchUserData";
 
 
 function AppContent() {
@@ -12,23 +13,10 @@ function AppContent() {
     const interval = setInterval(() => {
       // setEvent(fetchUserData());
 
-      setEvent({
-        "a": {
-          "report-period": 100,
-          "stations": {
-            "a-a": { "level": "critical", "Event Name": "Null Cipher", "timestamp": 1731561443 },
-            "a-b": {}, "a-c": {}, "a-d": {}, "a-e": {}
-          },
-        },
-        "b": {
-          "report-period": 200,
-          "stations": {
-            "b-a": {}, "b-b": {}, "b-c": {}, "b-d": {}, "b-e": {}, "b-f": {}, "b-g": {}, "b-h": {},
-          },
-        },
-    })
-  }, 1000); // 10000 milliseconds = 10 seconds
-    // setEvent(fetchUserData());
+      fetchUserData(setEvent)
+  }, 10000); // 10000 milliseconds = 10 seconds
+  fetchUserData(setEvent)
+
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
 
