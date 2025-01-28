@@ -9,8 +9,12 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
     useEffect(() => {
         if (backendEvent) {
             const ueIcon = document.querySelector(`#${ueId}`);
-            if (ueIcon && backendEvent["level"] === "critical") {
-                ueIcon.style.background = 'rgba(255, 0, 0, 0.25)';
+            if (ueIcon) {
+                if (backendEvent["level"] === "critical") {
+                    ueIcon.style.background = 'rgba(255, 0, 0, 0.25)';
+                } else {
+                    ueIcon.style.background = 'rgba(0,0,0,0)';
+                }
             }
         }
     }, [backendEvent, ueId]);
