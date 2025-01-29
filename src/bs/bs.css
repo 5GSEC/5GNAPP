@@ -52,3 +52,16 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+/*added bs-showinfo on screen*/
+.bs-showinfo {
+    width:300px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 8px;
+    border-radius: 2px;
+    z-index: 9999;
+
+    /*added line height adjustment*/
+    line-height: 0.5;
+}

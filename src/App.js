@@ -3,9 +3,12 @@ import "./App.css";
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import { fetchUserData } from "./fetchUserData";
-
+import { loadCsvData } from "./utils/csvLoader";
+import { Parser } from "papaparse";
 
 function AppContent() {
+  const data = loadCsvData();
+  console.log(data);
   const [bevent, setEvent] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
