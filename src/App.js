@@ -1,11 +1,8 @@
-import { useState, useEffect, useContext } from "react";
 import "./App.css";
+import { useState, useEffect, useContext } from "react";
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
-import { fetchUserData } from "./fetchUserData";
 import { fetchCsvData, fetchSdlData} from "./fetchUserData";
-import { loadCsvData } from "./utils/csvLoader";
-import { Parser } from "papaparse";
 
 const data_simulation = 1; // 0 for SDL data, 1 for CSV data (simulation)
 const update_interval = 10000; // data update interval in milliseconds
