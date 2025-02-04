@@ -59,42 +59,26 @@ def execute_command(command):
 def fetch_service_status():
     ''' Fetch the status of the SE-RAN services '''
     services = {}
-    # MobiFlow Auditor
-    xapp_name = "mobiflow-auditor"
-    command = f"kubectl get pods -n ricxapp | grep '{xapp_name}'"
+    command = "kubectl get pods -A | awk {'print $2\";\"$3\";\"$4\";\"$5\";\"$6'}"
     output = execute_command(command)
-    if output.startswith("No resources found"):
-        services[xapp_name] = ""
-    else:
-        formatted_output = re.sub(r'\s+', ';', output)
-        services[xapp_name] = formatted_output
+    lines = output.split("\n")
 
-    # MobieXpert
-    xapp_name = "mobiexpert-xapp"
-    command = f"kubectl get pods -n ricxapp | grep '{xapp_name}'"
-    output = execute_command(command)
-    if output.startswith("No resources found"):
-        services[xapp_name] = ""
-    else:
-        formatted_output = re.sub(r'\s+', ';', output)
-        services[xapp_name] = formatted_output
+    pod_names = ["ricplt-e2mgr", "mobiflow-auditor", "mobiexpert-xapp", "mobiwatch-xapp"]
+    for pod in pod_names:
+        services[pod] = ""
 
-    # MobiWatch
-    xapp_name = "mobiwatch-xapp"
-    command = f"kubectl get pods -n ricxapp | grep '{xapp_name}'"
-    output = execute_command(command)
-    if output.startswith("No resources found"):
-        services[xapp_name] = ""
-    else:
-        formatted_output = re.sub(r'\s+', ';', output)
-        services[xapp_name] = formatted_output
+    for line in lines:
+        for pod in pod_names:
+            if pod in line:
+                services[pod] = line.replace("(", "") # tmp soluton to solve getting (4d20h ago) as the age
+                break
 
     # MobiIntrospect
     program_name = "loader"
     command = f"pgrep -x {program_name}" # need to makes sure pgrep is available
     output = execute_command(command)
     if output:
-        services["mobiintrospect"] = f"{output}"
+        services["mobiintrospect"] = " ; ;Running; ;" # TODO get the age of the process
     else:
         services["mobiintrospect"] = ""
     

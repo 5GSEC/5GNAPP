@@ -40,12 +40,12 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
     return (
         <Wrapper>
             <Container style={{ width: '40%' }}>
-                <h2>SE-RAN Service Status</h2>
+                <h2>Control-Plane RIC Services</h2>
                 <div>
                 {Object.keys(services).map((key, index) => {
                     const serviceData = services[key];
                     const status = serviceData ? serviceData.split(';')[2] : 'Inactive';
-                    const uptime = serviceData ? serviceData.split(';')[4] : '0';
+                    const uptime = serviceData ? serviceData.split(';')[4] : ' ';
                     const displayStatus = status !== 'Inactive' ? `${status} (${uptime})` : status;
                     return (
                     <p key={index}>
@@ -62,7 +62,7 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
                     {Array.from(Object.keys(bsevent)).map((key, index) => (
                         <p key={index}>
                         <strong>Cell ID:</strong> {key} &nbsp;&nbsp;
-                        <strong>Connected UEs:</strong> {
+                        <strong>Active UEs:</strong> {
                             bsevent[key]?.ue
                             ? Array.from(Object.keys(bsevent[key].ue)).length
                             : 0

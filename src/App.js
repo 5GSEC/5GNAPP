@@ -40,7 +40,7 @@ const update_interval = 10000; // data update interval in milliseconds
 export function updateData (setEvent, setService) {
   if (data_simulation === 1) {
     fetchCsvData(setEvent);
-    setService({"mobiexpert-xapp":"","mobiflow-auditor":"ricxapp-mobiflow-auditor-6f695ddc84-dhfrh;1/1;Running;0;28m","mobiintrospect":"","mobiwatch-xapp":""}); // set sampele data
+    setService({"mobiexpert-xapp":"","mobiflow-auditor":"ricxapp-mobiflow-auditor-6f695ddc84-8n469;1/1;Running;0;95m","mobiintrospect":"","mobiwatch-xapp":"","ricplt-e2mgr":"deployment-ricplt-e2mgr-b988db566-hrhj2;1/1;Running;2;4d20h"}); // set sampele data
   } else {
     fetchSdlData(setEvent);
     fetchServiceStatus(setService);
