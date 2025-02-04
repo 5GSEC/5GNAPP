@@ -40,6 +40,7 @@ const update_interval = 10000; // data update interval in milliseconds
 export function updateData (setEvent, setService) {
   if (data_simulation === 1) {
     fetchCsvData(setEvent);
+    setService({"mobiexpert-xapp":"","mobiflow-auditor":"ricxapp-mobiflow-auditor-6f695ddc84-dhfrh;1/1;Running;0;28m","mobiintrospect":"","mobiwatch-xapp":""}); // set sampele data
   } else {
     fetchSdlData(setEvent);
     fetchServiceStatus(setService);
@@ -54,10 +55,9 @@ function AppContent() {
   useEffect(() => {
     const interval = setInterval(() => {
       updateData(setEvent, setService);
+    }, update_interval); // in milliseconds
 
-  }, update_interval); // in milliseconds
-
-  updateData(setEvent, setService);
+    updateData(setEvent, setService);
 
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
@@ -70,7 +70,7 @@ function AppContent() {
         <SubHeader>You cannot secure what you cannot see</SubHeader>
         <div style={{ height: "0em" }} /> {/* Add gap between CenterBar and the rest */}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
-          <CenterBar setEvent={setEvent} setService={setService} bsevent={bevent} service={services} bsId={hoveredBsId} ueId={hoveredUeId} />
+          <CenterBar setEvent={setEvent} setService={setService} bsevent={bevent} services={services} bsId={hoveredBsId} ueId={hoveredUeId} />
         </div>
         <div className="App" style={{display: "flex", justifyContent: "center", alignItems: "center", height: "80vh", width: "100%", gap: "200px" }}>
           {Array.from(Object.keys(bevent)).map((bsId, index) => (
