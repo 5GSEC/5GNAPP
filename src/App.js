@@ -3,9 +3,12 @@ import "./App.css";
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import { fetchUserData } from "./fetchUserData";
-import { fetchCsvData } from "./fetchUserData";
+import { fetchCsvData, fetchSdlData} from "./fetchUserData";
 import { loadCsvData } from "./utils/csvLoader";
 import { Parser } from "papaparse";
+
+const data_simulation = 1; // 0 for SDL data, 1 for CSV data (simulation)
+const update_interval = 10000; // data update interval in milliseconds
 
 function AppContent() {
   // const data = loadCsvData();
@@ -15,13 +18,17 @@ function AppContent() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // setEvent(fetchUserData());
+      if (data_simulation === 1)
+        fetchCsvData(setEvent);
+      else
+        fetchSdlData(setEvent);
 
-      // fetchUserData(setEvent)
-       fetchCsvData(setEvent);
-  }, 10000); // 10000 milliseconds = 10 seconds
-  // fetchUserData(setEvent)
-  fetchCsvData(setEvent)
+  }, update_interval); // in milliseconds
+
+  if (data_simulation === 1)
+    fetchCsvData(setEvent);
+  else
+    fetchSdlData(setEvent);
 
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);

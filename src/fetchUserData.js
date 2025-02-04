@@ -19,6 +19,27 @@ function fetchUserData(setEvent) {
     });
 }
 
+function fetchSdlData(setEvent) {
+  fetch("http://localhost:8080/fetchSdlData", {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      setEvent(data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+
 function fetchCsvData(setEvent) {
   fetch("http://localhost:8080/fetchCsvData", {
     method: 'GET',
@@ -41,4 +62,5 @@ function fetchCsvData(setEvent) {
 }
 
 export { fetchUserData };
+export { fetchSdlData };
 export { fetchCsvData };
