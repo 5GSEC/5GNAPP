@@ -16,7 +16,7 @@ const fieldsToRender = [
     "Event Name",
     "Timestamp",
     "Affected base station ID",
-    "Affected UE ID",
+    // "Affected UE ID",
     "Level",
     "Description"
   ];
@@ -24,9 +24,9 @@ const fieldsToRender = [
 const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
     return (
         <Wrapper>
-        <div style={{ display: "flex", gap: "2em" }}>
+        <div style={{ display: "flex", gap: "5em" }}>
             <div>
-                <h2>Active Cell Information</h2>
+                <h2>Active Cell and UE Information</h2>
                 <div>
                     {Array.from(Object.keys(bsevent)).map((key, index) => (
                         <p key={index}>
@@ -43,25 +43,25 @@ const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
                 </div>
             <div>
                 <div style={{ display: 'flex' }}>
-                    <h2 className='CenterBarTitle'>Event Information</h2>
+                    <h2 className='CenterBarTitle'>Network Events</h2>
                     <button style={{ background: 'transparent', border: 'transparent', cursor: 'pointer' }} onClick={() => {
                         fetchCsvData(setEvent)
                     }} className='CenterBarTitle'>
                         <img src={refreshIcond} alt="sync icon" style={{ width: '20px', height: '20px' }} />
                     </button>
                 </div>
-                <p><strong>BS ID:</strong> {bsId}</p>
+                <strong>Cell ID:</strong> {bsId}
                 <p><strong>UE ID:</strong> {ueId}</p>
                 <div>
                 {bsevent[bsId] && bsevent[bsId].ue && bsevent[bsId].ue[ueId] ? (
                     <div>
                         {fieldsToRender.map((fld) => {
-                        if (bsevent[bsId].ue[ueId][fld] === undefined) {
+                        if (bsevent[bsId].ue[ueId].event[fld] === undefined) {
                             return null;
                         }
                         return (
                             <p key={fld}>
-                            <strong>{fld}:</strong> {bsevent[bsId].ue[ueId][fld]}
+                            <strong>{fld}:</strong> {bsevent[bsId].ue[ueId].event[fld]}
                             </p>
                         );
                         })}

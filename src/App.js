@@ -38,8 +38,6 @@ const data_simulation = 1; // 0 for SDL data, 1 for CSV data (simulation)
 const update_interval = 10000; // data update interval in milliseconds
 
 function AppContent() {
-  // const data = loadCsvData();
-  // console.log(data);
   const [bevent, setEvent] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
