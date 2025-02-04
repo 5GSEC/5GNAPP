@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { fetchCsvData } from '../fetchUserData';
+import { updateData } from '../App';
 import refreshIcond from './refresh.png'
 
 const Wrapper = styled.div`
@@ -21,7 +22,7 @@ const fieldsToRender = [
     "Description"
   ];
 
-const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
+const CenterBar = ({ setEvent, setService, bsevent, service, bsId, ueId }) => {
     return (
         <Wrapper>
         <div style={{ display: "flex", gap: "5em" }}>
@@ -45,7 +46,7 @@ const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
                 <div style={{ display: 'flex' }}>
                     <h2 className='CenterBarTitle'>Network Events</h2>
                     <button style={{ background: 'transparent', border: 'transparent', cursor: 'pointer' }} onClick={() => {
-                        fetchCsvData(setEvent)
+                        updateData(setEvent, setService);
                     }} className='CenterBarTitle'>
                         <img src={refreshIcond} alt="sync icon" style={{ width: '20px', height: '20px' }} />
                     </button>
