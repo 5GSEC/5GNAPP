@@ -1,7 +1,16 @@
 import React from 'react';
-import { fetchUserData } from '../fetchUserData';
+import styled from 'styled-components';
+import { fetchCsvData } from '../fetchUserData';
 import refreshIcond from './refresh.png'
 
+const Wrapper = styled.div`
+  display: flex;
+  gap: 5em;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
 
 const fieldsToRender = [
     "Event Name",
@@ -14,15 +23,15 @@ const fieldsToRender = [
 
 const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
     return (
-        
+        <Wrapper>
         <div style={{ display: "flex", gap: "2em" }}>
             <div>
-                <h2>Base Station Information</h2>
+                <h2>Active Cell Information</h2>
                 <div>
                     {Array.from(Object.keys(bsevent)).map((key, index) => (
                         <p key={index}>
-                        Station: {key} &nbsp;&nbsp;
-                        Connections: {
+                        Cell ID: {key} &nbsp;&nbsp;
+                        Connected UEs: {
                             bsevent[key]?.ue
                             ? Array.from(Object.keys(bsevent[key].ue)).length
                             : 0
@@ -36,7 +45,7 @@ const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
                 <div style={{ display: 'flex' }}>
                     <h2 className='CenterBarTitle'>Event Information</h2>
                     <button style={{ background: 'transparent', border: 'transparent', cursor: 'pointer' }} onClick={() => {
-                        fetchUserData(setEvent)
+                        fetchCsvData(setEvent)
                     }} className='CenterBarTitle'>
                         <img src={refreshIcond} alt="sync icon" style={{ width: '20px', height: '20px' }} />
                     </button>
@@ -64,6 +73,7 @@ const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
                 </div>
             </div>
         </div>
+        </Wrapper>
     );
 };
 
