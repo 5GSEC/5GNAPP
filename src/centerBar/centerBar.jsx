@@ -16,6 +16,7 @@ const Container = styled.div`
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif;
 `;
 
 const StatusIndicator = styled.span`

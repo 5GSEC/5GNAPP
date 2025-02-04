@@ -8,7 +8,7 @@ const MenuNavBar = () => {
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <img src={logo} alt="Logo" style={{ width: '200px', marginBottom: '10px' }} /> {/* Adding the logo */}
       </div>
-      <ul style={{ listStyleType: 'none', padding: 0, color: 'white' }}> {/* Changing text color to white */}
+      <ul style={{ listStyleType: 'none', padding: 0, color: 'white', fontFamily: 'Inter, sans-serif' }}> {/* Changing text color to white */}
         <li style={{ margin: '20px 0' }}>
           <FaHome /> Dashboard
         </li>

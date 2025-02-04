@@ -25,6 +25,8 @@ const Header = styled.h2`
   color: #333;
   text-align: left;
   margin-bottom: 5px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
 `;
 
 const SubHeader = styled.h3`
@@ -32,6 +34,8 @@ const SubHeader = styled.h3`
   text-align: left;
   font-weight: normal;
   margin-top: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
 `;
 
 const data_simulation = 0; // 0 for SDL data, 1 for CSV data (simulation)
@@ -68,7 +72,7 @@ function AppContent() {
       <Content>
         <Header>5GNAPP - 5G-Native Management Platform</Header>
         <SubHeader>You cannot secure what you cannot see</SubHeader>
-        <div style={{ height: "0em" }} /> {/* Add gap between CenterBar and the rest */}
+        <div style={{ height: "2em" }} /> {/* Add gap between CenterBar and the rest */}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
           <CenterBar setEvent={setEvent} setService={setService} bsevent={bevent} services={services} bsId={hoveredBsId} ueId={hoveredUeId} />
         </div>
