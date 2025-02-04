@@ -6,16 +6,78 @@
     margin: 0;
     padding: 0;
 }
+/*
+ .floating-window {
+/* position: flex;  changed from position absolute to display flex*/
 
-.floating-window {
-    position: absolute;
-    top: 0;
+
+    /*display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px;
+    
+
+
+
+
+    /* top: 0; 
     left: 100%;
     margin-left: 10px;
-    background-color: rgba(255, 255, 255, 1);
+    */
+     /*background-color: rgba(255, 255, 255, 1);
     border: 1px solid #ccc;
     padding: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     z-index: 1000;
-    width: 300px; /* Added width property */
+    width: 300px; /* Added width property  */
+    
+    
+     /*}*/
+
+
+
+
+.floating-window {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 1);
+    border: 1px solid #ccc;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    width: auto;             
+    min-width: 375px;        
+    max-width: 600px;  
+    
+    pointer-events: none; /* Prevents the floating window from interfering with mouse events */
 }
+
+
+/* added this */
+.floating-window p {
+    margin: 5px 0;
+}
+
+/* a row containing a label and a value side by side */
+.info-row {
+    display: flex;              /* horizontal flex */
+    justify-content: space-between;
+    margin: 4px 0;              /* small vertical spacing */
+  }
+  
+  /* make label a bit narrower, align text to the left or right */
+  .info-label {
+    font-weight: bold;
+    width: 120px;           /* fix label width if you want columns */
+    margin-right: 8px;      /* spacing to value */
+    text-align: left;       /* or right if you prefer */
+  }
+  
+  /* the value expands as needed */
+  .info-value {
+    flex: 1;
+    text-align: left;       /* optional */
+    white-space: normal; /* allow text to wrap */
+  }

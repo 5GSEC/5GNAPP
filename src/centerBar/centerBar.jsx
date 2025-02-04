@@ -2,6 +2,16 @@ import React from 'react';
 import { fetchUserData } from '../fetchUserData';
 import refreshIcond from './refresh.png'
 
+
+const fieldsToRender = [
+    "Event Name",
+    "Timestamp",
+    "Affected base station ID",
+    "Affected UE ID",
+    "Level",
+    "Description"
+  ];
+
 const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
     return (
         
@@ -10,10 +20,18 @@ const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
                 <h2>Base Station Information</h2>
                 <div>
                     {Array.from(Object.keys(bsevent)).map((key, index) => (
-                        <p>Station: {key}  &nbsp;&nbsp;&nbsp;&nbsp;  Connections: {Array.from(Object.keys(bsevent[key]["stations"])).length}   &nbsp;&nbsp;&nbsp;&nbsp; Report interval: {bsevent[key]["report-period"]}ms</p>
+                        <p key={index}>
+                        Station: {key} &nbsp;&nbsp;
+                        Connections: {
+                            bsevent[key]?.ue
+                            ? Array.from(Object.keys(bsevent[key].ue)).length
+                            : 0
+                        }
+                        &nbsp;&nbsp; Report interval: {bsevent[key].report_period}ms
+                        </p>
                     ))}
+                    </div>
                 </div>
-            </div>
             <div>
                 <div style={{ display: 'flex' }}>
                     <h2 className='CenterBarTitle'>Event Information</h2>
@@ -26,9 +44,23 @@ const CenterBar = ({ setEvent, bsevent, bsId, ueId }) => {
                 <p><strong>BS ID:</strong> {bsId}</p>
                 <p><strong>UE ID:</strong> {ueId}</p>
                 <div>
-                    {bsevent[bsId] && bsevent[bsId]["stations"][ueId] ? Array.from(Object.keys(bsevent[bsId]["stations"][ueId])).map((key, index) => (
-                        <p key={index}>{key}: {bsevent[bsId]["stations"][ueId][key]}</p>
-                    )) : <p>No events</p>}
+                {bsevent[bsId] && bsevent[bsId].ue && bsevent[bsId].ue[ueId] ? (
+                    <div>
+                        {fieldsToRender.map((fld) => {
+                        if (bsevent[bsId].ue[ueId][fld] === undefined) {
+                            return null;
+                        }
+                        return (
+                            <p key={fld}>
+                            <strong>{fld}:</strong> {bsevent[bsId].ue[ueId][fld]}
+                            </p>
+                        );
+                        })}
+                    </div>
+                    ) : (
+                    <p>No events</p>
+                    )}
+
                 </div>
             </div>
         </div>

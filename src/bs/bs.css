@@ -55,13 +55,45 @@
 
 /*added bs-showinfo on screen*/
 .bs-showinfo {
-    width:300px;
+    width: auto;
+    min-width: 300px;   
+    max-width: 600px;    
     background-color: rgba(0, 0, 0, 0.8);
     color: #fff;
     padding: 8px;
     border-radius: 2px;
     z-index: 9999;
-
-    /*added line height adjustment*/
-    line-height: 0.5;
+    line-height: 1.5; /* Adjusted line height for better readability */
 }
+
+
+
+.bs-showinfo p {
+    margin: 0;
+    padding: 2px 0;
+    display: flex;
+    justify-content: space-between; /* Aligns text in a row */
+}
+
+
+.info-row {
+    display: flex;
+    align-items: right;       /* vertical center if text sizes differ */
+    justify-content: flex-start; /* left align */
+    margin: 4px 0;            /* space between rows */
+  }
+  
+  .info-label {
+    font-weight: bold;
+    margin-right: 8px;
+    min-width: 110px;         /* or fix the width if you want columns, e.g. width: 100px */
+    text-align: left;
+  }
+  
+  .info-value {
+    /* flex: 1;                  let value grow if needed */
+    text-align: right;
+    white-space: nowrap;      /* prevents line wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;  /* if too long, we get "..." */
+  }

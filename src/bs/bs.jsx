@@ -2,10 +2,37 @@ import React, { useState, useRef, useContext, createContext } from 'react';
 import './bs.css';
 import UeIcon from '../ue/ue';
 import BsSrc from './bs.png';
+import { format } from 'date-fns'; /* Added date-fns import */
 
 const HoverContext = createContext();
 
 // TODO set up array using 
+
+
+const minimalEventFields = [
+    "Event Name",
+    "Level",
+    "Timestamp"
+  ];
+
+
+
+function parseTimestamp(raw) {
+    if (!raw) return null;
+  
+    const tsString = String(raw);
+    const tsNum = parseInt(tsString, 10);
+  
+    if (tsString.length === 13) {
+      return new Date(tsNum);      // already ms
+    } else if (tsString.length === 10) {
+      return new Date(tsNum * 1000); // convert s => ms
+    } else {
+      return null;
+    }
+  }
+
+
 
 // does the degree math to allow everything to be rendered in a strange order
 // the desired order with length 6 = 0, 300, 60, 210, 120, 180
@@ -19,7 +46,7 @@ function everyOtherDegree(index, length) {
 
 const BsIcon = ({ bsId, backendEvents }) => {
     if (!backendEvents) {
-        console.log('no backend events')
+        // console.log('no backend events')
         backendEvents = {}
     }
     const [isHovered, setIsHovered] = useState(false);
@@ -51,7 +78,7 @@ const BsIcon = ({ bsId, backendEvents }) => {
 
     const handleMouseEnter = (ueId) => {
         setHoveredUeId(ueId);
-        console.log(ueId)
+        // console.log(ueId)
     };
 
 
@@ -87,36 +114,129 @@ const BsIcon = ({ bsId, backendEvents }) => {
 
             {/*below is for details about the bsShowInfo part */}
             {bsShowInfo && (
-                <div 
+            <div 
                 className="bs-showinfo"
-                style = {{
+                style={{
                     position: "fixed", 
                     top: userPos.y + 10,
                     left: userPos.x + 10,
+                }}
+            >
+          <p>BS ID:&nbsp;&nbsp;&nbsp; {bsId}</p>
 
-                    }}
-                >
-                    <p>BS ID: {bsId}</p>
-                    <p>BS ID: {bsId}</p>
-                    <p>BS ID: {bsId}</p>
-                    <p>BS ID: {bsId}</p>
-                    <p>BS ID: {bsId}</p>
-                    <p>BS ID: {bsId}</p>
-                    <p>info: some random info......</p>
-            
-                </div>
-            )}
-            
+{/**
+ * For each UE under this BS, we want to either:
+ * - Show real events, or
+ * - If no event, show a fallback
+ */}
+{Object.keys(backendEvents).map((ueId) => {
+  const ueData = backendEvents[ueId];
 
-            <div className="branches">
-                {Array.from(Object.keys(backendEvents)).map((ueId, index) => (
-                    <div key={index} className="branch" style={{ transform: `rotate(${everyOtherDegree(index, Object.keys(backendEvents).length)}deg) translate(${isHovered ? 10 * Object.keys(backendEvents).length + 100 : 50}px) rotate(-${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)`, zIndex: `0`, width: '0px', height: '0px'}}>
-                        <UeIcon ueId={ueId} isHovered={isHovered} click={click} backendEvent={backendEvents[ueId]} setHoveredUeId={setHoveredUeId} handleMouseEnter={handleMouseEnter} />
+  // We'll build an array of { eventId, data } to render
+  let eventsArray = [];
+  if (!ueData.event || Object.keys(ueData.event).length === 0) {
+    // Construct a fallback event
+    eventsArray = [{
+      eventId: 'fallback',
+      data: {
+        "Event Name": "None",
+        "Level": "normal",
+        "Timestamp": Date.now() // or some default
+      }
+    }];
+  } else {
+    // Turn each real event into an array entry
+    eventsArray = Object.keys(ueData.event).map(eventId => ({
+      eventId,
+      data: ueData.event[eventId]
+    }));
+  }
+
+  return (
+    <div key={ueId} style={{ marginBottom: '1em' }}>
+        <p>UE ID:&nbsp;&nbsp;&nbsp;{ueId}</p>
+
+      {eventsArray.map(({ eventId, data }) => {
+        return (
+          <div key={eventId} style={{ marginLeft: '1.5em' }}>
+            {/* minimalEventFields => "Event Name", "Level", "Timestamp" */}
+            {minimalEventFields.map((field) => {
+              if (!Object.prototype.hasOwnProperty.call(data, field)) {
+                return null;
+              }
+              if (field === "Timestamp") {
+                const rawTime = data["Timestamp"];
+                const dateObj = parseTimestamp(rawTime);
+                let displayTime = "(Invalid)";
+                if (dateObj && !isNaN(dateObj.getTime())) {
+                  displayTime = format(dateObj, 'PPpp');
+                }
+                return (
+                //   <p key={field}>
+                //     <strong>{field}:</strong> {displayTime}
+                //   </p>
+                    <div key={field} className="info-row">
+                    <span className="info-label">{field}:</span>
+                    <span className="info-value">{displayTime}</span>
                     </div>
-                ))}
-            </div>
-        </div>
-    );
+                
+                );
+              } else {
+                // for "Event Name", "Level"
+                let val = data[field];
+                if (typeof val === 'object' && val !== null) {
+                  val = JSON.stringify(val);
+                }
+                return (
+                //   <p key={field}>
+                //     <strong>{field}:</strong> {val}
+                //   </p>
+                    <div key={field} className="info-row">
+                    <span className="info-label">{field}:</span>
+                    <span className="info-value">{val}</span>
+                    </div>
+
+                );
+              }
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+})}
+</div>
+)}
+            
+
+      {/* Draw "branches" and the UEs around the BS */}
+      <div className="branches">
+        {Object.keys(backendEvents).map((ueId, index) => (
+          <div
+            key={ueId}
+            className="branch"
+            style={{
+              transform: `rotate(${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)
+                          translate(${isHovered ? 10 * Object.keys(backendEvents).length + 100 : 50}px)
+                          rotate(-${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)`,
+              zIndex: '0',
+              width: '0px',
+              height: '0px'
+            }}
+          >
+            <UeIcon
+              ueId={ueId}
+              isHovered={isHovered}
+              click={click}
+              backendEvent={backendEvents[ueId]}
+              setHoveredUeId={setHoveredUeId}
+              handleMouseEnter={handleMouseEnter}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 const BsIconProvider = ({ children }) => {

@@ -3,12 +3,13 @@ import "./App.css";
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import { fetchUserData } from "./fetchUserData";
+import { fetchCsvData } from "./fetchUserData";
 import { loadCsvData } from "./utils/csvLoader";
 import { Parser } from "papaparse";
 
 function AppContent() {
-  const data = loadCsvData();
-  console.log(data);
+  // const data = loadCsvData();
+  // console.log(data);
   const [bevent, setEvent] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
@@ -16,9 +17,11 @@ function AppContent() {
     const interval = setInterval(() => {
       // setEvent(fetchUserData());
 
-      fetchUserData(setEvent)
+      // fetchUserData(setEvent)
+       fetchCsvData(setEvent);
   }, 10000); // 10000 milliseconds = 10 seconds
-  fetchUserData(setEvent)
+  // fetchUserData(setEvent)
+  fetchCsvData(setEvent)
 
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
@@ -47,7 +50,9 @@ function AppContent() {
         }}
       >
         {Array.from(Object.keys(bevent)).map((bsId, index) => (
-          <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["stations"]} />
+          // <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["stations"]} />
+          //changed key from stations to ue
+          <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["ue"]} />
         ))}
       </div>
     </div>
