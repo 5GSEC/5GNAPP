@@ -4,7 +4,7 @@ import logo from './assets/PES_TransparentWhite_Alt_Logo_G443.png'; // Importing
 
 const MenuNavBar = () => {
   return (
-    <div style={{ width: '200px', backgroundColor: '#11182E', padding: '20px', height: '100vh' }}>
+    <div style={{ width: '200px', backgroundColor: '#11182E', padding: '20px', height: '120vh' }}>
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <img src={logo} alt="Logo" style={{ width: '200px', marginBottom: '10px' }} /> {/* Adding the logo */}
       </div>

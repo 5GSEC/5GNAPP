@@ -8,7 +8,7 @@ import styled from "styled-components";
 
 const Container = styled.div`
   display: flex;
-  height: 100vh;
+  height: 120vh;
   background-color: #f4f6f8;
 `;
 
