@@ -10,12 +10,21 @@ const fieldsToRender = [
     "Event Name",
     "Timestamp",
     // "Affected base station ID",
-    "Affected UE ID",
+    // "Affected UE ID",
     "Level",
     "Description"
   ];
 
-
+  const metadataFields = [
+    "rrc_msg",
+    "nas_msg",
+    "rrc_state",
+    "nas_state",
+    "rrc_sec_state",
+    "reserved_field_1",
+    "reserved_field_2",
+    "reserved_field_3"
+  ];
 
 function parseTimestamp(raw) {
     if (!raw) return null;
@@ -41,6 +50,10 @@ function parseTimestamp(raw) {
 const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
     const [showInfo, setShowInfo] = useState(false);
     const ueIconRef = useRef(null);
+
+    //for showing the detail metadata when clicking on the UE
+    const [showDetails, setShowDetails] = useState(false);
+    const [clickPos, setClickPos] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         // console.log("UeIcon debug => backendEvent:", backendEvent);
@@ -87,6 +100,16 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
             );
 
 
+  /**
+   * clicked on UE => toggle showDetails
+   */
+  const handleUeClick = (e) => {
+    e.stopPropagation(); // Prevent the click from bubbling up to the parent
+    setClickPos({ x: e.clientX, y: e.clientY });
+    setShowDetails((prev) => !prev);
+  };
+
+
   // If there's no "event" or it's empty,
   // we define a "fallback" singleEvent with some default fields
   // so we still show something.
@@ -116,6 +139,19 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
   }
 
 
+
+  /**
+   * prepare clicking metadata
+   * pretend that backend dats put “mobiflow” in backendEvent.mobiflow (array)
+   * for example test, we take mobiflow[0] as metadata
+   */
+  let metadataObj = {};
+  if (backendEvent && backendEvent.mobiflow && backendEvent.mobiflow.length > 0) {
+    metadataObj = backendEvent.mobiflow[0]; 
+  }
+
+
+
     //const formattedTimestamp = backendEvent ? format(new Date(backendEvent.timestamp * 1000), 'PPpp') : '';
     // const formattedTimestamp = backendEvent ? format(new Date(backendEvent.timestamp), 'PPpp') : '';
     // let formattedTimestamp = '';
@@ -131,12 +167,14 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
 
     return (
         <div className="ue-container">
+
             <div
                 className="ue-icon"
                 style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }} // Adjusted size for unhovered state
                 ref={ueIconRef}
                 onMouseEnter={() => setHoveredUeId(ueId)}
                 onMouseLeave={() => setHoveredUeId(null)}
+                onClick={handleUeClick}  // clicking event
             >
                 <img src={cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
             </div>
@@ -159,7 +197,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
 
                 if (fieldName === "Timestamp") {
 
-                    console.log("Debug info: 444", singleEvent[fieldName]);
+
                   const rawTime = singleEvent["Timestamp"];
                   const dateObj = parseTimestamp(rawTime);
                   let displayTime = "(Invalid timestamp)";
@@ -190,6 +228,68 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
           ))}
         </div>
       )}
+
+      {/* showinfo window for clicking */}
+        {showDetails && (
+          <div
+            className="details-window"
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)', 
+              backgroundColor: '#fff',
+              color: '#000',
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #000', // Added black border
+              width: '900px', // Increased width
+              height: '400px', // Added height
+              overflow: 'auto', // Added overflow for scroll
+              zIndex: 9999
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4 style={{ margin: '0' }}>UE Metadata</h4>
+              {/* x button */}
+              <button
+                onClick={() => setShowDetails(false)}
+                style={{
+                  background: 'transparent',
+                  color: '#000',
+                  border: 'none',
+                  fontSize: '1.2em',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* rest of the content, e.g. rrc_msg, nas_msg etc. */}
+            <table style={{ width: '100%', marginTop: '16px', borderCollapse: 'collapse' }}>
+      <thead>
+        <tr>
+          {metadataFields.map((fld) => (
+            <th key={fld} style={{ border: '1px solid #000', padding: '8px', backgroundColor: '#f2f2f2' }}>{fld}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {metadataFields.map((fld) => {
+            let val = metadataObj[fld] || "N/A";
+            return (
+              <td key={fld} style={{ border: '1px solid #000', padding: '8px' }}>{val}</td>
+            );
+          })}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+)}
+
+      
     </div>
   );
 };

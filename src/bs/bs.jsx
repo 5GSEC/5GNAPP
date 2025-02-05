@@ -104,13 +104,13 @@ const BsIcon = ({ bsId, backendEvents }) => {
             onMouseLeave={() => mouseHover(false)}
 
             //added click to show details of a bs
-            onClick={handleClick}
+            // onClick={handleClick}
             /*onClick={() => bsShowInfo((prev) => !prev)}*/
 
             onContextMenu={(e) => { e.preventDefault(); click ? setClick(false) : setClick(true); }}
             style={{ visibility: hoveredBsId && hoveredBsId !== bsId ? 'hidden' : 'visible' }}
         >
-            <img src={BsSrc} alt="BS Icon" className="bs-icon" />
+            <img src={BsSrc} alt="BS Icon" className="bs-icon"  />
 
             {/*below is for details about the bsShowInfo part */}
             {bsShowInfo && (
