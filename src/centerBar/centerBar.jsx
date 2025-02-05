@@ -38,6 +38,16 @@ const fieldsToRender = [
   ];
 
 const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
+    const getTotalEvents = (bsId) => {
+        if (!bsevent[bsId] || !bsevent[bsId].ue) return 0;
+        return Object.values(bsevent[bsId].ue).reduce((total, ue) => total + Object.keys(ue.event).length, 0);
+      };
+    
+    const getCriticalEvents = (bsId) => {
+    if (!bsevent[bsId] || !bsevent[bsId].ue) return 0;
+    return Object.values(bsevent[bsId].ue).reduce((total, ue) => total + Object.values(ue.event).filter(event => event.Level === 'Critical').length, 0);
+    };
+
     return (
         <Wrapper>
             <Container style={{ width: '40%' }}>
@@ -82,12 +92,18 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
                         <img src={refreshIcond} alt="sync icon" style={{ width: '20px', height: '20px' }} />
                     </button>
                 </div>
-                <strong>Cell ID:</strong> {bsId}
-                <p><strong>UE ID:</strong> {ueId}</p>
+                <strong>Current Cell:</strong> {bsId}
+                <p><strong>Current UE:</strong> {ueId}</p>
                 <div>
                 {bsevent[bsId] && bsevent[bsId].ue && bsevent[bsId].ue[ueId] ? (
                     <div>
-                        {fieldsToRender.map((fld) => {
+                        {bsId && ueId && (
+                            <>
+                            <strong>Total Events</strong>: {Object.keys(bsevent[bsId].ue[ueId].event).length}
+                            <p><strong>Critical Events</strong>: {Object.values(bsevent[bsId].ue[ueId].event).filter(event => event.Level === 'Critical').length}</p>
+                            </>
+                        )}
+                        {/* {fieldsToRender.map((fld) => {
                         if (bsevent[bsId].ue[ueId].event[fld] === undefined) {
                             return null;
                         }
@@ -96,12 +112,19 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
                             <strong>{fld}:</strong> {bsevent[bsId].ue[ueId].event[fld]}
                             </p>
                         );
-                        })}
+                        })} */}
                     </div>
+                    ) : bsId && !ueId ? (
+                        <div>
+                          <strong>Total Events</strong>: {getTotalEvents(bsId)}
+                          <p><strong>Critical Events</strong>: {getCriticalEvents(bsId)}</p>
+                        </div>
                     ) : (
-                    <p>No events</p>
+                    <div>
+                        <strong>Total Events</strong>: 0
+                        <p><strong>Critical Events</strong>: 0</p>
+                    </div>
                     )}
-
                 </div>
             </Container>
         </Wrapper>
