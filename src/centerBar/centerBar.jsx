@@ -41,7 +41,7 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
     return (
         <Wrapper>
             <Container style={{ width: '40%' }}>
-                <h2>Control-Plane RIC Services</h2>
+                <h2 style={{marginTop: '0em'}}>Control-Plane RIC Services</h2>
                 <div>
                 {Object.keys(services).map((key, index) => {
                     const serviceData = services[key];
@@ -58,7 +58,7 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
                 </div>
             </Container>
             <Container style={{ width: '40%' }}>
-                <h2>Active Cell and UE Information</h2>
+                <h2 style={{marginTop: '0em'}}>Active Cell and UE Information</h2>
                 <div>
                     {Array.from(Object.keys(bsevent)).map((key, index) => (
                         <p key={index}>
@@ -75,8 +75,8 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
             </Container>
             <Container style={{ width: '20%' }}>
                 <div style={{ display: 'flex' }}>
-                    <h2 className='CenterBarTitle'>Network Events</h2>
-                    <button style={{ background: 'transparent', border: 'transparent', cursor: 'pointer' }} onClick={() => {
+                    <h2 style={{marginTop: '0em'}}>Network Events</h2>
+                    <button style={{ background: 'transparent', border: 'transparent', cursor: 'pointer', marginTop: '3px', height: '100%'}} onClick={() => {
                         updateData(setEvent, setService);
                     }} className='CenterBarTitle'>
                         <img src={refreshIcond} alt="sync icon" style={{ width: '20px', height: '20px' }} />
