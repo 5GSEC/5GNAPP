@@ -136,6 +136,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
                 style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }} // Adjusted size for unhovered state
                 ref={ueIconRef}
                 onMouseEnter={() => setHoveredUeId(ueId)}
+                onMouseLeave={() => setHoveredUeId(null)}
             >
                 <img src={cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
             </div>
