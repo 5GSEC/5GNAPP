@@ -68,7 +68,14 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
                 </div>
             </Container>
             <Container style={{ width: '40%' }}>
-                <h2 style={{marginTop: '0em'}}>Active Cell and UE Information</h2>
+                <div style={{ display: 'flex'}}>
+                    <h2 style={{margin: '0em'}}>Active Cell and UE Information</h2>
+                    <button style={{ background: 'transparent', border: 'transparent', cursor: 'pointer', marginTop: '3px', height: '100%'}} onClick={() => {
+                            updateData(setEvent, setService);
+                        }} className='CenterBarTitle'>
+                            <img src={refreshIcond} alt="sync icon" style={{ width: '20px', height: '20px' }} />
+                    </button>
+                </div>
                 <div>
                     {Array.from(Object.keys(bsevent)).map((key, index) => (
                         <p key={index}>
@@ -86,11 +93,6 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
             <Container style={{ width: '20%' }}>
                 <div style={{ display: 'flex' }}>
                     <h2 style={{marginTop: '0em'}}>Network Events</h2>
-                    <button style={{ background: 'transparent', border: 'transparent', cursor: 'pointer', marginTop: '3px', height: '100%'}} onClick={() => {
-                        updateData(setEvent, setService);
-                    }} className='CenterBarTitle'>
-                        <img src={refreshIcond} alt="sync icon" style={{ width: '20px', height: '20px' }} />
-                    </button>
                 </div>
                 <strong>Current Cell:</strong> {bsId}
                 <p><strong>Current UE:</strong> {ueId}</p>
