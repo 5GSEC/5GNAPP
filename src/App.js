@@ -1,61 +1,88 @@
-import { useState, useEffect, useContext } from "react";
 import "./App.css";
+import { useState, useEffect, useContext } from "react";
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
+import { fetchCsvData, fetchSdlData, fetchServiceStatus} from "./fetchUserData";
 import CenterBar from "./centerBar/centerBar";
-import { fetchUserData } from "./fetchUserData";
-import { fetchCsvData } from "./fetchUserData";
-import { loadCsvData } from "./utils/csvLoader";
-import { Parser } from "papaparse";
+import MenuNavBar from "./MenuNavBar";
+import styled from "styled-components";
+
+const Container = styled.div`
+  display: flex;
+  height: 100vh;
+  background-color: #f4f6f8;
+`;
+
+const Content = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1;
+  padding: 20px;
+`;
+
+const Header = styled.h2`
+  color: #333;
+  text-align: left;
+  margin-bottom: 5px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+`;
+
+const SubHeader = styled.h3`
+  color: #555;
+  text-align: left;
+  font-weight: normal;
+  margin-top: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+`;
+
+const data_simulation = 0; // 0 for SDL data, 1 for CSV data (simulation)
+const update_interval = 10000; // data update interval in milliseconds
+
+export function updateData (setEvent, setService) {
+  if (data_simulation === 1) {
+    fetchCsvData(setEvent);
+    setService({"mobiexpert-xapp":"","mobiflow-auditor":"ricxapp-mobiflow-auditor-6f695ddc84-8n469;1/1;Running;0;95m","mobiintrospect":"","mobiwatch-xapp":"","ricplt-e2mgr":"deployment-ricplt-e2mgr-b988db566-hrhj2;1/1;Running;2;4d20h"}); // set sampele data
+  } else {
+    fetchSdlData(setEvent);
+    fetchServiceStatus(setService);
+  }
+};
 
 function AppContent() {
-  // const data = loadCsvData();
-  // console.log(data);
   const [bevent, setEvent] = useState({});
+  const [services, setService] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // setEvent(fetchUserData());
+      updateData(setEvent, setService);
+    }, update_interval); // in milliseconds
 
-      // fetchUserData(setEvent)
-       fetchCsvData(setEvent);
-  }, 10000); // 10000 milliseconds = 10 seconds
-  // fetchUserData(setEvent)
-  fetchCsvData(setEvent)
+    updateData(setEvent, setService);
 
     return () => clearInterval(interval); // Cleanup interval on component unmount
   }, []);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "100vh",
-        backgroundColor: "#ffffff",
-      }}
-    >
-      <div style={{ height: "10em" }} /> {/* Add gap between CenterBar and the rest */}
-      <CenterBar setEvent={setEvent} bsevent={bevent} bsId={hoveredBsId} ueId={hoveredUeId} />
-      <div
-        className="App"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "80vh",
-          gap: "200px", // Adjust gap as needed
-        }}
-      >
-        {Array.from(Object.keys(bevent)).map((bsId, index) => (
-          // <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["stations"]} />
-          //changed key from stations to ue
-          <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["ue"]} />
+    <Container>
+      <MenuNavBar />
+      <Content>
+        <Header>5GNAPP - 5G-Native Management Platform</Header>
+        <SubHeader>You cannot secure what you cannot see</SubHeader>
+        <div style={{ height: "2em" }} /> {/* Add gap between CenterBar and the rest */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
+          <CenterBar setEvent={setEvent} setService={setService} bsevent={bevent} services={services} bsId={hoveredBsId} ueId={hoveredUeId} />
+        </div>
+        <div className="App" style={{display: "flex", justifyContent: "center", alignItems: "center", height: "80vh", width: "100%", gap: "200px" }}>
+          {Array.from(Object.keys(bevent)).map((bsId, index) => (
+            <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["ue"]} />
         ))}
-      </div>
-    </div>
+        </div>
+      </Content>
+    </Container>
   );
 }
 

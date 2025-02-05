@@ -5,73 +5,10 @@ import subprocess
 import sqlite3
 import json
 import csv
-
-# class RequestHandler(BaseHTTPRequestHandler):
-#         def _set_headers(self):
-#         self.send_response(200)
-#         self.send_header('Content-type', 'application/json')
-#         self.send_header('Access-Control-Allow-Origin', '*')
-#         self.end_headers()
-
-
-#     def do_GET(self):
-#         if self.path == '/fetchUserData':
-#             self._set_headers()
-#             # Your existing code to fetch user data
-#             self.wfile.write(b'{"message": "User data"}')
-
-
-#     def do_OPTIONS(self):
-#         self.send_response(200)
-#         self.send_header('Access-Control-Allow-Origin', '*')
-#         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-#         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-#         self.end_headers()
-
-
-#     def fetch_user_data(self):
-#         bs_db = sqlite3.connect('db/main.db')
-#         cursor = bs_db.cursor()
-#         cursor.execute("SELECT nr_cell_id as id, report_period FROM bs")
-#         bs_rows = cursor.fetchall()
-#         data = {}
-#         for bs in bs_rows:
-#             cursor.execute(f"select rnti, max(timestamp) from ue where nr_cell_id={bs[0]} group by rnti")
-#             ue_data = {}
-#             for ue in cursor.fetchall():
-#                 ue_data[f"{bs[0]}-{ue[0]}"] = {"level": "normal", "timestamp": ue[1], "Event Name": "None"}
-#             # get the event data
-#             cursor.execute("select * from event")
-            
-#             for ev in cursor.fetchall():
-#                 if f"{ev[2]}-{ev[4]}" in ue_data:
-#                     ue_data[f"{ev[2]}-{ev[4]}"] = {"level": ev[5], "timestamp": ev[3], "Event Name": ev[1]}
-            
-#             data[bs[0]] = {
-#                 "report-period": bs[1],
-#                 "stations": ue_data
-#             }
-
-
-#         bs_db.close()
-#         return data
-
-
-# def run(server_class=HTTPServer, handler_class=RequestHandler, port=8080):
-    # server_address = ('', port)
-    # httpd = server_class(server_address, handler_class)
-    # print(f'Starting httpd server on port {port}')
-    # httpd.serve_forever()
-
-
-# if __name__ == "__main__":
-    # run()
-
+import re
 
 app = Flask(__name__)
 CORS(app) # for remote access
-
-
 
 @app.route('/fetchUserData', methods=['GET'])
 def fetch_user_data():
@@ -104,8 +41,6 @@ def fetch_user_data():
     return data
 
 
-
-
 def execute_command(command):
     ''' Execute a shell command and return the output '''
     print(command)
@@ -114,14 +49,41 @@ def execute_command(command):
     #     raise Exception(f"Command failed with error: {result.stderr}")
     # return result.stdout.decode("utf-8", errors="replace")
     try:
-
-
         result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
         return result.stdout.strip()
     except Exception as e:
         return None, str(e), -1  # Return -1 as exit code for exceptions
 
 
+@app.route('/fetchServiceStatus', methods=['GET'])
+def fetch_service_status():
+    ''' Fetch the status of the SE-RAN services '''
+    services = {}
+    command = "kubectl get pods -A | awk {'print $2\";\"$3\";\"$4\";\"$5\";\"$6'}"
+    output = execute_command(command)
+    lines = output.split("\n")
+
+    pod_names = ["ricplt-e2mgr", "mobiflow-auditor", "mobiexpert-xapp", "mobiwatch-xapp"]
+    for pod in pod_names:
+        services[pod] = ""
+
+    for line in lines:
+        for pod in pod_names:
+            if pod in line:
+                services[pod] = line.replace("(", "") # tmp soluton to solve getting (4d20h ago) as the age
+                break
+
+    # MobiIntrospect
+    program_name = "loader"
+    command = f"pgrep -x {program_name}" # need to makes sure pgrep is available
+    output = execute_command(command)
+    if output:
+        services["mobiintrospect"] = " ; ;Running; ;" # TODO get the age of the process
+    else:
+        services["mobiintrospect"] = ""
+    
+    print(json.dumps(services, indent=4))
+    return services
 
 
 @app.route('/fetchSdlData', methods=['GET'])
