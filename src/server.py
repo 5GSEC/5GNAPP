@@ -192,6 +192,7 @@ def fetch_sdl_data():
                         "rrc_integrity_alg": ue_mf_item[ue_meta.index("rrc_integrity_alg")],
                         "nas_cipher_alg": ue_mf_item[ue_meta.index("nas_cipher_alg")],
                         "nas_integrity_alg": ue_mf_item[ue_meta.index("nas_integrity_alg")],
+                        "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
                         "mobiflow": [{
                             "rrc_msg": ue_mf_item[ue_meta.index("rrc_msg")],
                             "nas_msg": ue_mf_item[ue_meta.index("nas_msg")],
@@ -200,7 +201,8 @@ def fetch_sdl_data():
                             "rrc_sec_state": ue_mf_item[ue_meta.index("rrc_sec_state")],
                             "reserved_field_1": ue_mf_item[ue_meta.index("reserved_field_1")],
                             "reserved_field_2": ue_mf_item[ue_meta.index("reserved_field_2")],
-                            "reserved_field_3": ue_mf_item[ue_meta.index("reserved_field_3")]
+                            "reserved_field_3": ue_mf_item[ue_meta.index("reserved_field_3")],
+                            "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
                         }],
                         "event": {}
                     }
@@ -213,6 +215,7 @@ def fetch_sdl_data():
                     network[nr_cell_id]["ue"][ue_id]["rrc_integrity_alg"] = ue_mf_item[ue_meta.index("rrc_integrity_alg")]
                     network[nr_cell_id]["ue"][ue_id]["nas_cipher_alg"] = ue_mf_item[ue_meta.index("nas_cipher_alg")]
                     network[nr_cell_id]["ue"][ue_id]["nas_integrity_alg"] = ue_mf_item[ue_meta.index("nas_integrity_alg")]
+                    network[nr_cell_id]["ue"][ue_id]["Timestamp"] = ue_mf_item[ue_meta.index("Timestamp")]
                     network[nr_cell_id]["ue"][ue_id]["mobiflow"].append({
                         "rrc_msg": ue_mf_item[ue_meta.index("rrc_msg")],
                         "nas_msg": ue_mf_item[ue_meta.index("nas_msg")],
@@ -221,7 +224,8 @@ def fetch_sdl_data():
                         "rrc_sec_state": ue_mf_item[ue_meta.index("rrc_sec_state")],
                         "reserved_field_1": ue_mf_item[ue_meta.index("reserved_field_1")],
                         "reserved_field_2": ue_mf_item[ue_meta.index("reserved_field_2")],
-                        "reserved_field_3": ue_mf_item[ue_meta.index("reserved_field_3")]
+                        "reserved_field_3": ue_mf_item[ue_meta.index("reserved_field_3")],
+                        "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
                     })
             else:
                 print("nr_cell_id not found")

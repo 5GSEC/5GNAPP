@@ -38,14 +38,28 @@ const fieldsToRender = [
   ];
 
 const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
+    const getTotalEventsGlobal = () => {
+        return Object.values(bsevent).reduce((total, bs) => {
+            if (!bs.ue) return total;
+            return total + Object.values(bs.ue).reduce((ueTotal, ue) => ueTotal + Object.keys(ue.event).length, 0);
+          }, 0);
+    };
+
+    const getCriticalEventsGlobal = () => {
+        return Object.values(bsevent).reduce((total, bs) => {
+            if (!bs.ue) return total;
+            return total + Object.values(bs.ue).reduce((ueTotal, ue) => ueTotal + Object.values(ue.event).filter(event => event.Level === 'Critical').length, 0);
+          }, 0);
+    };
+
     const getTotalEvents = (bsId) => {
         if (!bsevent[bsId] || !bsevent[bsId].ue) return 0;
         return Object.values(bsevent[bsId].ue).reduce((total, ue) => total + Object.keys(ue.event).length, 0);
-      };
+    };
     
     const getCriticalEvents = (bsId) => {
-    if (!bsevent[bsId] || !bsevent[bsId].ue) return 0;
-    return Object.values(bsevent[bsId].ue).reduce((total, ue) => total + Object.values(ue.event).filter(event => event.Level === 'Critical').length, 0);
+        if (!bsevent[bsId] || !bsevent[bsId].ue) return 0;
+        return Object.values(bsevent[bsId].ue).reduce((total, ue) => total + Object.values(ue.event).filter(event => event.Level === 'Critical').length, 0);
     };
 
     return (
@@ -123,8 +137,8 @@ const CenterBar = ({ setEvent, setService, bsevent, services, bsId, ueId }) => {
                         </div>
                     ) : (
                     <div>
-                        <strong>Total Events</strong>: 0
-                        <p><strong>Critical Events</strong>: 0</p>
+                        <strong>Total Events</strong>: {getTotalEventsGlobal()}
+                        <p><strong>Critical Events</strong>: {getCriticalEventsGlobal()}</p>
                     </div>
                     )}
                 </div>
