@@ -2,6 +2,7 @@ import React, { useState, useRef, useContext, createContext } from 'react';
 import './bs.css';
 import UeIcon from '../ue/ue';
 import BsSrc from './bs.png';
+import bsIcon from '../assets/bs.png';
 import { format } from 'date-fns'; /* Added date-fns import */
 
 const HoverContext = createContext();
@@ -110,7 +111,7 @@ const BsIcon = ({ bsId, backendEvents }) => {
             onContextMenu={(e) => { e.preventDefault(); click ? setClick(false) : setClick(true); }}
             style={{ visibility: hoveredBsId && hoveredBsId !== bsId ? 'hidden' : 'visible' }}
         >
-            <img src={BsSrc} alt="BS Icon" className="bs-icon"  />
+            <img src={bsIcon} alt="BS Icon" className="bs-icon"  />
 
             {/*below is for details about the bsShowInfo part */}
             {bsShowInfo && (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ue.css';
-import cctvCamera from './cctv3.png';
+import ue_cctvCamera from '../assets/cctv3.png';
+import ue_phone from '../assets/ue-phone.png';
 import { format } from 'date-fns';
 
 //TODO: add the timestamp to normal UE
@@ -177,7 +178,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
                 onMouseLeave={() => setHoveredUeId(null)}
                 onClick={handleUeClick}  // clicking event
             >
-                <img src={cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
+                <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
             </div>
 
             {showInfo && (

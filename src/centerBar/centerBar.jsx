@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { fetchCsvData } from '../fetchUserData';
 import { updateData } from '../App';
-import refreshIcond from './refresh.png'
+import refreshIcond from '../assets/refresh.png'
 
 
 const Wrapper = styled.div`
