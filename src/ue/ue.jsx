@@ -96,8 +96,8 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
         const interval2 = handleMouseActions();
 
         return () => { clearInterval(interval2) };
-                    }, [click, ueId, setHoveredUeId]
-            );
+      }, [click, ueId, setHoveredUeId]
+    );
 
 
   /**
@@ -117,6 +117,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
            
   // We'll build an array of "renderable events".
   let eventsArray = [];
+  let eventsCount = Object.keys(backendEvent.event).length;
   if (hasEvent) {
     // Turn the event object into an array of { eventId, singleEvent } for convenience
     eventsArray = Object.keys(backendEvent.event).map(eventId => ({
@@ -128,12 +129,12 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
     eventsArray = [{
       eventId: "N/A",
       singleEvent: {
-        "Event Name": "None",
-        "Level": "normal",
-        "Timestamp": Date.now(), // or some placeholder
-        "Affected base station ID": backendEvent?.["Affected base station ID"] || "N/A",
-        "Affected UE ID": ueId,
-        "Description": "No event data"
+        // "Event Name": "None",
+        // "Level": "normal",
+        // "Timestamp": Date.now(), // or some placeholder
+        // "Affected base station ID": backendEvent?.["Affected base station ID"] || "N/A",
+        // "Affected UE ID": ueId,
+        // "Description": "No event data"
       }
     }];
   }
@@ -181,7 +182,10 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
 
             {showInfo && (
                 <div className="floating-window">
-                    <p><strong>UE ID:</strong> {ueId}</p>
+                    <p>
+                      <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
+                      <strong>Events:</strong> {eventsCount}
+                    </p>
 
           {/* Render each event or fallback event */}
           {eventsArray.map(({ eventId, singleEvent }) => (
