@@ -5,7 +5,7 @@ import { fetchCsvData, fetchSdlData, fetchServiceStatus} from "./fetchUserData";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
 
-const data_simulation = 0; // 0 for SDL data, 1 for CSV data (simulation)
+const data_simulation = 1; // 0 for SDL data, 1 for CSV data (simulation)
 const update_interval = 10000; // data update interval in milliseconds
 
 export function updateData (setEvent, setService) {
