@@ -96,7 +96,7 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
         click ? setClick(false) : setClick(true);
       }}
     >
-      <img src={BsSrc} alt="BS Icon" className="bs-icon" />
+      <img src={bsIcon} alt="BS Icon" className="bs-icon" />
 
       {isHovered && !hoveredUeId  && (
         <div 
@@ -107,19 +107,12 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
             left: mousePos.x + 100
           }}
         >
-          <p><strong>BS ID: &nbsp;&nbsp;&nbsp; </strong>{bsId}</p>
-          <div className="backend-data">
-            <div>MCC: {backendData.mcc}</div>
-            <div>MNC: {backendData.mnc}</div>
-            <div>TAC: {backendData.tac}</div>
-            <div>Report Period: {backendData.report_period}</div>
-            <div>
-              Timestamp:{" "}
-              {parseTimestamp(backendData.timestamp)
-                ? parseTimestamp(backendData.timestamp).toLocaleString()
-                : ""}
-            </div>
-          </div>
+          <p><strong>BS ID</strong>: {bsId}</p>
+          <p><strong>MCC</strong>: {backendData.mcc}</p>
+          <p><strong>MNC</strong>: {backendData.mnc}</p>
+          <p><strong>TAC</strong>: {backendData.tac}</p>
+          <p><strong>Report Period</strong>: {backendData.report_period}</p>
+          <p><strong>Timestamp</strong>: {parseTimestamp(backendData.timestamp) ? parseTimestamp(backendData.timestamp).toLocaleString() : ""}</p>
           {Object.keys(backendEvents).map((ueId) => {
             const ueData = backendEvents[ueId];
             let eventsArray = [];
