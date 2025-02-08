@@ -66,7 +66,6 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
   };
 
   const handleMouseLeave = () => {
-
     setIsHovered(false);
     setHoveredBsId(null);
   };
@@ -74,10 +73,6 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
   // New: Update mouse position as it moves over the BS icon
   const handleMouseMove = (e) => {
     setMousePos({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleUeMouseEnter = (ueId) => {
-    setHoveredUeId(ueId);
   };
 
   return (
@@ -103,8 +98,8 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
           className="bs-showinfo"
           style={{
             position: 'fixed', // Position fixed to follow mouse across the viewport
-            top: mousePos.y + 100, // Offset by 10px for better visibility
-            left: mousePos.x + 100
+            top: mousePos.y + 0, // Offset by 10px for better visibility
+            left: mousePos.x + 0
           }}
         >
           <p><strong>BS ID</strong>: {bsId}</p>
@@ -112,7 +107,7 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
           <p><strong>MNC</strong>: {backendData.mnc}</p>
           <p><strong>TAC</strong>: {backendData.tac}</p>
           <p><strong>Report Period</strong>: {backendData.report_period}</p>
-          <p><strong>Timestamp</strong>: {parseTimestamp(backendData.timestamp) ? parseTimestamp(backendData.timestamp).toLocaleString() : ""}</p>
+          <p><strong>Time Created</strong>: {parseTimestamp(backendData.timestamp) ? parseTimestamp(backendData.timestamp).toLocaleString() : ""}</p>
           {Object.keys(backendEvents).map((ueId) => {
             const ueData = backendEvents[ueId];
             let eventsArray = [];
@@ -154,7 +149,7 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
               click={click}
               backendEvent={backendEvents[ueId]}
               setHoveredUeId={setHoveredUeId}
-              handleMouseEnter={handleUeMouseEnter}
+              setIsBsHovered={setIsHovered}
             />
           </div>
         ))}

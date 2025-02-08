@@ -49,8 +49,9 @@ function parseTimestamp(raw) {
     }
   }
 
-const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
+const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsHovered}) => {
     const [showInfo, setShowInfo] = useState(false);
+    const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
 
     //for showing the detail metadata when clicking on the UE
@@ -101,6 +102,17 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
       }, [click, ueId, setHoveredUeId]
     );
 
+  const handleUeMouseOnEnter = (e) => {
+    setHoveredUeId(ueId);
+  };
+
+  const handleUeMouseOnLeave = (e) => {
+    setShowInfo(false);
+    if (!MouseClicked) {
+      setHoveredUeId(null);
+      setShowDetails(false);
+    }
+  };
 
   /**
    * clicked on UE => toggle showDetails
@@ -108,7 +120,15 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
   const handleUeClick = (e) => {
     e.stopPropagation(); // Prevent the click from bubbling up to the parent
     setClickPos({ x: e.clientX, y: e.clientY });
+    setHoveredUeId(ueId);
+    setMouseClicked(true);
     setShowDetails((prev) => !prev);
+  };
+
+  const handleCloseDetailsWindow = () => {
+    setMouseClicked(false);
+    setIsBsHovered(false);
+    setShowDetails(false);
   };
 
 
@@ -178,8 +198,8 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
                 className="ue-icon"
                 style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }} // Adjusted size for unhovered state
                 ref={ueIconRef}
-                onMouseEnter={() => setHoveredUeId(ueId)}
-                onMouseLeave={() => setHoveredUeId(null)}
+                onMouseEnter={handleUeMouseOnEnter}
+                onMouseLeave={handleUeMouseOnLeave}
                 onClick={handleUeClick}  // clicking event
             >
                 <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
@@ -259,10 +279,9 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h4 style={{ margin: '0' }}>UE Metadata</h4>
               {/* x button */}
               <button
-                onClick={() => setShowDetails(false)}
+                onClick={handleCloseDetailsWindow}
                 style={{
                   background: 'transparent',
                   color: '#000',
@@ -278,7 +297,8 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
 
 
 {/* replaced single row with a table for metadata in two rows */}
-<table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px' }}>
+<h4 style={{ margin: '0' }}>UE Metadata</h4>
+<table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', marginTop: '16px' }}>
   <thead>
     <tr>
       {[
@@ -317,6 +337,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
 
 
             {/* rest of the content, e.g. rrc_msg, nas_msg etc. */}
+            <h4 style={{ margin: '0' }}>MobiFlow Telemetry</h4>
             <table style={{ width: '100%', marginTop: '16px', borderCollapse: 'collapse' }}>
             <thead>
 
