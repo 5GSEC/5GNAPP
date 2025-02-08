@@ -55,14 +55,17 @@
 
 /*added bs-showinfo on screen*/
 .bs-showinfo {
+    position: fixed; /* or absolute */
     width: auto;
     min-width: 300px;   
     max-width: 600px;    
     background-color: rgba(0, 0, 0, 0.8);
     color: #fff;
     padding: 8px;
-    border-radius: 2px;
-    z-index: 9999;
+    border-radius: 4px;
+    z-index: 1000;
+    text-align: left ;
+    align-items: space-between;
     line-height: 1.5; /* Adjusted line height for better readability */
 }
 
@@ -72,28 +75,28 @@
     margin: 0;
     padding: 2px 0;
     display: flex;
-    justify-content: space-between; /* Aligns text in a row */
+    /* justify-content: space-between; Aligns text in a row */
+    justify-content: flex-start; /* changed from space-between to flex-start */
 }
 
-
+/* Info rows with labels on the left and values on the right */
 .info-row {
     display: flex;
-    align-items: right;       /* vertical center if text sizes differ */
-    justify-content: flex-start; /* left align */
-    margin: 4px 0;            /* space between rows */
-  }
+    justify-content: space-between; /* Ensures left & right alignment */
+    margin: 4px 0;
+    padding: 2px 0;
+}
   
   .info-label {
     font-weight: bold;
-    margin-right: 8px;
-    min-width: 110px;         /* or fix the width if you want columns, e.g. width: 100px */
+    min-width: 130px; /* Ensure labels are aligned */
     text-align: left;
-  }
+}
   
-  .info-value {
-    /* flex: 1;                  let value grow if needed */
+.info-value {
+    flex: 1; /* Allow it to take available space */
     text-align: right;
-    white-space: nowrap;      /* prevents line wrapping */
+    white-space: nowrap; /* Prevents text wrapping */
     overflow: hidden;
-    text-overflow: ellipsis;  /* if too long, we get "..." */
-  }
+    text-overflow: ellipsis; /* Adds "..." if too long */
+}

@@ -4,6 +4,7 @@ import ue_cctvCamera from '../assets/cctv3.png';
 import ue_phone from '../assets/ue-phone.png';
 import { format } from 'date-fns';
 
+
 //TODO: add the timestamp to normal UE
 //TODO: change the UE and BS icon
 
@@ -22,9 +23,9 @@ const fieldsToRender = [
     "rrc_state",
     "nas_state",
     "rrc_sec_state",
-    "reserved_field_1",
-    "reserved_field_2",
-    "reserved_field_3"
+    // "reserved_field_1",
+    // "reserved_field_2",
+    // "reserved_field_3"
   ];
 
 function parseTimestamp(raw) {
@@ -57,7 +58,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
     const [clickPos, setClickPos] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
-        // console.log("UeIcon debug => backendEvent:", backendEvent);
+
     
         const ueIcon = document.querySelector(`#_${ueId}`);
         if (!ueIcon) return;
@@ -147,9 +148,12 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
    * pretend that backend dats put “mobiflow” in backendEvent.mobiflow (array)
    * for example test, we take mobiflow[0] as metadata
    */
-  let metadataObj = {};
+  let metadataObj = [];
   if (backendEvent && backendEvent.mobiflow && backendEvent.mobiflow.length > 0) {
-    metadataObj = backendEvent.mobiflow[0]; 
+    // metadataObj = backendEvent.mobiflow[0]; 
+    backendEvent.mobiflow.forEach((item) => {
+      metadataObj.push(item);
+    });
   }
 
 
@@ -271,28 +275,74 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
               </button>
             </div>
 
+
+
+{/* replaced single row with a table for metadata in two rows */}
+<table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px' }}>
+  <thead>
+    <tr>
+      {[
+        'gnb_cu_ue_f1ap_id',
+        'rnti',
+        's_tmsi',
+        'rrc_cipher_alg',
+        'rrc_integrity_alg',
+        'nas_cipher_alg',
+        'nas_integrity_alg'
+      ].map(label => (
+        <th key={label} style={{ border: '1px solid #000', padding: '8px', backgroundColor: '#f2f2f2' }}>
+          {label}
+        </th>
+      ))}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      {[
+        'gnb_cu_ue_f1ap_id',
+        'rnti',
+        's_tmsi',
+        'rrc_cipher_alg',
+        'rrc_integrity_alg',
+        'nas_cipher_alg',
+        'nas_integrity_alg'
+      ].map(label => (
+        <td key={label} style={{ border: '1px solid #000', padding: '8px' }}>
+          {backendEvent?.[label] || "N/A"}
+        </td>
+      ))}
+    </tr>
+  </tbody>
+</table>
+
+
             {/* rest of the content, e.g. rrc_msg, nas_msg etc. */}
             <table style={{ width: '100%', marginTop: '16px', borderCollapse: 'collapse' }}>
-      <thead>
-        <tr>
-          {metadataFields.map((fld) => (
-            <th key={fld} style={{ border: '1px solid #000', padding: '8px', backgroundColor: '#f2f2f2' }}>{fld}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          {metadataFields.map((fld) => {
-            let val = metadataObj[fld] || "N/A";
-            return (
-              <td key={fld} style={{ border: '1px solid #000', padding: '8px' }}>{val}</td>
-            );
-          })}
-        </tr>
-      </tbody>
-    </table>
-  </div>
-)}
+            <thead>
+
+
+
+              <tr>
+                {metadataFields.map((fld) => (
+                  <th key={fld} style={{ border: '1px solid #000', padding: '8px', backgroundColor: '#f2f2f2' }}>{fld}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {metadataObj.map((item, index) => (
+                <tr key={index}>
+                  {metadataFields.map((fld) => {
+                    let val = item[fld] || "N/A";
+                    return (
+                      <td key={fld} style={{ border: '1px solid #000', padding: '8px' }}>{val}</td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+                </table>
+              </div>
+            )}
 
       
     </div>
