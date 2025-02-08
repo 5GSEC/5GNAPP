@@ -2,7 +2,8 @@ import React, { useState, useRef, useContext, createContext } from 'react';
 import './bs.css';
 import UeIcon from '../ue/ue';
 import BsSrc from './bs.png';
-import { format } from 'date-fns';
+import bsIcon from '../assets/bs.png';
+import { format } from 'date-fns'; /* Added date-fns import */
 
 const HoverContext = createContext();
 
@@ -144,14 +145,12 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
             key={ueId}
             className="branch"
             style={{
-              transform: `rotate(${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)
-                          translate(${
-                            isHovered
-                              ? 10 * Object.keys(backendEvents).length + 100
-                              : 50
-                          }px)
-                          rotate(-${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)`,
-              zIndex: '0',
+              // transform: `rotate(${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)
+              //             translate(${isHovered ? 10 * Object.keys(backendEvents).length + 100 : 50}px)
+              //             rotate(-${everyOtherDegree(index, Object.keys(backendEvents).length)}deg)`,
+              position: 'absolute',
+              top: `calc(50% + ${(isHovered ? 10 * Object.keys(backendEvents).length + 100 : 50) * Math.sin((everyOtherDegree(index, Object.keys(backendEvents).length) * Math.PI) / 180)}px)`,
+              left: `calc(50% + ${(isHovered ? 10 * Object.keys(backendEvents).length + 100 : 50) * Math.cos((everyOtherDegree(index, Object.keys(backendEvents).length) * Math.PI) / 180)}px)`,        
               width: '0px',
               height: '0px'
             }}

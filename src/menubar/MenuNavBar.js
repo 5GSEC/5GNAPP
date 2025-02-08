@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaHome, FaUser, FaCog, FaExclamationCircle, FaCheckCircle, FaCogs } from 'react-icons/fa'; // Importing icons from react-icons
-import logo from './assets/PES_TransparentWhite_Alt_Logo_G443.png'; // Importing the logo
+import logo from '../assets/PES_TransparentWhite_Alt_Logo_G443.png'; // Importing the logo
 
 const MenuNavBar = () => {
   return (

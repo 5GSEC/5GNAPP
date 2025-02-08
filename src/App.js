@@ -3,40 +3,7 @@ import { useState, useEffect, useContext } from "react";
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import { fetchCsvData, fetchSdlData, fetchServiceStatus} from "./fetchUserData";
 import CenterBar from "./centerBar/centerBar";
-import MenuNavBar from "./MenuNavBar";
-import styled from "styled-components";
-
-const Container = styled.div`
-  display: flex;
-  height: 120vh;
-  background-color: #f4f6f8;
-`;
-
-const Content = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  flex: 1;
-  padding: 20px;
-`;
-
-const Header = styled.h2`
-  color: #333;
-  text-align: left;
-  margin-bottom: 5px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-`;
-
-const SubHeader = styled.h3`
-  color: #555;
-  text-align: left;
-  font-weight: normal;
-  margin-top: 0;
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-`;
+import MenuNavBar from "./menubar/MenuNavBar";
 
 const data_simulation = 1; // 0 for SDL data, 1 for CSV data (simulation)
 const update_interval = 10000; // data update interval in milliseconds
@@ -67,22 +34,22 @@ function AppContent() {
   }, []);
 
   return (
-    <Container>
+    <div className="container">
       <MenuNavBar />
-      <Content>
-        <Header>5GNAPP - 5G-Native Management Platform</Header>
-        <SubHeader>You cannot secure what you cannot see</SubHeader>
+      <div className="content">
+        <h2 className="header">5GNAPP - 5G-Native Management Platform</h2>
+        <h3 className="subheader">You cannot secure what you cannot see</h3>
         <div style={{ height: "2em" }} /> {/* Add gap between CenterBar and the rest */}
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
           <CenterBar setEvent={setEvent} setService={setService} bsevent={bevent} services={services} bsId={hoveredBsId} ueId={hoveredUeId} />
         </div>
-        <div className="App" style={{display: "flex", justifyContent: "center", alignItems: "center", height: "80vh", width: "100%", gap: "200px" }}>
+        <div className="App">
           {Array.from(Object.keys(bevent)).map((bsId, index) => (
             <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["ue"]} backendData={bevent[bsId]} />  // Added backendData prop for base station data
         ))}
         </div>
-      </Content>
-    </Container>
+      </div>
+    </div>
   );
 }
 
