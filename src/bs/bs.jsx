@@ -85,7 +85,7 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
       style={{
         visibility: (hoveredBsId && hoveredBsId !== bsId) ? 'hidden' : 'visible'
       }}
-      onClick={handleClick}
+      // onClick={handleClick}
       onContextMenu={(e) => {
         e.preventDefault();
         click ? setClick(false) : setClick(true);
@@ -150,6 +150,7 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
               backendEvent={backendEvents[ueId]}
               setHoveredUeId={setHoveredUeId}
               setIsBsHovered={setIsHovered}
+              setBsHoverId={setHoveredBsId}
             />
           </div>
         ))}

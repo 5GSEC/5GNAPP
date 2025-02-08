@@ -49,7 +49,7 @@ function parseTimestamp(raw) {
     }
   }
 
-const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsHovered}) => {
+const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId}) => {
     const [showInfo, setShowInfo] = useState(false);
     const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
@@ -129,6 +129,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
     setMouseClicked(false);
     setIsBsHovered(false);
     setShowDetails(false);
+    setBsHoverId(null);
   };
 
 
