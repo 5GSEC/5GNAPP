@@ -78,7 +78,7 @@ function AppContent() {
         </div>
         <div className="App" style={{display: "flex", justifyContent: "center", alignItems: "center", height: "80vh", width: "100%", gap: "200px" }}>
           {Array.from(Object.keys(bevent)).map((bsId, index) => (
-            <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["ue"]} />
+            <BsIcon key={index} bsId={bsId} backendEvents={bevent[bsId]["ue"]} backendData={bevent[bsId]} />  // Added backendData prop for base station data
         ))}
         </div>
       </Content>

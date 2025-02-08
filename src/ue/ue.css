@@ -46,7 +46,7 @@
     background-color: rgba(255, 255, 255, 1);
     border: 1px solid #ccc;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+    z-index: 1001;
     width: auto;             
     min-width: 375px;        
     max-width: 600px;  
@@ -81,3 +81,5 @@
     text-align: left;       /* optional */
     white-space: normal; /* allow text to wrap */
   }
+
+  
