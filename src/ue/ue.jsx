@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ue.css';
-import cctvCamera from './cctv3.png';
+import ue_cctvCamera from '../assets/cctv3.png';
+import ue_phone from '../assets/ue-phone.png';
 import { format } from 'date-fns';
+
 
 //TODO: add the timestamp to normal UE
 //TODO: change the UE and BS icon
@@ -10,12 +12,21 @@ const fieldsToRender = [
     "Event Name",
     "Timestamp",
     // "Affected base station ID",
-    "Affected UE ID",
+    // "Affected UE ID",
     "Level",
     "Description"
   ];
 
-
+  const metadataFields = [
+    "rrc_msg",
+    "nas_msg",
+    "rrc_state",
+    "nas_state",
+    "rrc_sec_state",
+    // "reserved_field_1",
+    // "reserved_field_2",
+    // "reserved_field_3"
+  ];
 
 function parseTimestamp(raw) {
     if (!raw) return null;
@@ -38,12 +49,17 @@ function parseTimestamp(raw) {
     }
   }
 
-const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
+const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId}) => {
     const [showInfo, setShowInfo] = useState(false);
+    const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
 
+    //for showing the detail metadata when clicking on the UE
+    const [showDetails, setShowDetails] = useState(false);
+    const [clickPos, setClickPos] = useState({ x: 0, y: 0 });
+
     useEffect(() => {
-        // console.log("UeIcon debug => backendEvent:", backendEvent);
+
     
         const ueIcon = document.querySelector(`#_${ueId}`);
         if (!ueIcon) return;
@@ -83,8 +99,38 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
         const interval2 = handleMouseActions();
 
         return () => { clearInterval(interval2) };
-                    }, [click, ueId, setHoveredUeId]
-            );
+      }, [click, ueId, setHoveredUeId]
+    );
+
+  const handleUeMouseOnEnter = (e) => {
+    setHoveredUeId(ueId);
+  };
+
+  const handleUeMouseOnLeave = (e) => {
+    setShowInfo(false);
+    if (!MouseClicked) {
+      setHoveredUeId(null);
+      setShowDetails(false);
+    }
+  };
+
+  /**
+   * clicked on UE => toggle showDetails
+   */
+  const handleUeClick = (e) => {
+    e.stopPropagation(); // Prevent the click from bubbling up to the parent
+    setClickPos({ x: e.clientX, y: e.clientY });
+    setHoveredUeId(ueId);
+    setMouseClicked(true);
+    setShowDetails((prev) => !prev);
+  };
+
+  const handleCloseDetailsWindow = () => {
+    setMouseClicked(false);
+    setIsBsHovered(false);
+    setShowDetails(false);
+    setBsHoverId(null);
+  };
 
 
   // If there's no "event" or it's empty,
@@ -94,6 +140,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
            
   // We'll build an array of "renderable events".
   let eventsArray = [];
+  let eventsCount = Object.keys(backendEvent.event).length;
   if (hasEvent) {
     // Turn the event object into an array of { eventId, singleEvent } for convenience
     eventsArray = Object.keys(backendEvent.event).map(eventId => ({
@@ -105,15 +152,31 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
     eventsArray = [{
       eventId: "N/A",
       singleEvent: {
-        "Event Name": "None",
-        "Level": "normal",
-        "Timestamp": Date.now(), // or some placeholder
-        "Affected base station ID": backendEvent?.["Affected base station ID"] || "N/A",
-        "Affected UE ID": ueId,
-        "Description": "No event data"
+        // "Event Name": "None",
+        // "Level": "normal",
+        // "Timestamp": Date.now(), // or some placeholder
+        // "Affected base station ID": backendEvent?.["Affected base station ID"] || "N/A",
+        // "Affected UE ID": ueId,
+        // "Description": "No event data"
       }
     }];
   }
+
+
+
+  /**
+   * prepare clicking metadata
+   * pretend that backend dats put “mobiflow” in backendEvent.mobiflow (array)
+   * for example test, we take mobiflow[0] as metadata
+   */
+  let metadataObj = [];
+  if (backendEvent && backendEvent.mobiflow && backendEvent.mobiflow.length > 0) {
+    // metadataObj = backendEvent.mobiflow[0]; 
+    backendEvent.mobiflow.forEach((item) => {
+      metadataObj.push(item);
+    });
+  }
+
 
 
     //const formattedTimestamp = backendEvent ? format(new Date(backendEvent.timestamp * 1000), 'PPpp') : '';
@@ -131,18 +194,24 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
 
     return (
         <div className="ue-container">
+
             <div
                 className="ue-icon"
                 style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }} // Adjusted size for unhovered state
                 ref={ueIconRef}
-                onMouseEnter={() => setHoveredUeId(ueId)}
+                onMouseEnter={handleUeMouseOnEnter}
+                onMouseLeave={handleUeMouseOnLeave}
+                onClick={handleUeClick}  // clicking event
             >
-                <img src={cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
+                <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
             </div>
 
             {showInfo && (
                 <div className="floating-window">
-                    <p><strong>UE ID:</strong> {ueId}</p>
+                    <p>
+                      <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
+                      <strong>Events:</strong> {eventsCount}
+                    </p>
 
           {/* Render each event or fallback event */}
           {eventsArray.map(({ eventId, singleEvent }) => (
@@ -158,7 +227,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
 
                 if (fieldName === "Timestamp") {
 
-                    console.log("Debug info: 444", singleEvent[fieldName]);
+
                   const rawTime = singleEvent["Timestamp"];
                   const dateObj = parseTimestamp(rawTime);
                   let displayTime = "(Invalid timestamp)";
@@ -189,6 +258,115 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId }) => {
           ))}
         </div>
       )}
+
+      {/* showinfo window for clicking */}
+        {showDetails && (
+          <div
+            className="details-window"
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)', 
+              backgroundColor: '#fff',
+              color: '#000',
+              padding: '16px',
+              borderRadius: '8px',
+              border: '1px solid #000', // Added black border
+              width: '900px', // Increased width
+              height: '400px', // Added height
+              overflow: 'auto', // Added overflow for scroll
+              zIndex: 9999
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* x button */}
+              <button
+                onClick={handleCloseDetailsWindow}
+                style={{
+                  background: 'transparent',
+                  color: '#000',
+                  border: 'none',
+                  fontSize: '1.2em',
+                  cursor: 'pointer'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+
+
+{/* replaced single row with a table for metadata in two rows */}
+<h4 style={{ margin: '0' }}>UE Metadata</h4>
+<table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', marginTop: '16px' }}>
+  <thead>
+    <tr>
+      {[
+        'gnb_cu_ue_f1ap_id',
+        'rnti',
+        's_tmsi',
+        'rrc_cipher_alg',
+        'rrc_integrity_alg',
+        'nas_cipher_alg',
+        'nas_integrity_alg'
+      ].map(label => (
+        <th key={label} style={{ border: '1px solid #000', padding: '8px', backgroundColor: '#f2f2f2' }}>
+          {label}
+        </th>
+      ))}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      {[
+        'gnb_cu_ue_f1ap_id',
+        'rnti',
+        's_tmsi',
+        'rrc_cipher_alg',
+        'rrc_integrity_alg',
+        'nas_cipher_alg',
+        'nas_integrity_alg'
+      ].map(label => (
+        <td key={label} style={{ border: '1px solid #000', padding: '8px' }}>
+          {backendEvent?.[label] || "N/A"}
+        </td>
+      ))}
+    </tr>
+  </tbody>
+</table>
+
+
+            {/* rest of the content, e.g. rrc_msg, nas_msg etc. */}
+            <h4 style={{ margin: '0' }}>MobiFlow Telemetry</h4>
+            <table style={{ width: '100%', marginTop: '16px', borderCollapse: 'collapse' }}>
+            <thead>
+
+
+
+              <tr>
+                {metadataFields.map((fld) => (
+                  <th key={fld} style={{ border: '1px solid #000', padding: '8px', backgroundColor: '#f2f2f2' }}>{fld}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {metadataObj.map((item, index) => (
+                <tr key={index}>
+                  {metadataFields.map((fld) => {
+                    let val = item[fld] || "N/A";
+                    return (
+                      <td key={fld} style={{ border: '1px solid #000', padding: '8px' }}>{val}</td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+                </table>
+              </div>
+            )}
+
+      
     </div>
   );
 };
