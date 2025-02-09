@@ -107,9 +107,10 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
           <p><strong>MNC</strong>: {backendData.mnc}</p>
           <p><strong>TAC</strong>: {backendData.tac}</p>
           <p><strong>Report Period</strong>: {backendData.report_period}</p>
-          <p><strong>Time Created</strong>: {parseTimestamp(backendData.timestamp) ? parseTimestamp(backendData.timestamp).toLocaleString() : ""}</p>
+          <p><strong>Time Created</strong>: {parseTimestamp(parseInt(backendData.timestamp)) ? parseTimestamp(parseInt(backendData.timestamp)).toLocaleString() : ""}</p>
           {Object.keys(backendEvents).map((ueId) => {
             const ueData = backendEvents[ueId];
+            console.log(backendData.timestamp);
             let eventsArray = [];
             if (!ueData.event || !Object.keys(ueData.event).length) {
               eventsArray = [{
