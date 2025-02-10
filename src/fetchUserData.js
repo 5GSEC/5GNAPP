@@ -54,7 +54,6 @@ function fetchServiceStatus(setService) {
       return response.json();
     })
     .then(data => {
-      console.log(data);
       setService(data);
     })
     .catch(error => {

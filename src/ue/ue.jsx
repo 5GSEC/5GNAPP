@@ -271,7 +271,6 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
               backgroundColor: '#fff',
               color: '#000',
               padding: '16px',
-              borderRadius: '8px',
               border: '1px solid #000', // Added black border
               width: '900px', // Increased width
               height: '400px', // Added height

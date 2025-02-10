@@ -98,8 +98,8 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
           className="bs-showinfo"
           style={{
             position: 'fixed', // Position fixed to follow mouse across the viewport
-            top: mousePos.y + 0, // Offset by 10px for better visibility
-            left: mousePos.x + 0
+            top: mousePos.y + 30, // Offset by 10px for better visibility
+            left: mousePos.x + 30
           }}
         >
           <p><strong>BS ID</strong>: {bsId}</p>
@@ -107,7 +107,7 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
           <p><strong>MNC</strong>: {backendData.mnc}</p>
           <p><strong>TAC</strong>: {backendData.tac}</p>
           <p><strong>Report Period</strong>: {backendData.report_period}</p>
-          <p><strong>Time Created</strong>: {parseTimestamp(backendData.timestamp) ? parseTimestamp(backendData.timestamp).toLocaleString() : ""}</p>
+          <p><strong>Time Created</strong>: {parseTimestamp(parseInt(backendData.timestamp)) ? parseTimestamp(parseInt(backendData.timestamp)).toLocaleString() : ""}</p>
           {Object.keys(backendEvents).map((ueId) => {
             const ueData = backendEvents[ueId];
             let eventsArray = [];
