@@ -133,17 +133,19 @@ def fetch_sdl_data():
         # Create a batch of keys
         batch_keys = [str(j) for j in range(i, min(i + max_batch_get_value, key_len_by_namespace[bs_mobiflow_key]))]
 
-
         # Create the command for the batch
         command = get_val_command(bs_mobiflow_key, " ".join(batch_keys))
         value = execute_command(command)
 
-
         # Process each value in the batch
-        print(value)
-        values = [val.strip() for val in value.split("\n") if val.strip()]
-        for val in values:
-            val = val.split(":")[1][2:]  # remove prefix
+        values = {}
+        for line in [val.strip() for val in value.split("\n") if val.strip()]:
+            k = int(line.split(":")[0])
+            v = line.split(":")[1][2:]  # remove prefix
+            values[k] = v
+        values = dict(sorted(values.items())) # sort values based on Index
+
+        for val in values.values():
             bs_mf_item = val.split(";")
             nr_cell_id = bs_mf_item[bs_meta.index("nr_cell_id")]
             timestamp = bs_mf_item[bs_meta.index("Timestamp")]
@@ -168,16 +170,19 @@ def fetch_sdl_data():
         # Create a batch of keys
         batch_keys = [str(j) for j in range(i, min(i + max_batch_get_value, key_len_by_namespace[ue_mobiflow_key]))]
 
-
         # Create the command for the batch
         command = get_val_command(ue_mobiflow_key, " ".join(batch_keys))
         value = execute_command(command)
 
-
         # Process each value in the batch
-        values = [val.strip() for val in value.split("\n") if val.strip()]
-        for val in values:
-            val = val.split(":")[1][2:]  # remove prefix
+        values = {}
+        for line in [val.strip() for val in value.split("\n") if val.strip()]:
+            k = int(line.split(":")[0])
+            v = line.split(":")[1][2:]  # remove prefix
+            values[k] = v
+        values = dict(sorted(values.items())) # sort values based on Index
+
+        for val in values.values():
             ue_mf_item = val.split(";")
             ue_id = ue_mf_item[ue_meta.index("gnb_du_ue_f1ap_id")]
             nr_cell_id = ue_mf_item[ue_meta.index("nr_cell_id")]
@@ -238,15 +243,12 @@ def fetch_sdl_data():
         # Create a batch of keys
         batch_keys = [str(j) for j in range(i, min(i + max_batch_get_value, key_len_by_namespace[event_key] + 1))]
 
-
         # Create the command for the batch
         command = get_val_command(event_key, " ".join(batch_keys))
         value = execute_command(command)
 
-
         # Process each value in the batch
         values = [val.strip() for val in value.split("\n") if val.strip()]
-
 
         for val in values:
             val = ''.join([c for c in val if 32 <= ord(c) <= 126])[2:]  # Remove non-ASCII characters

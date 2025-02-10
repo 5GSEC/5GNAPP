@@ -98,8 +98,8 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
           className="bs-showinfo"
           style={{
             position: 'fixed', // Position fixed to follow mouse across the viewport
-            top: mousePos.y + 0, // Offset by 10px for better visibility
-            left: mousePos.x + 0
+            top: mousePos.y + 30, // Offset by 10px for better visibility
+            left: mousePos.x + 30
           }}
         >
           <p><strong>BS ID</strong>: {bsId}</p>
@@ -110,7 +110,6 @@ const BsIcon = ({ bsId, backendData, backendEvents }) => {
           <p><strong>Time Created</strong>: {parseTimestamp(parseInt(backendData.timestamp)) ? parseTimestamp(parseInt(backendData.timestamp)).toLocaleString() : ""}</p>
           {Object.keys(backendEvents).map((ueId) => {
             const ueData = backendEvents[ueId];
-            console.log(backendData.timestamp);
             let eventsArray = [];
             if (!ueData.event || !Object.keys(ueData.event).length) {
               eventsArray = [{
