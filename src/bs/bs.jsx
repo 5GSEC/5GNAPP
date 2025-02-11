@@ -1,7 +1,6 @@
 import React, { useState, useRef, useContext, createContext } from 'react';
 import './bs.css';
 import UeIcon from '../ue/ue';
-import BsSrc from './bs.png';
 import bsIcon from '../assets/bs.png';
 import { format } from 'date-fns'; /* Added date-fns import */
 

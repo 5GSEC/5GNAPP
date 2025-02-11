@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { fetchCsvData } from '../fetchUserData';
+import { fetchCsvData } from '../backend/fetchUserData';
 import { updateData } from '../App';
 import refreshIcond from '../assets/refresh.png'
 

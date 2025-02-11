@@ -1,7 +1,7 @@
 import "./App.css";
 import { useState, useEffect, useContext } from "react";
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
-import { fetchCsvData, fetchSdlData, fetchServiceStatus} from "./fetchUserData";
+import { fetchCsvData, fetchSdlData, fetchServiceStatus} from "./backend/fetchUserData";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
 
