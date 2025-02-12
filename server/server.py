@@ -283,7 +283,7 @@ def fetch_csv_data():
 
     # Path to your CSV file
 
-    csv_data_path = ['db/5G-Sample-Data - BS.csv', 'db/5G-Sample-Data - UE.csv', 'db/5G-Sample-Data - Event.csv']
+    csv_data_path = ['../src/db/5G-Sample-Data - BS.csv', '../src/db/5G-Sample-Data - UE.csv', '../src/db/5G-Sample-Data - Event.csv']
 
     network = {}
 
