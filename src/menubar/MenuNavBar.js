@@ -1,13 +1,17 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { FaHome, FaUser, FaCog, FaExclamationCircle, FaCheckCircle, FaCogs } from "react-icons/fa";
 import logo from "../assets/PES_TransparentWhite_Alt_Logo_G443.png";
 
-// We'll accept a prop: setCurrentView
-function MenuNavBar({ setCurrentView }) {
-  // Simple style object for each menu item
+function MenuNavBar() {
   const menuItemStyle = {
     margin: "20px 0",
     cursor: "pointer"
+  };
+
+  const linkStyle = {
+    color: "inherit",
+    textDecoration: "none"
   };
 
   return (
@@ -15,25 +19,38 @@ function MenuNavBar({ setCurrentView }) {
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <img src={logo} alt="Logo" style={{ width: "200px", marginBottom: "10px" }} />
       </div>
+
       <ul style={{ listStyleType: "none", padding: 0, color: "white", fontFamily: "Inter, sans-serif" }}>
-        <li style={menuItemStyle} onClick={() => setCurrentView("dashboard")}>
-          <FaHome /> Dashboard
+        {/* Dashboard now points to "/dashboard" */}
+        <li style={menuItemStyle}>
+          <Link to="/dashboard" style={linkStyle}>
+            <FaHome /> Dashboard
+          </Link>
         </li>
-        <li style={menuItemStyle} onClick={() => { /* if you want a "profile" page or do something else */ }}>
-          <FaUser /> Profile
+        <li style={menuItemStyle}>
+          <Link to="/profile" style={linkStyle}>
+            <FaUser /> Profile
+          </Link>
         </li>
-        <li style={menuItemStyle} onClick={() => { /* Issues page, if you'd like */ }}>
-          <FaExclamationCircle /> Issues
+        <li style={menuItemStyle}>
+          <Link to="/issues" style={linkStyle}>
+            <FaExclamationCircle /> Issues
+          </Link>
         </li>
-        <li style={menuItemStyle} onClick={() => { /* compliance page, etc. */ }}>
-          <FaCheckCircle /> Compliance
+        <li style={menuItemStyle}>
+          <Link to="/compliance" style={linkStyle}>
+            <FaCheckCircle /> Compliance
+          </Link>
         </li>
-        {/* This is the new item that sets currentView to "xapps" */}
-        <li style={menuItemStyle} onClick={() => setCurrentView("xapps")}>
-          <FaCogs /> xApps
+        <li style={menuItemStyle}>
+          <Link to="/xapps" style={linkStyle}>
+            <FaCogs /> xApps
+          </Link>
         </li>
-        <li style={menuItemStyle} onClick={() => { /* settings or something else */ }}>
-          <FaCog /> Settings
+        <li style={menuItemStyle}>
+          <Link to="/settings" style={linkStyle}>
+            <FaCog /> Settings
+          </Link>
         </li>
       </ul>
     </div>
