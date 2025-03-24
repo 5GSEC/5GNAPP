@@ -12,7 +12,7 @@ import XApps from "./pages/XApps";
 // ----------------------------------------
 // Global config
 // ----------------------------------------
-const data_simulation = 1; 
+const data_simulation = 0; 
 const update_interval = 10000; 
 
 export function updateData(setEvent, setService) {
