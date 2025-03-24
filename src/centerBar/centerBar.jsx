@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { updateData } from '../App'; // We'll call this to refresh data from the backend
+import { deployXapp, undeployXapp, buildXapp } from '../backend/fetchUserData';
 import refreshIcond from '../assets/refresh.png';
 
 // Using styled-components for layout and styling
@@ -43,6 +44,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
   // We'll do a console.log for now, then refresh data
   const handleDeploy = async (svcName) => {
     console.log("Deploying", svcName, "...");
+    deployXapp(svcName);
     // If we have an actual backend, we might do:
     // const res = await fetch("/deployXApp", {
     //   method: "POST",

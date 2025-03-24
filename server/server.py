@@ -1,11 +1,13 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from flask import Flask # pip install flask
+from flask import request
 from flask_cors import CORS # pip install flask-cors
 import subprocess
 import sqlite3
 import json
 import csv
 import re
+import os
 
 app = Flask(__name__)
 CORS(app) # for remote access
@@ -84,6 +86,69 @@ def fetch_service_status():
     
     print(json.dumps(services, indent=4))
     return services
+
+@app.route('/deployXapp', methods=['POST'])
+def deploy_xapp():
+    ''' Deploy the xApp '''
+    try:
+        # Parse the JSON request body
+        data = request.get_json()
+        if not data or 'xapp_name' not in data:
+            return {"error": "xapp_name is required in the request body"}, 400
+
+        # Get the xApp's name
+        xapp_name = data['xapp_name']
+        print(f"Deploying xApp: {xapp_name}")
+
+        # Ensure the "xApp" folder exists
+        xapp_folder = "xApp"
+        if not os.path.exists(xapp_folder):
+            os.makedirs(xapp_folder)
+            print(f"Created folder: {xapp_folder}")
+
+        # Change directory to the "xApp" folder
+        os.chdir(xapp_folder)
+        print(f"Changed directory to: {os.getcwd()}")
+
+        # Add your deployment logic here
+        # Example: command = f"kubectl apply -f ../src/k8s/{xapp_name}.yaml"
+        # output = execute_command(command)
+        # return output
+
+
+        return {"message": f"xApp {xapp_name} deployment initiated"}, 200
+    except Exception as e:
+        return {"error": str(e)}, 500
+    
+    
+    # command = "kubectl apply -f ../src/k8s/xapp.yaml"
+    # output = execute_command(command)
+    # return output
+    # step 1: find the correct xapp's name
+    # step 2: check if the xapp is already built  (if not then we build it)
+    # step 3: check if the prerequisite is satisfied
+    # step 4: onboard the xapp
+    # step 5: deploy the xapp
+
+@app.route('/unDeployXapp', methods=['POST'])
+def unDeploy_xapp():
+    ''' ubDeploy the xApp '''
+
+    # step 1: find the correct xapp's name
+    # step 2: check if the xapp is running
+    # step 3: undeploy the xapp
+
+    pass 
+
+@app.route('/buildXapp', methods=['POST'])
+def build_xapp():
+    # step 1: find the correct xapp's name
+    # step 2: cd 5GNAPP folder
+    # step 3: clone the xapp's repo
+    # step 4: run the prerequisite docker command
+    # step 5: run the build command
+    # step 6: check if the build is successful
+    pass 
 
 
 @app.route('/fetchSdlData', methods=['GET'])

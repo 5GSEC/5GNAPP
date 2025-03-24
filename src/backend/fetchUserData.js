@@ -40,6 +40,35 @@ function fetchSdlData(setEvent) {
     });
 }
 
+function deployXapp(XappName) {
+  fetch("http://localhost:8080/deployXapp", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ xapp_name: XappName }) 
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+
+function undeployXapp(XappName) { 
+}
+
+function buildXapp(XappName) {
+}
+
+
 function fetchServiceStatus(setService) {
   fetch("http://localhost:8080/fetchServiceStatus", {
     method: 'GET',
@@ -86,3 +115,6 @@ export { fetchUserData };
 export { fetchSdlData };
 export { fetchCsvData };
 export { fetchServiceStatus };
+export { deployXapp };
+export { undeployXapp };
+export { buildXapp };
