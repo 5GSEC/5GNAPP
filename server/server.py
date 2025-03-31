@@ -87,69 +87,254 @@ def fetch_service_status():
     print(json.dumps(services, indent=4))
     return services
 
+
+
+@app.route('/buildXapp', methods=['POST'])
+def build_xapp():
+    """
+    step 1: get xapp_name
+    step 2: go into xApp dir (if it doesn't exist, create it)
+    step 3: git clone the xApp repo
+    step 4: run Docker registry
+    step 5: cd [xapp_name] and then ./build.sh
+    step 6: check if build is successful
+    """
+    original_cwd = os.getcwd()
+    logs = []  # We'll accumulate logs here
+
+    try:
+        data = request.get_json()
+        if not data or 'xapp_name' not in data:
+            return {"error": "xapp_name is required in the request body", "logs": logs}, 400
+
+        xapp_name = data['xapp_name']
+        logs.append(f"[buildXapp] Start building xApp: {xapp_name}")
+
+        # Step 2: create xApp folder if it doesn't exist
+        xapp_root = os.path.join(os.getcwd(), "xApp")
+        if not os.path.exists(xapp_root):
+            try:
+                os.makedirs(xapp_root)
+                logs.append(f"Created directory: {xapp_root}")
+            except FileExistsError:
+                # If the folder is already there, just continue
+                logs.append(f"Directory {xapp_root} already exists.")
+
+        os.chdir(xapp_root)
+        logs.append(f"Changed directory to: {os.getcwd()}")
+
+        # If the xapp_name folder already exists, delete it so we can re-clone
+        if os.path.exists(xapp_name):
+            rm_output = execute_command(f"rm -rf {xapp_name}")
+            logs.append(f"Removed existing xApp folder: {rm_output or 'done'}")
+
+        # Step 3: clone the repo
+        git_url = f"https://github.com/5GSEC/{xapp_name}.git"
+        clone_output = execute_command(f"git clone {git_url}")
+        logs.append(f"git clone output: {clone_output}")
+
+        # Check if xApp folder is there
+        if not os.path.exists(xapp_name):
+            logs.append(f"Failed to clone {git_url}")
+            return {"error": f"Failed to clone {git_url}", "logs": logs}, 500
+
+        # Step 4: check Docker registry
+        registry_check = execute_command("docker ps | grep registry")
+        logs.append(f"registry_check: {registry_check}")
+
+        if not registry_check:
+            start_registry_output = execute_command("docker run -d -p 5000:5000 --restart=always --name registry registry:2")
+            logs.append(f"Started docker registry: {start_registry_output}")
+        else:
+            logs.append("Docker registry is already running.")
+
+        # Step 5: run build.sh
+        os.chdir(xapp_name)
+        logs.append(f"Now in xApp folder: {os.getcwd()}")
+        
+        checkout_output = execute_command("git checkout osc-kpm")
+        logs.append(f"Checked out osc-kpm branch: {checkout_output}")
+        
+
+        if not os.path.exists("build.sh"):
+            logs.append(f"No build.sh found in {xapp_name}")
+            return {"error": f"No build.sh found in {xapp_name} directory", "logs": logs}, 500
+
+        execute_command("chmod +x build.sh")
+        build_output = execute_command("./build.sh")
+        logs.append(f"build.sh output:\n{build_output}")
+
+        # Step 6: check if build is successful
+        logs.append("Build finished successfully.")
+        return {"message": "Build finished", "logs": logs}, 200
+
+    except Exception as e:
+        # Return any error and the logs collected so far
+        return {"error": str(e), "logs": logs}, 500
+    finally:
+        # Always switch back to the original directory
+        os.chdir(original_cwd)
+
+
 @app.route('/deployXapp', methods=['POST'])
 def deploy_xapp():
-    ''' Deploy the xApp '''
+    original_cwd = os.getcwd()  # Remember our original directory
+    logs = []  # We'll collect log messages in this list
+
     try:
-        # Parse the JSON request body
+        helm_check = execute_command("docker ps | grep chartmuseum")
+        logs.append(f"helm_check output: {helm_check}")
+
+        # Make sure CHART_REPO_URL is set in Python's process environment (for logging/debugging)
+        os.environ["CHART_REPO_URL"] = "http://0.0.0.0:8090"
+        logs.append(f"CHART_REPO_URL set to {os.environ['CHART_REPO_URL']}")
+
+        chartmuseum_cmd = (
+                "docker run --rm -u 0 -d "
+                "-p 8090:8080 "
+                "-e DEBUG=1 "
+                "-e STORAGE=local "
+                "-e STORAGE_LOCAL_ROOTDIR=/charts "
+                "-v $(pwd)/charts:/charts "
+                "chartmuseum/chartmuseum:latest"
+        )
+        chartmuseum_output = execute_command(chartmuseum_cmd)
+        logs.append(f"ChartMuseum started: {chartmuseum_output}")
+
+        # Set environment variable in this Python process only
+        os.environ["CHART_REPO_URL"] = "http://0.0.0.0:8090"
+        logs.append(f"CHART_REPO_URL set to {os.environ['CHART_REPO_URL']}")
+
+        # 2) Parse request data
+        data = request.get_json()
+        if not data or 'xapp_name' not in data:
+            return {
+                "error": "xapp_name is required in the request body",
+                "logs": logs
+            }, 400
+
+        xapp_name = data['xapp_name']
+        logs.append(f"[deployXapp] Deploying xApp: {xapp_name}")
+
+        # 3) Verify xApp folder
+        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_dir = os.path.join(xapp_root, xapp_name)
+        if not os.path.exists(xapp_dir):
+            return {
+                "error": f"xApp folder '{xapp_dir}' does not exist. Please build first.",
+                "logs": logs
+            }, 400
+
+        # Change directory to xApp
+        os.chdir(xapp_dir)
+
+        # 4) Onboard step
+        init_dir = os.path.join(xapp_dir, "init")
+        if os.path.exists(init_dir):
+            onboard_cmd = (
+                "sudo -E env CHART_REPO_URL=http://0.0.0.0:8090 "
+                "CHART_REPO_URL=http://0.0.0.0:8090 dms_cli onboard --config_file_path=config-file.json --shcema_file_path=schema.json"
+            )
+            os.chdir(init_dir)
+            onboard_output = execute_command(onboard_cmd)
+            logs.append(f"Onboard output: {onboard_output}")
+            os.chdir(xapp_dir)
+        else:
+            logs.append("No 'init' folder found. Skipping onboard step.")
+
+        # 5) Deploy step
+        deploy_script = os.path.join(xapp_dir, "deploy.sh")
+        if not os.path.exists(deploy_script):
+            return {
+                "error": f"No deploy.sh found in '{xapp_dir}'",
+                "logs": logs
+            }, 500
+
+        execute_command("chmod +x deploy.sh")
+        deploy_output = execute_command("./deploy.sh")
+        logs.append(f"deploy.sh output: {deploy_output}")
+
+        # 6) Check if the xApp is deployed
+        check_output = execute_command(f"kubectl get pods -A | grep {xapp_name}")
+        if not check_output:
+            msg = f"xApp '{xapp_name}' deployed, but no running pod found via 'kubectl get pods'."
+            logs.append(msg)
+            return {
+                "message": msg,
+                "logs": logs
+            }, 200
+        else:
+            msg = f"xApp '{xapp_name}' deployment success: {check_output}"
+            logs.append(msg)
+            return {
+                "message": msg,
+                "logs": logs
+            }, 200
+
+    except Exception as e:
+        # If an error occurs, return the error along with any logs we've collected
+        return {"error": str(e), "logs": logs}, 500
+    finally:
+        # Always return to the original directory
+        os.chdir(original_cwd)
+
+
+@app.route('/unDeployXapp', methods=['POST'])
+def unDeploy_xapp():
+
+    original_cwd = os.getcwd()
+    """
+    step 1: find xapp_name corresponding directory
+    step 2: check if xapp is deployed (kubectl get pods -A | grep)
+    step 3: run ./undeploy.sh
+    step 4: check undeployment is successful or not
+    """
+    try:
         data = request.get_json()
         if not data or 'xapp_name' not in data:
             return {"error": "xapp_name is required in the request body"}, 400
 
-        # Get the xApp's name
         xapp_name = data['xapp_name']
-        print(f"Deploying xApp: {xapp_name}")
+        print(f"[unDeployXapp] unDeploy xApp: {xapp_name}")
 
-        # Ensure the "xApp" folder exists
-        xapp_folder = "xApp"
-        if not os.path.exists(xapp_folder):
-            os.makedirs(xapp_folder)
-            print(f"Created folder: {xapp_folder}")
+        # step 1
+        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_dir = os.path.join(xapp_root, xapp_name)
+        if not os.path.exists(xapp_dir):
+            return {"error": f"xApp folder {xapp_dir} does not exist."}, 400
 
-        # Change directory to the "xApp" folder
-        os.chdir(xapp_folder)
-        print(f"Changed directory to: {os.getcwd()}")
+        # step 2: check if xapp is deployed
+        check_output = execute_command(f"kubectl get pods -A | grep {xapp_name}")
+        if not check_output:
+            print(f"No running pods found for {xapp_name}. Possibly already undeployed.")
+            # we can continue to undeploy.sh，but we can also return a message
+            # return {"message": f"No running pods for {xapp_name}. Maybe it's already undeployed."}, 200
 
-        # Add your deployment logic here
-        # Example: command = f"kubectl apply -f ../src/k8s/{xapp_name}.yaml"
-        # output = execute_command(command)
-        # return output
+        # step 3: ./undeploy.sh
+        os.chdir(xapp_dir)
+        undeploy_script = os.path.join(xapp_dir, "undeploy.sh")
+        if not os.path.exists(undeploy_script):
+            return {"error": f"No undeploy.sh found in {xapp_dir}"}, 500
 
+        execute_command("chmod +x undeploy.sh")
+        undeploy_output = execute_command("./undeploy.sh")
+        print(undeploy_output)
 
-        return {"message": f"xApp {xapp_name} deployment initiated"}, 200
+        # step 4: check undeployment is successful or not
+        check_output2 = execute_command(f"kubectl get pods -A | grep {xapp_name}")
+        if check_output2:
+            msg = f"Attempted to undeploy {xapp_name}, but pods may still be present: {check_output2}"
+            print(msg)
+            return {"message": msg}, 200
+        else:
+            msg = f"xApp {xapp_name} is successfully undeployed."
+            print(msg)
+            return {"message": msg}, 200
+
     except Exception as e:
         return {"error": str(e)}, 500
-    
-    
-    # command = "kubectl apply -f ../src/k8s/xapp.yaml"
-    # output = execute_command(command)
-    # return output
-    # step 1: find the correct xapp's name
-    # step 2: check if the xapp is already built  (if not then we build it)
-    # step 3: check if the prerequisite is satisfied
-    # step 4: onboard the xapp
-    # step 5: deploy the xapp
-
-@app.route('/unDeployXapp', methods=['POST'])
-def unDeploy_xapp():
-    ''' ubDeploy the xApp '''
-
-    # step 1: find the correct xapp's name
-    # step 2: check if the xapp is running
-    # step 3: undeploy the xapp
-
-    pass 
-
-@app.route('/buildXapp', methods=['POST'])
-def build_xapp():
-    # step 1: find the correct xapp's name
-    # step 2: cd 5GNAPP folder
-    # step 3: clone the xapp's repo
-    # step 4: run the prerequisite docker command
-    # step 5: run the build command
-    # step 6: check if the build is successful
-    pass 
-
+    finally:
+        os.chdir(original_cwd)
 
 @app.route('/fetchSdlData', methods=['GET'])
 def fetch_sdl_data():

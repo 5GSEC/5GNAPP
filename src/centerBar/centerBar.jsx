@@ -40,33 +40,28 @@ const fieldsToRender = [
 // This component draws our control panel and a summary of events
 function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
 
-  // This function simulates calling a backend endpoint to deploy an xApp
-  // We'll do a console.log for now, then refresh data
   const handleDeploy = async (svcName) => {
     console.log("Deploying", svcName, "...");
     deployXapp(svcName);
-    // If we have an actual backend, we might do:
-    // const res = await fetch("/deployXApp", {
-    //   method: "POST",
-    //   headers: {"Content-Type":"application/json"},
-    //   body: JSON.stringify({ xappName: svcName })
-    // });
+
     updateData(setEvent, setService);
   };
 
-  // This function simulates calling a backend endpoint to undeploy an xApp
   const handleUndeploy = async (svcName) => {
     console.log("Undeploying", svcName, "...");
-    // If we have an actual backend, we might do:
-    // const res = await fetch("/undeployXApp", {
-    //   method: "POST",
-    //   headers: {"Content-Type":"application/json"},
-    //   body: JSON.stringify({ xappName: svcName })
-    // });
+    undeployXapp(svcName);
+
     updateData(setEvent, setService);
   };
 
-  // We'll add some helpers to count events across the entire network
+  const handleBuild = async (svcName) => {
+    console.log("Building", svcName, "...");
+    buildXapp(svcName);
+
+    updateData(setEvent, setService);
+  };
+
+
   const getTotalEventsGlobal = () => {
     return Object.values(bsevent).reduce((total, bs) => {
       if (!bs.ue) return total;
@@ -83,13 +78,11 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
     }, 0);
   };
 
-  // We'll also count total events for a specific cell (bsId)
   const getTotalEvents = (cellId) => {
     if (!bsevent[cellId] || !bsevent[cellId].ue) return 0;
     return Object.values(bsevent[cellId].ue).reduce((sum, ueObj) => sum + Object.keys(ueObj.event).length, 0);
   };
 
-  // We'll also count critical events for a specific cell
   const getCriticalEvents = (cellId) => {
     if (!bsevent[cellId] || !bsevent[cellId].ue) return 0;
     return Object.values(bsevent[cellId].ue).reduce((sum, ueObj) => {
@@ -103,16 +96,12 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
         <h2 style={{marginTop: '0em'}}>Control-Plane RIC Services</h2>
         <div>
           {
-            // We'll list each service in 'services'
             Object.keys(services).map((svcName, idx) => {
-              // The data might look like "ricxapp-mobiflow-auditor-xxx;1/1;Running;0;95m"
-              // We'll split by ';' to get parts
               const rawData = services[svcName] || "";
               const parts = rawData.split(';');
               const status = parts[2] || 'Inactive';
               const uptime = parts[4] || '';
               const displayStatus = (status !== 'Inactive') ? `${status} (${uptime})` : status;
-              const isRunning = (status === 'Running');
 
               return (
                 <div key={idx} style={{ marginBottom: '1em' }}>
@@ -121,11 +110,10 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
                     <strong>Service:</strong> {svcName} &nbsp;&nbsp;
                     <strong>Status:</strong> {displayStatus}
                   </p>
-                  {
-                    isRunning
-                      ? <button onClick={() => handleUndeploy(svcName)}>Undeploy</button>
-                      : <button onClick={() => handleDeploy(svcName)}>Deploy</button>
-                  }
+                  {/*Deploy、Build、Undeploy */}
+                  <button onClick={() => handleDeploy(svcName)}>Deploy</button>
+                  <button onClick={() => handleBuild(svcName)} style={{ marginLeft: '8px' }}>Build</button>
+                  <button onClick={() => handleUndeploy(svcName)} style={{ marginLeft: '8px' }}>Undeploy</button>
                 </div>
               );
             })
@@ -145,7 +133,6 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
               height: '100%'
             }}
             onClick={() => {
-              // We'll refresh data
               updateData(setEvent, setService);
             }}
             className='CenterBarTitle'
@@ -155,7 +142,6 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
         </div>
         <div>
           {
-            // We'll list all cells in bsevent
             Object.keys(bsevent).map((cellId, index) => {
               const ueCount = bsevent[cellId]?.ue
                 ? Object.keys(bsevent[cellId].ue).length
@@ -181,7 +167,6 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
         <p><strong>Current UE:</strong> {ueId}</p>
         <div>
           {
-            // If user has selected a cell and a UE
             bsevent[bsId] && bsevent[bsId].ue && bsevent[bsId].ue[ueId]
             ? (
               <div>
@@ -201,7 +186,6 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
                 }
               </div>
             )
-            // If user has selected only a cell
             : bsId && !ueId
             ? (
               <div>
@@ -209,7 +193,6 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
                 <p><strong>Critical Events</strong>: {getCriticalEvents(bsId)}</p>
               </div>
             )
-            // If no cell or UE is selected, show global
             : (
               <div>
                 <strong>Total Events</strong>: {getTotalEventsGlobal()}
