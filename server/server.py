@@ -108,9 +108,26 @@ def build_xapp():
             return {"error": "xapp_name is required in the request body", "logs": logs}, 400
 
         xapp_name = data['xapp_name']
+
+
+        xapp_names = {
+            "mobiexpert-xapp":"MobieXpert",
+            "mobiwatch-xapp" : "MobiWatch",
+            "mobiflow-auditor": "mobiflow-auditor",
+        }
+        if xapp_name in xapp_names:
+            xapp_name = xapp_names[xapp_name]
+            logs.append(f"[buildXapp] Using {xapp_name} repo for {data['xapp_name']}")
+        else:
+            logs.append(f"[buildXapp] Using {xapp_name} repo for {data['xapp_name']}")
+            return {"error": "Invalid xapp_name"}, 400
+
+
         logs.append(f"[buildXapp] Start building xApp: {xapp_name}")
 
-        # Step 2: create xApp folder if it doesn't exist
+
+
+        # Step 1: create xApp folder if it doesn't exist
         xapp_root = os.path.join(os.getcwd(), "xApp")
         if not os.path.exists(xapp_root):
             try:
@@ -128,7 +145,7 @@ def build_xapp():
             rm_output = execute_command(f"rm -rf {xapp_name}")
             logs.append(f"Removed existing xApp folder: {rm_output or 'done'}")
 
-        # Step 3: clone the repo
+        # Step 2: clone the repo
         git_url = f"https://github.com/5GSEC/{xapp_name}.git"
         clone_output = execute_command(f"git clone {git_url}")
         logs.append(f"git clone output: {clone_output}")
@@ -137,6 +154,26 @@ def build_xapp():
         if not os.path.exists(xapp_name):
             logs.append(f"Failed to clone {git_url}")
             return {"error": f"Failed to clone {git_url}", "logs": logs}, 500
+
+
+        # Step 3: Optionally checkout a branch depending on xapp_name
+        # You can customize this dict with more xApp->branch mappings
+        branch_map = {
+            "mobiflow-auditor": "osc-kpm",
+            "mobiwatch-xapp": "mobiflow-v2",
+            "MobieXpert": "mobiflow-v2"
+            # add more if needed
+        }
+        os.chdir(xapp_name)
+        logs.append(f"Now in xApp folder: {os.getcwd()}")
+
+        branch_to_checkout = branch_map.get(xapp_name)
+        if branch_to_checkout:
+            # Checkout the specified branch
+            checkout_output = execute_command(f"git checkout {branch_to_checkout}")
+            logs.append(f"Checked out branch '{branch_to_checkout}': {checkout_output}")
+        else:
+            logs.append("No custom branch specified for this xApp.")
 
         # Step 4: check Docker registry
         registry_check = execute_command("docker ps | grep registry")
@@ -149,13 +186,10 @@ def build_xapp():
             logs.append("Docker registry is already running.")
 
         # Step 5: run build.sh
-        os.chdir(xapp_name)
+        # os.chdir(xapp_name) # This is already done above
+
         logs.append(f"Now in xApp folder: {os.getcwd()}")
         
-        checkout_output = execute_command("git checkout osc-kpm")
-        logs.append(f"Checked out osc-kpm branch: {checkout_output}")
-        
-
         if not os.path.exists("build.sh"):
             logs.append(f"No build.sh found in {xapp_name}")
             return {"error": f"No build.sh found in {xapp_name} directory", "logs": logs}, 500
@@ -182,6 +216,17 @@ def deploy_xapp():
     logs = []  # We'll collect log messages in this list
 
     try:
+
+        # 0) Make sure non-root user can use kubectl
+        kube_config_cmd = (
+            "sudo swap off -a && "
+            "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && "
+            "sudo chmod +r $HOME/.kube/config"
+        )
+        kube_config_output = execute_command(kube_config_cmd)
+        logs.append(f"Kubernetes config setup: {kube_config_output or 'done'}")
+
+
         helm_check = execute_command("docker ps | grep chartmuseum")
         logs.append(f"helm_check output: {helm_check}")
 
@@ -214,7 +259,19 @@ def deploy_xapp():
             }, 400
 
         xapp_name = data['xapp_name']
-        logs.append(f"[deployXapp] Deploying xApp: {xapp_name}")
+
+
+        xapp_names = {
+            "mobiexpert-xapp":"MobieXpert",
+            "mobiwatch-xapp" : "MobiWatch",
+            "mobiflow-auditor": "mobiflow-auditor",
+        }
+        if xapp_name in xapp_names:
+            xapp_name = xapp_names[xapp_name]
+            logs.append(f"[buildXapp] Using {xapp_name} repo for {data['xapp_name']}")
+        else:
+            logs.append(f"[buildXapp] Using {xapp_name} repo for {data['xapp_name']}")
+            return {"error": "Invalid xapp_name"}, 400
 
         # 3) Verify xApp folder
         xapp_root = os.path.join(os.getcwd(), "xApp")
@@ -232,7 +289,7 @@ def deploy_xapp():
         init_dir = os.path.join(xapp_dir, "init")
         if os.path.exists(init_dir):
             onboard_cmd = (
-                "sudo -E env CHART_REPO_URL=http://0.0.0.0:8090 "
+                # "sudo -E env CHART_REPO_URL=http://0.0.0.0:8090 "
                 "CHART_REPO_URL=http://0.0.0.0:8090 dms_cli onboard --config_file_path=config-file.json --shcema_file_path=schema.json"
             )
             os.chdir(init_dir)
@@ -295,6 +352,17 @@ def unDeploy_xapp():
             return {"error": "xapp_name is required in the request body"}, 400
 
         xapp_name = data['xapp_name']
+        xapp_names = {
+            "mobiexpert-xapp":"MobieXpert",
+            "mobiwatch-xapp" : "MobiWatch",
+            "mobiflow-auditor": "mobiflow-auditor",
+        }
+        if xapp_name in xapp_names:
+            xapp_name = xapp_names[xapp_name]
+        else:
+            return {"error": "Invalid xapp_name"}, 400
+
+
         print(f"[unDeployXapp] unDeploy xApp: {xapp_name}")
 
         # step 1

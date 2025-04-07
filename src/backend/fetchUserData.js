@@ -41,15 +41,82 @@ function fetchSdlData(setEvent) {
 }
 
 
+// Return a promise from deployXapp
 function deployXapp(xappName) {
-  fetch("http://localhost:8080/deployXapp", {
+  return fetch("http://localhost:8080/deployXapp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ xapp_name: xappName })
   })
     .then(response => {
       if (!response.ok) {
-        // If status != 2xx, read the JSON first, then throw an error
+        // If not 2xx, read error JSON and throw
+        return response.json().then(data => {
+          throw new Error(`HTTP ${response.status} - ${data.error}\nLogs: ${JSON.stringify(data.logs)}`);
+        });
+      }
+      // If 2xx, parse JSON
+      return response.json();
+    })
+    .then(data => {
+      // data might have { message, logs }
+      console.log("Deploy success message:", data.message);
+      console.log("Deploy logs:", data.logs);
+      // Return data to the caller
+      return data;
+    })
+    .catch(error => {
+      console.error("Deploy error:", error);
+      // Rethrow so the caller can catch in try/catch
+      throw error;
+    });
+}
+
+
+function buildXapp(xappName) {
+  // IMPORTANT: return the Promise so caller can await it
+  return fetch("http://localhost:8080/buildXapp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ xapp_name: xappName })
+  })
+    .then(response => {
+      if (!response.ok) {
+        // If not 2xx, read the error JSON and throw an Error
+        return response.json().then(data => {
+          throw new Error(
+            `BuildXapp HTTP ${response.status} - ${data.error}\nLogs: ${JSON.stringify(data.logs)}`
+          );
+        });
+      }
+      // If 2xx, return the response body as JSON
+      return response.json();
+    })
+    .then(data => {
+      // data may have { message, logs }
+      console.log("BuildXapp success message:", data.message);
+      console.log("BuildXapp logs:", data.logs);
+      // Return data upward so the caller (handleBuild) can use it
+      return data;
+    })
+    .catch(error => {
+      console.error("BuildXapp error:", error);
+      // Rethrow so the caller can catch it in try...catch
+      throw error;
+    });
+}
+
+
+// Return a promise from undeployXapp
+function undeployXapp(xappName) {
+  return fetch("http://localhost:8080/unDeployXapp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ xapp_name: xappName })
+  })
+    .then(response => {
+      if (!response.ok) {
+        // If not 2xx, handle as error
         return response.json().then(data => {
           throw new Error(`HTTP ${response.status} - ${data.error}\nLogs: ${JSON.stringify(data.logs)}`);
         });
@@ -57,64 +124,13 @@ function deployXapp(xappName) {
       return response.json();
     })
     .then(data => {
-      // data could have { message, logs }
-      console.log("Deploy response message:", data.message);
-      console.log("Detailed logs:", data.logs);
-    })
-    .catch(error => {
-      // If there's an error or a non-2xx response
-      console.error("Deploy error:", error);
-    });
-}
-
-
-function buildXapp(xappName) {
-  fetch("http://localhost:8080/buildXapp", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ xapp_name: xappName })
-  })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(data => {
-          // data may have an "error" and "logs" array
-          throw new Error(
-            `BuildXapp HTTP ${response.status} - ${data.error}\nLogs: ${JSON.stringify(data.logs)}`
-          );
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      // data should have { message, logs }
-      console.log("BuildXapp success message:", data.message);
-      console.log("BuildXapp logs:", data.logs);
-    })
-    .catch(error => {
-      console.error("BuildXapp error:", error);
-    });
-}
-
-
-function undeployXapp(XappName) {
-  fetch("http://localhost:8080/unDeployXapp", {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ xapp_name: XappName })
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
       console.log("UndeployXapp response:", data);
+      // Return data to the caller
+      return data;
     })
     .catch(error => {
-      console.error('UndeployXapp error:', error);
+      console.error("UndeployXapp error:", error);
+      throw error;
     });
 }
 

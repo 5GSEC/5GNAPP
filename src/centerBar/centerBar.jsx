@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react'; // useState is used to manage the state of the component
 import styled from 'styled-components';
 import { updateData } from '../App'; // We'll call this to refresh data from the backend
 import { deployXapp, undeployXapp, buildXapp } from '../backend/fetchUserData';
 import refreshIcond from '../assets/refresh.png';
+
+// TODO:
+// 1) change the window to a non-blocking window(maybe a banner) for notification
+// 2) remove the confirmation button (change it to a 5 second timer banner)
+// 3) improve the window UI (fonts, colors, etc.)
+// 4) after build is initiated, if the xapp folder exists, go into the folder and checkout the correct branch and pull the latest code
+
+
 
 // Using styled-components for layout and styling
 const Wrapper = styled.div`
@@ -37,28 +45,88 @@ const fieldsToRender = [
   "Description"
 ];
 
+/** A simple “overlay” style for a popup/modal */
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.3); 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ModalContent = styled.div`
+  background: #fff;
+  padding: 2em;
+  border-radius: 6px;
+  max-width: 400px;
+  text-align: center;
+`;
+
 // This component draws our control panel and a summary of events
 function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
+  // 1) state for controlling the popup
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // optional: you can store logs or errors if you like
+  // const [logs, setLogs] = useState("");
 
   const handleDeploy = async (svcName) => {
-    console.log("Deploying", svcName, "...");
-    deployXapp(svcName);
-
-    updateData(setEvent, setService);
+    setIsLoading(true);
+    setShowModal(true);
+    setModalMessage(`Deploying ${svcName}... please wait.`);
+    try {
+      // Wait for the fetch call to complete
+      const result = await deployXapp(svcName);
+      // setModalMessage(`Deploy of ${svcName} finished!\nLogs: ${JSON.stringify(result.logs)}`);
+      setModalMessage(`Deploy of ${svcName} finished!\n`);
+    } catch (e) {
+      setModalMessage(`Deploy of ${svcName} failed: ${e.message}`);
+    } finally {
+      setIsLoading(false);
+      updateData(setEvent, setService);
+    }
   };
-
+  
   const handleUndeploy = async (svcName) => {
-    console.log("Undeploying", svcName, "...");
-    undeployXapp(svcName);
+    setIsLoading(true);
+    setShowModal(true);
+    setModalMessage(`Undeploying ${svcName}... please wait.`);
+    try {
+      const result = await undeployXapp(svcName);
+      // setModalMessage(`Undeploy of ${svcName} finished!\nLogs: ${JSON.stringify(result.logs)}`);
+      setModalMessage(`Undeploy of ${svcName} finished!\n`);
+    } catch (e) {
+      setModalMessage(`Undeploy of ${svcName} failed: ${e.message}`);
+    } finally {
+      setIsLoading(false);
+      updateData(setEvent, setService);
+    }
+  };  
 
-    updateData(setEvent, setService);
-  };
 
   const handleBuild = async (svcName) => {
-    console.log("Building", svcName, "...");
-    buildXapp(svcName);
-
-    updateData(setEvent, setService);
+    setIsLoading(true);
+    setShowModal(true);
+    setModalMessage(`Building ${svcName}... please wait.`);
+    try {
+      // This awaits the fetch call, so it won't proceed 
+      // until the server has finished building
+      const result = await buildXapp(svcName);
+      setModalMessage(`Build of ${svcName} finished successfully!`);
+      // If you want to see logs, they might be at result.logs
+      // setModalMessage(`Build finished! Logs: ${JSON.stringify(result.logs)}`);
+    } catch (e) {
+      setModalMessage(`Build of ${svcName} failed: ${e.message}`);
+    } finally {
+      setIsLoading(false);
+      updateData(setEvent, setService);
+    }
   };
 
 
@@ -92,6 +160,19 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
 
   return (
     <Wrapper>
+      {/* if showModal is true，display the window */}
+      {showModal && (
+        <ModalOverlay>
+          <ModalContent>
+            <p>{modalMessage}</p>
+            {/* if it is still loading , do not display closing window button until it is loaded or failed*/}
+            {!isLoading && (
+              <button onClick={() => setShowModal(false)}>OK</button>
+            )}
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
       <Container style={{ width: '40%' }}>
         <h2 style={{marginTop: '0em'}}>Control-Plane RIC Services</h2>
         <div>
@@ -110,7 +191,6 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
                     <strong>Service:</strong> {svcName} &nbsp;&nbsp;
                     <strong>Status:</strong> {displayStatus}
                   </p>
-                  {/*Deploy、Build、Undeploy */}
                   <button onClick={() => handleDeploy(svcName)}>Deploy</button>
                   <button onClick={() => handleBuild(svcName)} style={{ marginLeft: '8px' }}>Build</button>
                   <button onClick={() => handleUndeploy(svcName)} style={{ marginLeft: '8px' }}>Undeploy</button>
