@@ -140,20 +140,29 @@ def build_xapp():
         os.chdir(xapp_root)
         logs.append(f"Changed directory to: {os.getcwd()}")
 
-        # If the xapp_name folder already exists, delete it so we can re-clone
-        if os.path.exists(xapp_name):
-            rm_output = execute_command(f"rm -rf {xapp_name}")
-            logs.append(f"Removed existing xApp folder: {rm_output or 'done'}")
 
-        # Step 2: clone the repo
-        git_url = f"https://github.com/5GSEC/{xapp_name}.git"
-        clone_output = execute_command(f"git clone {git_url}")
-        logs.append(f"git clone output: {clone_output}")
-
-        # Check if xApp folder is there
+        # Step 2: clone the repo    
+        # If the xapp_name folder doesn't exist, clone it.
         if not os.path.exists(xapp_name):
-            logs.append(f"Failed to clone {git_url}")
-            return {"error": f"Failed to clone {git_url}", "logs": logs}, 500
+            
+            git_url = f"https://github.com/5GSEC/{xapp_name}.git"
+            clone_output = execute_command(f"git clone {git_url}")
+            logs.append(f"git clone output: {clone_output}")
+
+            # Check if xApp folder is there
+            if not os.path.exists(xapp_name):
+                logs.append(f"Failed to clone {git_url}")
+                return {"error": f"Failed to clone {git_url}", "logs": logs}, 500
+
+            os.chdir(xapp_name)
+            logs.append(f"Now in xApp folder (newly cloned): {os.getcwd()}")
+
+        else:
+            # If folder already exists, just cd in and do a checkout + pull
+            logs.append(f"{xapp_name} folder already exists. Will attempt to update it.")
+            os.chdir(xapp_name)
+            logs.append(f"Now in existing xApp folder: {os.getcwd()}")
+            # We won't remove; we'll checkout branch & pull
 
 
         # Step 3: Optionally checkout a branch depending on xapp_name
@@ -164,14 +173,13 @@ def build_xapp():
             "MobieXpert": "mobiflow-v2"
             # add more if needed
         }
-        os.chdir(xapp_name)
-        logs.append(f"Now in xApp folder: {os.getcwd()}")
-
         branch_to_checkout = branch_map.get(xapp_name)
         if branch_to_checkout:
-            # Checkout the specified branch
             checkout_output = execute_command(f"git checkout {branch_to_checkout}")
             logs.append(f"Checked out branch '{branch_to_checkout}': {checkout_output}")
+            # Then pull the latest changes
+            pull_output = execute_command("git pull")
+            logs.append(f"Pulled latest code: {pull_output}")
         else:
             logs.append("No custom branch specified for this xApp.")
 

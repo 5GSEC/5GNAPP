@@ -1,0 +1,64 @@
+.banner-container {
+    position: fixed;
+    /* Place at bottom center. Adjust if you prefer top or corners. */
+    bottom: 1em;
+    left: 50%;
+    transform: translateX(-50%);
+  
+    padding: 1em;
+    text-align: center;
+    z-index: 9999;
+    font-size: 1.1rem;
+    color: #fff;
+    max-width: 400px;
+  
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    font-family: 'Inter', sans-serif;
+    border-radius: 8px;
+  
+    /* Initial animate from bottom up */
+    animation: fadeInUp 0.4s ease-out forwards;
+  }
+  
+  /* For success, error, info backgrounds */
+  .banner-info {
+    background-color: #17a2b8;
+  }
+  
+  .banner-success {
+    background-color: #28a745;
+  }
+  
+  .banner-error {
+    background-color: #dc3545;
+  }
+  
+  /* Fade-in from bottom keyframe */
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, 20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+  
+  /* The fadeOutDown animation: in 0.4s, fade and move down 20px. */
+  @keyframes fadeOutDown {
+    0% {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, 20px);
+    }
+  }
+  
+  /* .fadeOut class triggers the fadeOutDown animation. */
+  .fadeOut {
+    animation: fadeOutDown 0.4s ease-out forwards;
+  }
+  
