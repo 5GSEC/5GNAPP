@@ -1,19 +1,64 @@
+/******************************************************
+ * App.js  – 5GNAPP main router (updated with xApps sub‑routes)
+ ******************************************************/
+
 import "./App.css";
 import React, { useState, useEffect, useContext } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { 
+  BrowserRouter, 
+  Routes, 
+  Route, 
+  Navigate, 
+  Outlet, // Used to render nested route components inside a parent route
+  Link    // Used to navigate to routes without reloading the page
+} from "react-router-dom";
 
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
 import { fetchCsvData, fetchSdlData, fetchServiceStatus } from "./backend/fetchUserData";
+import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 
-import XApps from "./pages/XApps"; 
+/* ──────────────────────────────────────────────
+   NEW: xApps child pages (very small placeholders)
+   In a real project they can live in /src/pages/xapps/
+────────────────────────────────────────────── */
+function XAppsIndex() {
+  return (
+    <p style={{ padding: 20 }}>
+      Select an xApp on the left, or visit<br />
+      <Link to="mobiexpert">/xapps/mobiexpert</Link>&nbsp;or&nbsp;
+      <Link to="mobiflow-auditor">/xapps/mobiflow-auditor</Link>.
+    </p>
+  );
+}
+
+/* REMOVED: inline MobieXpertPage stub – now imported from its own file */
+// function MobieXpertPage() {
+//   return <h3 style={{ padding: 20 }}>MobieXpert xApp Settings (stub)</h3>;
+// }
+
+
+function MobiflowAuditorPage() {
+  return <h3 style={{ padding: 20 }}>Mobiflow Auditor Settings (stub)</h3>;
+}
+
+/* Parent layout for /xapps – keeps sidebar and renders children via <Outlet /> */
+function XAppsLayout() {
+  return (
+    <div style={{ padding: "0 20px 20px", boxSizing: "border-box" }}>
+      <Outlet />
+    </div>
+  );
+}
+
+
 
 // ----------------------------------------
 // Global config
 // ----------------------------------------
-const data_simulation = 0; 
-const update_interval = 10000; 
+const data_simulation = 0;
+const update_interval = 10000;
 
 export function updateData(setEvent, setService) {
   if (data_simulation === 1) {
@@ -116,8 +161,6 @@ function CompliancePage() {
   );
 }
 
-
-
 // ----------------------------------------
 // Settings (path="/settings")
 // ----------------------------------------
@@ -130,16 +173,16 @@ function SettingsPage() {
   );
 }
 
-// ----------------------------------------
-// Root component
-// ----------------------------------------
+/* ──────────────────────────────────────────────
+   Root component – main <Routes> updated
+────────────────────────────────────────────── */
 function App() {
   return (
     <BsIconProvider>
       <BrowserRouter>
         <div className="container" style={{ display: "flex" }}>
           <MenuNavBar />
-          <div className="content" style={{ flex: 1 }}>
+          <div className="content" style={{ flex: 1 }}> 
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
@@ -147,10 +190,21 @@ function App() {
               <Route path="/issues" element={<IssuesPage />} />
               <Route path="/compliance" element={<CompliancePage />} />
 
-              <Route path="/xapps" element={<XApps />} />
+              {/* NEW: /xapps parent + nested children */}
+              <Route path="/xapps" element={<XAppsLayout />}>
+                <Route index element={<XAppsIndex />} /> {/* /xapps */}
+                {/* NEW: import‑based MobieXpert page */}
+                <Route path="mobiexpert" element={<MobieXpertPage />} />
+                {/* still stubbed inline */}
+                <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
+                <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
+              </Route>
 
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<div style={{ padding: 20 }}>Page Not Found</div>} />
+              <Route
+                path="*"
+                element={<div style={{ padding: 20 }}>Page Not Found</div>}
+              />
             </Routes>
           </div>
         </div>

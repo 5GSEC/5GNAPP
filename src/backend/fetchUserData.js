@@ -176,6 +176,31 @@ function fetchCsvData(setEvent) {
     });
 }
 
+
+/* -------------------------------------------
+   NEW: MobieXpert rules.pbest helpers
+------------------------------------------- */
+const RULES_API = "http://localhost:8080/api/mobieexpert/rules";
+
+
+function fetchRulesText() {
+  return fetch(RULES_API).then(res => {
+    if (!res.ok) throw new Error("Failed to load rules.pbest");
+    return res.text();
+  });
+}
+
+function saveRulesText(newText) {
+  return fetch(RULES_API, {
+    method: "PUT",
+    headers: { "Content-Type": "text/plain" },
+    body: newText,
+  }).then(res => {
+    if (!res.ok) throw new Error("Failed to save rules.pbest");
+  });
+}
+
+
 export { fetchUserData };
 export { fetchSdlData };
 export { fetchCsvData };
@@ -183,3 +208,4 @@ export { fetchServiceStatus };
 export { deployXapp };
 export { undeployXapp };
 export { buildXapp };
+export { fetchRulesText, saveRulesText };

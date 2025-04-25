@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from flask import Flask # pip install flask
 from flask import request
 from flask_cors import CORS # pip install flask-cors
+from flask import Response # NEW
 import subprocess
 import sqlite3
 import json
@@ -715,6 +716,34 @@ def fetch_csv_data():
 
     print(json.dumps(network, indent=4))
     return network
+
+FILE_PATH = os.path.join(
+    os.getcwd(),                       # Get the current working directory
+    "xApp", "MobieXpert", "src", "pbest", "expert", "rules.pbest" # Path to the rules file
+)
+
+@app.route("/api/mobieexpert/rules", methods=["GET"])
+def get_rules():
+    try:
+        with open(FILE_PATH, "r", encoding="utf-8") as f:
+            data = f.read()
+        return Response(data, mimetype="text/plain")
+    except FileNotFoundError:
+        return {"error": f"{FILE_PATH} not found", "hint": "Have you built MobieXpert?"}, 404
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
+@app.route("/api/mobieexpert/rules", methods=["PUT"])
+def put_rules():
+    try:
+        new_text = request.get_data(as_text=True)
+        with open(FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(new_text)
+        #return 204 for successful 
+        return ("", 204)
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 
 if __name__ == "__main__":
