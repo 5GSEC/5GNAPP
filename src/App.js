@@ -13,6 +13,7 @@ import {
   Link    // Used to navigate to routes without reloading the page
 } from "react-router-dom";
 
+import Chatbot from './components/Chatbot';
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
@@ -190,22 +191,22 @@ function App() {
               <Route path="/issues" element={<IssuesPage />} />
               <Route path="/compliance" element={<CompliancePage />} />
 
-              {/* NEW: /xapps parent + nested children */}
+              {/* /xapps parent + nested children */}
               <Route path="/xapps" element={<XAppsLayout />}>
                 <Route index element={<XAppsIndex />} /> {/* /xapps */}
-                {/* NEW: import‑based MobieXpert page */}
+                {/* import‑based MobieXpert page */}
                 <Route path="mobiexpert" element={<MobieXpertPage />} />
                 {/* still stubbed inline */}
                 <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
                 <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
               </Route>
-
               <Route path="/settings" element={<SettingsPage />} />
               <Route
                 path="*"
                 element={<div style={{ padding: 20 }}>Page Not Found</div>}
               />
             </Routes>
+            <Chatbot />   {/* NEW: added chatbot panel (stub for now) */}
           </div>
         </div>
       </BrowserRouter>

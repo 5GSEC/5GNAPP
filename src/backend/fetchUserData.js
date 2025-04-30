@@ -201,6 +201,26 @@ function saveRulesText(newText) {
 }
 
 
+
+/**
+ * Fetch a simple chat summary.
+ * Returns a promise resolving to { base_station_count, ue_count }.
+ */
+function fetchChatSummary() {
+  return fetch("http://localhost:8080/chat/summary", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.json();
+    });
+}
+
+
+
 export { fetchUserData };
 export { fetchSdlData };
 export { fetchCsvData };
@@ -209,3 +229,4 @@ export { deployXapp };
 export { undeployXapp };
 export { buildXapp };
 export { fetchRulesText, saveRulesText };
+export { fetchChatSummary };

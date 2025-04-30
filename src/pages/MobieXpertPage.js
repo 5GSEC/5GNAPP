@@ -102,7 +102,7 @@ return (
       flexDirection: "column",
       overflow: "hidden", // Don't overflow the main layout
       padding: "0 20px 20px",
-      width: "100%",
+      width: "70vw",
       maxWidth: "100%",
       boxSizing: "border-box"
     }}
@@ -140,7 +140,9 @@ return (
         flexGrow: 1,
         overflowY: "auto",
         paddingTop: 20,
-        minHeight: 0 // <- important for flex layout to allow shrinking
+        maxWidth: "100%",
+        minHeight: 0, // <- important for flex layout to allow shrinking
+        boxSizing: "border-box"
       }}
     >
       <h4 style={{ marginTop: 0 }}>rules.pbest Editor</h4>
@@ -156,16 +158,17 @@ return (
             onChange={(e) => setRulesText(e.target.value)}
             style={{
               width: "100%",
+              maxWidth: "100%",
               height: 400,
               fontFamily: "monospace",
               fontSize: 14,
-              padding: 10,
+              padding: 20,
               borderRadius: 6,
               border: "1px solid #888",
               background: "#151a1e",
               color: "#e7e7e7",
               boxSizing: "border-box",
-              resize: "vertical"
+              resize: "both"
             }}
           />
           <div style={{ marginTop: 10 }}>

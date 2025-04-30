@@ -722,6 +722,7 @@ FILE_PATH = os.path.join(
     "xApp", "MobieXpert", "src", "pbest", "expert", "rules.pbest" # Path to the rules file
 )
 
+# NEW: Define the route for fetching rules
 @app.route("/api/mobieexpert/rules", methods=["GET"])
 def get_rules():
     try:
@@ -733,7 +734,7 @@ def get_rules():
     except Exception as e:
         return {"error": str(e)}, 500
 
-
+#NEW: Define the route for updating rules
 @app.route("/api/mobieexpert/rules", methods=["PUT"])
 def put_rules():
     try:
@@ -744,6 +745,23 @@ def put_rules():
         return ("", 204)
     except Exception as e:
         return {"error": str(e)}, 500
+    
+
+
+#NEW: fake chat summary endpoint
+@app.route('/chat/summary', methods=['GET'])
+def get_chat_summary():
+    """
+    Fake chat summary endpoint.
+    Returns a simple summary of base-station count and UE count.
+    """
+    # Static fake data
+    summary = {
+        "base_station_count": 5,
+        "ue_count": 12
+    }
+    return summary, 200
+
 
 
 if __name__ == "__main__":
