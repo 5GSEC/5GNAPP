@@ -56,7 +56,7 @@ function MenuNavBar() {
         width: "200px",
         backgroundColor: "#11182E",
         padding: "20px",
-        height: "100vh"
+        height: "100%"
       }}
     >
       <div style={{ textAlign: "center", marginBottom: "20px" }}>

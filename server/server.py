@@ -112,7 +112,7 @@ def build_xapp():
 
 
         xapp_names = {
-            "mobiexpert-xapp":"MobieXpert",
+            "mobiexpert-xapp": "MobieXpert",
             "mobiwatch-xapp" : "MobiWatch",
             "mobiflow-auditor": "mobiflow-auditor",
         }
@@ -169,9 +169,9 @@ def build_xapp():
         # Step 3: Optionally checkout a branch depending on xapp_name
         # You can customize this dict with more xApp->branch mappings
         branch_map = {
-            "mobiflow-auditor": "osc-kpm",
-            "mobiwatch-xapp": "mobiflow-v2",
-            "MobieXpert": "mobiflow-v2"
+            "mobiflow-auditor": "v1.0.0",
+            "MobiWatch": "mobiflow-v2",
+            "MobieXpert": "v1.0.0"
             # add more if needed
         }
         branch_to_checkout = branch_map.get(xapp_name)
@@ -182,7 +182,7 @@ def build_xapp():
             pull_output = execute_command("git pull")
             logs.append(f"Pulled latest code: {pull_output}")
         else:
-            logs.append("No custom branch specified for this xApp.")
+            logs.append(f"No custom branch specified for {xapp_name}.")
 
         # Step 4: check Docker registry
         registry_check = execute_command("docker ps | grep registry")
@@ -227,13 +227,13 @@ def deploy_xapp():
     try:
 
         # 0) Make sure non-root user can use kubectl
-        kube_config_cmd = (
-            "sudo swap off -a && "
-            "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && "
-            "sudo chmod +r $HOME/.kube/config"
-        )
-        kube_config_output = execute_command(kube_config_cmd)
-        logs.append(f"Kubernetes config setup: {kube_config_output or 'done'}")
+        # kube_config_cmd = (
+        #     "sudo swap off -a && "
+        #     "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && "
+        #     "sudo chmod +r $HOME/.kube/config"
+        # )
+        # kube_config_output = execute_command(kube_config_cmd)
+        # logs.append(f"Kubernetes config setup: {kube_config_output or 'done'}")
 
 
         helm_check = execute_command("docker ps | grep chartmuseum")

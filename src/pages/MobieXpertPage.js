@@ -102,7 +102,7 @@ return (
       flexDirection: "column",
       overflow: "hidden", // Don't overflow the main layout
       padding: "0 20px 20px",
-      width: "70vw",
+      width: "80%",
       maxWidth: "100%",
       boxSizing: "border-box"
     }}

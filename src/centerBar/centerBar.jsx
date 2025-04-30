@@ -4,6 +4,7 @@ import { updateData } from '../App';
 import { deployXapp, undeployXapp, buildXapp } from '../backend/fetchUserData';
 import refreshIcond from '../assets/refresh.png';
 import './centerBar.css'; // Import the external CSS file for the banner, animations, etc.
+import { FaArrowRight } from 'react-icons/fa'; // Import an icon from react-icons
 
 /**
  * Wrapper: main layout container.
@@ -14,7 +15,7 @@ const Wrapper = styled.div`
   width: 100%;
   display: flex;
   gap: 1em;
-  padding-top: 4em;
+  padding-top: 0em;
 `;
 
 /**
@@ -188,13 +189,9 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
                     <strong>Service:</strong> {svcName} &nbsp;&nbsp;
                     <strong>Status:</strong> {displayStatus}
                   </p>
-                  <button onClick={() => handleDeploy(svcName)}>Deploy</button>
-                  <button onClick={() => handleBuild(svcName)} style={{ marginLeft: '8px' }}>
-                    Build
-                  </button>
-                  <button onClick={() => handleUndeploy(svcName)} style={{ marginLeft: '8px' }}>
-                    Undeploy
-                  </button>
+                  <button onClick={() => handleBuild(svcName)}>Build</button>
+                  <button onClick={() => handleDeploy(svcName)} style={{ marginLeft: '8px' }}>Deploy</button>
+                  <button onClick={() => handleUndeploy(svcName)} style={{ marginLeft: '8px' }}>Undeploy</button>
                 </div>
               );
             })}
@@ -226,11 +223,21 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
                 : 0;
               const repPeriod = bsevent[cellId].report_period || 0;
               return (
-                <p key={index}>
-                  <strong>Cell ID:</strong> {cellId} &nbsp;&nbsp;
-                  <strong>Active UEs:</strong> {ueCount} &nbsp;&nbsp;
-                  <strong>Report interval:</strong> {repPeriod / 1000}s
-                </p>
+                <div key={index}>
+                  <p>
+                    <strong>Cell ID:</strong> {cellId} &nbsp;&nbsp;
+                    <strong>Active UEs:</strong> {ueCount} &nbsp;&nbsp;
+                    <strong>Report interval:</strong> {repPeriod / 1000}s
+                  </p>
+                  {bsevent[cellId]?.ue &&
+                    Object.keys(bsevent[cellId].ue).map((ueId) => (
+                      <p key={ueId} style={{ display: 'flex', alignItems: 'center' }}>
+                        <FaArrowRight style={{ marginRight: '8px', color: '#11182E' }} /> {/* Icon indicating UE belongs to the cell */}
+                        <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
+                        <strong>S-TMSI:</strong> {bsevent[cellId].ue[ueId]?.s_tmsi || 'N/A'}
+                      </p>
+                    ))}
+                </div>
               );
             })}
           </div>
@@ -250,8 +257,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
                   <>
                     <strong>Total Events</strong>: {Object.keys(bsevent[bsId].ue[ueId].event).length}
                     <p>
-                      <strong>Critical Events</strong>:
-                      {Object.values(bsevent[bsId].ue[ueId].event).filter(ev => ev.Level === 'Critical').length}
+                      <strong>Critical Events</strong>: {Object.values(bsevent[bsId].ue[ueId].event).filter(ev => ev.Level === 'Critical').length}
                     </p>
                   </>
                 )}

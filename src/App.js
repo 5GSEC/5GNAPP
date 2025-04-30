@@ -47,7 +47,7 @@ function MobiflowAuditorPage() {
 /* Parent layout for /xapps – keeps sidebar and renders children via <Outlet /> */
 function XAppsLayout() {
   return (
-    <div style={{ padding: "0 20px 20px", boxSizing: "border-box" }}>
+    <div style={{ padding: "0 20px 20px", boxSizing: "border-box", width: "100%" }}>
       <Outlet />
     </div>
   );
