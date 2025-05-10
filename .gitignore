@@ -10,6 +10,8 @@
 
 # production
 /build
+/server/xApp
+/server/charts
 
 # misc
 .DS_Store

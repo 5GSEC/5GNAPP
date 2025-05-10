@@ -1,11 +1,14 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from flask import Flask # pip install flask
+from flask import request
 from flask_cors import CORS # pip install flask-cors
+from flask import Response # NEW
 import subprocess
 import sqlite3
 import json
 import csv
 import re
+import os
 
 app = Flask(__name__)
 CORS(app) # for remote access
@@ -85,6 +88,330 @@ def fetch_service_status():
     print(json.dumps(services, indent=4))
     return services
 
+
+
+@app.route('/buildXapp', methods=['POST'])
+def build_xapp():
+    """
+    step 1: get xapp_name
+    step 2: go into xApp dir (if it doesn't exist, create it)
+    step 3: git clone the xApp repo
+    step 4: run Docker registry
+    step 5: cd [xapp_name] and then ./build.sh
+    step 6: check if build is successful
+    """
+    original_cwd = os.getcwd()
+    logs = []  # We'll accumulate logs here
+
+    try:
+        data = request.get_json()
+        if not data or 'xapp_name' not in data:
+            return {"error": "xapp_name is required in the request body", "logs": logs}, 400
+
+        xapp_name = data['xapp_name']
+
+
+        xapp_names = {
+            "mobiexpert-xapp": "MobieXpert",
+            "mobiwatch-xapp" : "MobiWatch",
+            "mobiflow-auditor": "mobiflow-auditor",
+        }
+        if xapp_name in xapp_names:
+            xapp_name = xapp_names[xapp_name]
+            logs.append(f"[buildXapp] Using {xapp_name} repo for {data['xapp_name']}")
+        else:
+            logs.append(f"[buildXapp] Using {xapp_name} repo for {data['xapp_name']}")
+            return {"error": "Invalid xapp_name"}, 400
+
+
+        logs.append(f"[buildXapp] Start building xApp: {xapp_name}")
+
+
+
+        # Step 1: create xApp folder if it doesn't exist
+        xapp_root = os.path.join(os.getcwd(), "xApp")
+        if not os.path.exists(xapp_root):
+            try:
+                os.makedirs(xapp_root)
+                logs.append(f"Created directory: {xapp_root}")
+            except FileExistsError:
+                # If the folder is already there, just continue
+                logs.append(f"Directory {xapp_root} already exists.")
+
+        os.chdir(xapp_root)
+        logs.append(f"Changed directory to: {os.getcwd()}")
+
+
+        # Step 2: clone the repo    
+        # If the xapp_name folder doesn't exist, clone it.
+        if not os.path.exists(xapp_name):
+            
+            git_url = f"https://github.com/5GSEC/{xapp_name}.git"
+            clone_output = execute_command(f"git clone {git_url}")
+            logs.append(f"git clone output: {clone_output}")
+
+            # Check if xApp folder is there
+            if not os.path.exists(xapp_name):
+                logs.append(f"Failed to clone {git_url}")
+                return {"error": f"Failed to clone {git_url}", "logs": logs}, 500
+
+            os.chdir(xapp_name)
+            logs.append(f"Now in xApp folder (newly cloned): {os.getcwd()}")
+
+        else:
+            # If folder already exists, just cd in and do a checkout + pull
+            logs.append(f"{xapp_name} folder already exists. Will attempt to update it.")
+            os.chdir(xapp_name)
+            logs.append(f"Now in existing xApp folder: {os.getcwd()}")
+            # We won't remove; we'll checkout branch & pull
+
+
+        # Step 3: Optionally checkout a branch depending on xapp_name
+        # You can customize this dict with more xApp->branch mappings
+        branch_map = {
+            "mobiflow-auditor": "v1.0.0",
+            "MobiWatch": "mobiflow-v2",
+            "MobieXpert": "v1.0.0"
+            # add more if needed
+        }
+        branch_to_checkout = branch_map.get(xapp_name)
+        if branch_to_checkout:
+            checkout_output = execute_command(f"git checkout {branch_to_checkout}")
+            logs.append(f"Checked out branch '{branch_to_checkout}': {checkout_output}")
+            # Then pull the latest changes
+            pull_output = execute_command("git pull")
+            logs.append(f"Pulled latest code: {pull_output}")
+        else:
+            logs.append(f"No custom branch specified for {xapp_name}.")
+
+        # Step 4: check Docker registry
+        registry_check = execute_command("docker ps | grep registry")
+        logs.append(f"registry_check: {registry_check}")
+
+        if not registry_check:
+            start_registry_output = execute_command("docker run -d -p 5000:5000 --restart=always --name registry registry:2")
+            logs.append(f"Started docker registry: {start_registry_output}")
+        else:
+            logs.append("Docker registry is already running.")
+
+        # Step 5: run build.sh
+        # os.chdir(xapp_name) # This is already done above
+
+        logs.append(f"Now in xApp folder: {os.getcwd()}")
+        
+        if not os.path.exists("build.sh"):
+            logs.append(f"No build.sh found in {xapp_name}")
+            return {"error": f"No build.sh found in {xapp_name} directory", "logs": logs}, 500
+
+        execute_command("chmod +x build.sh")
+        build_output = execute_command("./build.sh")
+        logs.append(f"build.sh output:\n{build_output}")
+
+        # Step 6: check if build is successful
+        logs.append("Build finished successfully.")
+        return {"message": "Build finished", "logs": logs}, 200
+
+    except Exception as e:
+        # Return any error and the logs collected so far
+        return {"error": str(e), "logs": logs}, 500
+    finally:
+        # Always switch back to the original directory
+        os.chdir(original_cwd)
+
+
+@app.route('/deployXapp', methods=['POST'])
+def deploy_xapp():
+    original_cwd = os.getcwd()  # Remember our original directory
+    logs = []  # We'll collect log messages in this list
+
+    try:
+
+        # 0) Make sure non-root user can use kubectl
+        # kube_config_cmd = (
+        #     "sudo swap off -a && "
+        #     "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config && "
+        #     "sudo chmod +r $HOME/.kube/config"
+        # )
+        # kube_config_output = execute_command(kube_config_cmd)
+        # logs.append(f"Kubernetes config setup: {kube_config_output or 'done'}")
+
+
+        helm_check = execute_command("docker ps | grep chartmuseum")
+        logs.append(f"helm_check output: {helm_check}")
+
+        # Make sure CHART_REPO_URL is set in Python's process environment (for logging/debugging)
+        os.environ["CHART_REPO_URL"] = "http://0.0.0.0:8090"
+        logs.append(f"CHART_REPO_URL set to {os.environ['CHART_REPO_URL']}")
+
+        chartmuseum_cmd = (
+                "docker run --rm -u 0 -d "
+                "-p 8090:8080 "
+                "-e DEBUG=1 "
+                "-e STORAGE=local "
+                "-e STORAGE_LOCAL_ROOTDIR=/charts "
+                "-v $(pwd)/charts:/charts "
+                "chartmuseum/chartmuseum:latest"
+        )
+        chartmuseum_output = execute_command(chartmuseum_cmd)
+        logs.append(f"ChartMuseum started: {chartmuseum_output}")
+
+        # Set environment variable in this Python process only
+        os.environ["CHART_REPO_URL"] = "http://0.0.0.0:8090"
+        logs.append(f"CHART_REPO_URL set to {os.environ['CHART_REPO_URL']}")
+
+        # 2) Parse request data
+        data = request.get_json()
+        if not data or 'xapp_name' not in data:
+            return {
+                "error": "xapp_name is required in the request body",
+                "logs": logs
+            }, 400
+
+        xapp_name = data['xapp_name']
+
+
+        xapp_names = {
+            "mobiexpert-xapp":"MobieXpert",
+            "mobiwatch-xapp" : "MobiWatch",
+            "mobiflow-auditor": "mobiflow-auditor",
+        }
+        if xapp_name in xapp_names:
+            xapp_name = xapp_names[xapp_name]
+            logs.append(f"[buildXapp] Using {xapp_name} repo for {data['xapp_name']}")
+        else:
+            logs.append(f"[buildXapp] Using {xapp_name} repo for {data['xapp_name']}")
+            return {"error": "Invalid xapp_name"}, 400
+
+        # 3) Verify xApp folder
+        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_dir = os.path.join(xapp_root, xapp_name)
+        if not os.path.exists(xapp_dir):
+            return {
+                "error": f"xApp folder '{xapp_dir}' does not exist. Please build first.",
+                "logs": logs
+            }, 400
+
+        # Change directory to xApp
+        os.chdir(xapp_dir)
+
+        # 4) Onboard step
+        init_dir = os.path.join(xapp_dir, "init")
+        if os.path.exists(init_dir):
+            onboard_cmd = (
+                # "sudo -E env CHART_REPO_URL=http://0.0.0.0:8090 "
+                "CHART_REPO_URL=http://0.0.0.0:8090 dms_cli onboard --config_file_path=config-file.json --shcema_file_path=schema.json"
+            )
+            os.chdir(init_dir)
+            onboard_output = execute_command(onboard_cmd)
+            logs.append(f"Onboard output: {onboard_output}")
+            os.chdir(xapp_dir)
+        else:
+            logs.append("No 'init' folder found. Skipping onboard step.")
+
+        # 5) Deploy step
+        deploy_script = os.path.join(xapp_dir, "deploy.sh")
+        if not os.path.exists(deploy_script):
+            return {
+                "error": f"No deploy.sh found in '{xapp_dir}'",
+                "logs": logs
+            }, 500
+
+        execute_command("chmod +x deploy.sh")
+        deploy_output = execute_command("./deploy.sh")
+        logs.append(f"deploy.sh output: {deploy_output}")
+
+        # 6) Check if the xApp is deployed
+        check_output = execute_command(f"kubectl get pods -A | grep {xapp_name}")
+        if not check_output:
+            msg = f"xApp '{xapp_name}' deployed, but no running pod found via 'kubectl get pods'."
+            logs.append(msg)
+            return {
+                "message": msg,
+                "logs": logs
+            }, 200
+        else:
+            msg = f"xApp '{xapp_name}' deployment success: {check_output}"
+            logs.append(msg)
+            return {
+                "message": msg,
+                "logs": logs
+            }, 200
+
+    except Exception as e:
+        # If an error occurs, return the error along with any logs we've collected
+        return {"error": str(e), "logs": logs}, 500
+    finally:
+        # Always return to the original directory
+        os.chdir(original_cwd)
+
+
+@app.route('/unDeployXapp', methods=['POST'])
+def unDeploy_xapp():
+
+    original_cwd = os.getcwd()
+    """
+    step 1: find xapp_name corresponding directory
+    step 2: check if xapp is deployed (kubectl get pods -A | grep)
+    step 3: run ./undeploy.sh
+    step 4: check undeployment is successful or not
+    """
+    try:
+        data = request.get_json()
+        if not data or 'xapp_name' not in data:
+            return {"error": "xapp_name is required in the request body"}, 400
+
+        xapp_name = data['xapp_name']
+        xapp_names = {
+            "mobiexpert-xapp":"MobieXpert",
+            "mobiwatch-xapp" : "MobiWatch",
+            "mobiflow-auditor": "mobiflow-auditor",
+        }
+        if xapp_name in xapp_names:
+            xapp_name = xapp_names[xapp_name]
+        else:
+            return {"error": "Invalid xapp_name"}, 400
+
+
+        print(f"[unDeployXapp] unDeploy xApp: {xapp_name}")
+
+        # step 1
+        xapp_root = os.path.join(os.getcwd(), "xApp")
+        xapp_dir = os.path.join(xapp_root, xapp_name)
+        if not os.path.exists(xapp_dir):
+            return {"error": f"xApp folder {xapp_dir} does not exist."}, 400
+
+        # step 2: check if xapp is deployed
+        check_output = execute_command(f"kubectl get pods -A | grep {xapp_name}")
+        if not check_output:
+            print(f"No running pods found for {xapp_name}. Possibly already undeployed.")
+            # we can continue to undeploy.sh，but we can also return a message
+            # return {"message": f"No running pods for {xapp_name}. Maybe it's already undeployed."}, 200
+
+        # step 3: ./undeploy.sh
+        os.chdir(xapp_dir)
+        undeploy_script = os.path.join(xapp_dir, "undeploy.sh")
+        if not os.path.exists(undeploy_script):
+            return {"error": f"No undeploy.sh found in {xapp_dir}"}, 500
+
+        execute_command("chmod +x undeploy.sh")
+        undeploy_output = execute_command("./undeploy.sh")
+        print(undeploy_output)
+
+        # step 4: check undeployment is successful or not
+        check_output2 = execute_command(f"kubectl get pods -A | grep {xapp_name}")
+        if check_output2:
+            msg = f"Attempted to undeploy {xapp_name}, but pods may still be present: {check_output2}"
+            print(msg)
+            return {"message": msg}, 200
+        else:
+            msg = f"xApp {xapp_name} is successfully undeployed."
+            print(msg)
+            return {"message": msg}, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500
+    finally:
+        os.chdir(original_cwd)
 
 @app.route('/fetchSdlData', methods=['GET'])
 def fetch_sdl_data():
@@ -283,7 +610,7 @@ def fetch_csv_data():
 
     # Path to your CSV file
 
-    csv_data_path = ['db/5G-Sample-Data - BS.csv', 'db/5G-Sample-Data - UE.csv', 'db/5G-Sample-Data - Event.csv']
+    csv_data_path = ['../src/db/5G-Sample-Data - BS.csv', '../src/db/5G-Sample-Data - UE.csv', '../src/db/5G-Sample-Data - Event.csv']
 
     network = {}
 
@@ -389,6 +716,52 @@ def fetch_csv_data():
 
     print(json.dumps(network, indent=4))
     return network
+
+FILE_PATH = os.path.join(
+    os.getcwd(),                       # Get the current working directory
+    "xApp", "MobieXpert", "src", "pbest", "expert", "rules.pbest" # Path to the rules file
+)
+
+# NEW: Define the route for fetching rules
+@app.route("/api/mobieexpert/rules", methods=["GET"])
+def get_rules():
+    try:
+        with open(FILE_PATH, "r", encoding="utf-8") as f:
+            data = f.read()
+        return Response(data, mimetype="text/plain")
+    except FileNotFoundError:
+        return {"error": f"{FILE_PATH} not found", "hint": "Have you built MobieXpert?"}, 404
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+#NEW: Define the route for updating rules
+@app.route("/api/mobieexpert/rules", methods=["PUT"])
+def put_rules():
+    try:
+        new_text = request.get_data(as_text=True)
+        with open(FILE_PATH, "w", encoding="utf-8") as f:
+            f.write(new_text)
+        #return 204 for successful 
+        return ("", 204)
+    except Exception as e:
+        return {"error": str(e)}, 500
+    
+
+
+#NEW: fake chat summary endpoint
+@app.route('/chat/summary', methods=['GET'])
+def get_chat_summary():
+    """
+    Fake chat summary endpoint.
+    Returns a simple summary of base-station count and UE count.
+    """
+    # Static fake data
+    summary = {
+        "base_station_count": 5,
+        "ue_count": 12
+    }
+    return summary, 200
+
 
 
 if __name__ == "__main__":
