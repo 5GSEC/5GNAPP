@@ -109,18 +109,7 @@ function IssuesPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Transform `bevent` into rows for the DataGrid
-  // const rows = Object.keys(bevent).map((key, index) => ({
-  //   id: index + 1,
-  //   source: bevent[key]?.source || "Unknown",
-  //   type: bevent[key]?.type || "Unknown",
-  //   description: bevent[key]?.description || "No description available",
-  //   severity: bevent[key]?.severity || "Medium",
-  // }));
-
   // load MobieXpert attack events
-  console.log("bevent", bevent);
-
   const eventdata = Object.keys(bevent).flatMap((bsId, index) => {
     const cellData = bevent[bsId];
     if (!cellData || !cellData.ue) return []; // Skip if no UE data
@@ -157,7 +146,46 @@ function IssuesPage() {
     });
   })
   .sort((a, b) => a.id.localeCompare(b.id)); // Sort events by eventId
-  console.log("event data", eventdata);
+
+  console.log("eventdata", bevent);
+
+  // load MobiWatch abnormal network events
+  const alertdata = Object.keys(bevent).flatMap((bsId, index) => {
+    const cellData = bevent[bsId];
+    if (!cellData || !cellData.ue) return []; // Skip if no UE data
+
+    return Object.keys(cellData.ue).flatMap((ueId) => {
+      const ueData = cellData.ue[ueId];
+      if (!ueData.mobiflow || !Object.keys(ueData.mobiflow).length) {
+        // If no events, return a fallback row
+        // return [
+        //   {
+        //     id: `${bsId}-${ueId}-fallback`,
+        //     bsId,
+        //     ueId,
+        //     eventId: "fallback",
+        //     source: "Unknown",
+        //     type: "Unknown",
+        //     description: "No events available",
+        //     severity: "Medium",
+        //   },
+        // ];
+      }
+
+      // Map each event to a row
+      return Object.keys(ueData.mobiflow).map((eventId) => ({
+        id: eventId,
+        cellID: bsId,
+        ueID: ueId,
+        source: "MobieXpert",
+        type: "Attack",
+        time: parseTimestamp(ueData.event[eventId]?.Timestamp) || "N/A",
+        description: ueData.event[eventId]?.Description || "No description available",
+        severity: ueData.event[eventId]?.Level || "Critical",
+      }));
+    });
+  })
+  .sort((a, b) => a.id.localeCompare(b.id)); // Sort events by eventId
   
 
   // Filter rows based on the search query
@@ -197,7 +225,7 @@ function IssuesPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </FormControl>
-            <div style={{ height: 400, width: "100%", marginTop: "16px" }}>
+            <div style={{ height: 600, width: "100%", marginTop: "16px" }}>
               <DataGrid
                 rows={filteredRows}
                 columns={columns}
