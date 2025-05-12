@@ -171,7 +171,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
       <Wrapper>
         {/* First container: RIC Services */}
         <Container style={{ width: '40%' }}>
-          <h2 style={{ marginTop: '0em' }}>Control-Plane RIC Services</h2>
+          <h2 style={{ marginTop: '0em' }}>SE-RAN AISecOps Services</h2>
           <div>
             {Object.keys(services).map((svcName, idx) => {
               const rawData = services[svcName] || "";

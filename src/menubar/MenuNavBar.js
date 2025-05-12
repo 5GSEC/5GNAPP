@@ -82,16 +82,6 @@ function MenuNavBar() {
           </Link>
         </li>
 
-        {/* Profile */}
-        <li style={menuItemStyle}>
-          <Link
-            to="/profile"
-            style={{ ...linkBaseStyle, ...(pathname === "/profile" ? activeLink : {}) }}
-          >
-            <FaUser /> Profile
-          </Link>
-        </li>
-
         {/* Issues */}
         <li style={menuItemStyle}>
           <Link
@@ -99,6 +89,16 @@ function MenuNavBar() {
             style={{ ...linkBaseStyle, ...(pathname === "/issues" ? activeLink : {}) }}
           >
             <FaExclamationCircle /> Issues
+          </Link>
+        </li>
+
+        {/* Profile */}
+        <li style={menuItemStyle}>
+          <Link
+            to="/profile"
+            style={{ ...linkBaseStyle, ...(pathname === "/profile" ? activeLink : {}) }}
+          >
+            <FaUser /> Profile
           </Link>
         </li>
 
