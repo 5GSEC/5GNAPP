@@ -13,6 +13,7 @@ import os
 app = Flask(__name__)
 CORS(app) # for remote access
 
+# deprecated
 @app.route('/fetchUserData', methods=['GET'])
 def fetch_user_data():
     ''' Fetch user data from the database '''
@@ -46,7 +47,7 @@ def fetch_user_data():
 
 def execute_command(command):
     ''' Execute a shell command and return the output '''
-    print(command)
+    # print(command)
     # result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     # if result.returncode != 0:
     #     raise Exception(f"Command failed with error: {result.stderr}")
@@ -67,23 +68,28 @@ def fetch_service_status():
     lines = output.split("\n")
 
     pod_names = ["ricplt-e2mgr", "mobiflow-auditor", "mobiexpert-xapp", "mobiwatch-xapp"]
+    display_names = ["E2 Manager", "MobiFlow Auditor xApp", "MobieXpert xApp", "MobiWatch xApp"]
     for pod in pod_names:
-        services[pod] = ""
+        pod_index = pod_names.index(pod)
+        display_name = display_names[pod_index]
+        services[display_name] = ""
 
     for line in lines:
         for pod in pod_names:
             if pod in line:
-                services[pod] = line.replace("(", "") # tmp soluton to solve getting (4d20h ago) as the age
+                pod_index = pod_names.index(pod)
+                display_name = display_names[pod_index]
+                services[display_name] = line.replace("(", "") # tmp soluton to solve getting (4d20h ago) as the age
                 break
 
-    # MobiIntrospect
+    # MobiFlow Agent
     program_name = "loader"
     command = f"pgrep -x {program_name}" # need to makes sure pgrep is available
     output = execute_command(command)
     if output:
-        services["mobiintrospect"] = " ; ;Running; ;" # TODO get the age of the process
+        services["MobiFlow Agent"] = " ; ;Running; ;" # TODO get the age of the process
     else:
-        services["mobiintrospect"] = ""
+        services["MobiFlow Agent"] = ""
     
     print(json.dumps(services, indent=4))
     return services
@@ -112,9 +118,9 @@ def build_xapp():
 
 
         xapp_names = {
-            "mobiexpert-xapp": "MobieXpert",
-            "mobiwatch-xapp" : "MobiWatch",
-            "mobiflow-auditor": "mobiflow-auditor",
+            "MobieXpert xApp": "MobieXpert",
+            "MobiWatch xApp" : "MobiWatch",
+            "MobiFlow Auditor xApp": "mobiflow-auditor",
         }
         if xapp_name in xapp_names:
             xapp_name = xapp_names[xapp_name]
@@ -170,7 +176,7 @@ def build_xapp():
         # You can customize this dict with more xApp->branch mappings
         branch_map = {
             "mobiflow-auditor": "v1.0.0",
-            "MobiWatch": "mobiflow-v2",
+            "MobiWatch": "main",
             "MobieXpert": "v1.0.0"
             # add more if needed
         }
@@ -271,9 +277,9 @@ def deploy_xapp():
 
 
         xapp_names = {
-            "mobiexpert-xapp":"MobieXpert",
-            "mobiwatch-xapp" : "MobiWatch",
-            "mobiflow-auditor": "mobiflow-auditor",
+            "MobieXpert xApp": "MobieXpert",
+            "MobiWatch xApp" : "MobiWatch",
+            "MobiFlow Auditor xApp": "mobiflow-auditor",
         }
         if xapp_name in xapp_names:
             xapp_name = xapp_names[xapp_name]
@@ -362,9 +368,9 @@ def unDeploy_xapp():
 
         xapp_name = data['xapp_name']
         xapp_names = {
-            "mobiexpert-xapp":"MobieXpert",
-            "mobiwatch-xapp" : "MobiWatch",
-            "mobiflow-auditor": "mobiflow-auditor",
+            "MobieXpert xApp": "MobieXpert",
+            "MobiWatch xApp" : "MobiWatch",
+            "MobiFlow Auditor xApp": "mobiflow-auditor",
         }
         if xapp_name in xapp_names:
             xapp_name = xapp_names[xapp_name]
@@ -427,7 +433,7 @@ def fetch_sdl_data():
 
 
     # Iterate over the desired namespaces to get all keys
-    ns_target = ["ue_mobiflow", "bs_mobiflow", "mobiexpert-event"]
+    ns_target = ["ue_mobiflow", "bs_mobiflow", "mobiexpert-event", "mobiwatch-event"]
     key_len_by_namespace = {}
 
 
@@ -468,7 +474,7 @@ def fetch_sdl_data():
         values = {}
         for line in [val.strip() for val in value.split("\n") if val.strip()]:
             k = int(line.split(":")[0])
-            v = line.split(":")[1][2:]  # remove prefix
+            v = line.split(":")[1][2:]  # remove osc sdl prefix
             values[k] = v
         values = dict(sorted(values.items())) # sort values based on Index
 
@@ -526,6 +532,11 @@ def fetch_sdl_data():
                         "nas_integrity_alg": ue_mf_item[ue_meta.index("nas_integrity_alg")],
                         "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
                         "mobiflow": [{
+                            "msg_id": int(ue_mf_item[ue_meta.index("Index")]),
+                            "abnormal": {
+                                "value": False,
+                                "source": "None"
+                            },
                             "rrc_msg": ue_mf_item[ue_meta.index("rrc_msg")],
                             "nas_msg": ue_mf_item[ue_meta.index("nas_msg")],
                             "rrc_state": ue_mf_item[ue_meta.index("rrc_state")],
@@ -549,6 +560,11 @@ def fetch_sdl_data():
                     network[nr_cell_id]["ue"][ue_id]["nas_integrity_alg"] = ue_mf_item[ue_meta.index("nas_integrity_alg")]
                     network[nr_cell_id]["ue"][ue_id]["Timestamp"] = ue_mf_item[ue_meta.index("Timestamp")]
                     network[nr_cell_id]["ue"][ue_id]["mobiflow"].append({
+                        "msg_id": int(ue_mf_item[ue_meta.index("Index")]),
+                        "abnormal": {
+                            "value": False,
+                            "source": "None"
+                        },
                         "rrc_msg": ue_mf_item[ue_meta.index("rrc_msg")],
                         "nas_msg": ue_mf_item[ue_meta.index("nas_msg")],
                         "rrc_state": ue_mf_item[ue_meta.index("rrc_state")],
@@ -598,11 +614,47 @@ def fetch_sdl_data():
                     print(f"gnb_du_ue_f1ap_id {ue_id} not found")
             else:
                 print(f"nr_cell_id {nr_cell_id} not found")
+    
+    # get all mobiwatch-event
+    event_key = ns_target[3]
+    for i in range(1, key_len_by_namespace[event_key] + 1, max_batch_get_value):  # event index starts from 1
+        # Create a batch of keys
+        batch_keys = [str(j) for j in range(i, min(i + max_batch_get_value, key_len_by_namespace[event_key] + 1))]
+
+        # Create the command for the batch
+        command = get_val_command(event_key, " ".join(batch_keys))
+        value = execute_command(command)
+        
+        # Process each value in the batch
+        values = [val.strip() for val in value.split("\n") if val.strip()]
+
+        for val in values:
+            val = val.split(":")[1][2:]  # remove osc sdl prefix
+            event_item = val.split(";")
+            model_name = event_item[0]
+            if model_name == "autoencoder_v2":
+                abnormal_mf_index = event_item[1:]
+                # convert each item to int
+                abnormal_mf_index = [int(i) for i in abnormal_mf_index]
+                # traverse the mobiflow records to flag the abnormal ones
+                for nr_cell_id in network:
+                    for ue_id in network[nr_cell_id]["ue"]:
+                        for m in network[nr_cell_id]["ue"][ue_id]["mobiflow"]:
+                            if int(m["msg_id"]) in abnormal_mf_index:
+                                m["abnormal"]["value"] = True
+                                m["abnormal"]["source"] = model_name
+                                # print("abnormal mobiflow identified")
+                                # print(m)
+                                break
+            elif model_name == "lstm_v2":
+                abnormal_mf_sequence = event_item[1:]
+                # traverse the mobiflow records to flag the abnormal sequences
 
 
-    print(json.dumps(network, indent=4))
+    # print(json.dumps(network, indent=4))
     return network
 
+# deprecated
 @app.route('/fetchCsvData', methods=['GET'])
 def fetch_csv_data():
 
