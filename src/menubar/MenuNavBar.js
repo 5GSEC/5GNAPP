@@ -140,15 +140,11 @@ function MenuNavBar() {
             <li style={subItemStyle}>
               <Link
                 to="/xapps/mobiexpert"
-                style={{
-                  ...linkBaseStyle,
-                  ...(pathname === "/xapps/mobiexpert" ? activeLink : {})
-                }}
+                style={{ ...linkBaseStyle, ...(pathname === "/xapps/mobiexpert" ? activeLink : {}) }}
               >
                 ▸ MobieXpert
               </Link>
             </li>
-
             <li style={subItemStyle}>
               <Link
                 to="/xapps/mobiflow-auditor"
@@ -158,6 +154,15 @@ function MenuNavBar() {
                 }}
               >
                 ▸ Mobiflow Auditor
+              </Link>
+            </li>
+            {/* NEW: added mobillm page */}
+            <li style={subItemStyle}>
+              <Link
+                to="/xapps/mobillm"
+                style={{ ...linkBaseStyle, ...(pathname === "/xapps/mobillm" ? activeLink : {}) }}
+              >
+                ▸ MobiLLM
               </Link>
             </li>
           </>

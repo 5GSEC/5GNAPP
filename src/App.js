@@ -20,6 +20,7 @@ import MenuNavBar from "./menubar/MenuNavBar";
 import { fetchCsvData, fetchSdlData, fetchServiceStatus } from "./backend/fetchUserData";
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
+import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
 
 /* ──────────────────────────────────────────────
    NEW: xApps child pages (very small placeholders)
@@ -31,6 +32,7 @@ function XAppsIndex() {
       Select an xApp on the left, or visit<br />
       <Link to="mobiexpert">/xapps/mobiexpert</Link>&nbsp;or&nbsp;
       <Link to="mobiflow-auditor">/xapps/mobiflow-auditor</Link>.
+      <Link to="mobillm">/xapps/mobillm</Link>.
     </p>
   );
 }
@@ -188,6 +190,8 @@ function App() {
                 <Route path="mobiexpert" element={<MobieXpertPage />} />
                 {/* still stubbed inline */}
                 <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
+                {/* NEW: dedicated MobiLLM page */}
+                <Route path="mobillm" element={<MobiLLMPage />} />
                 <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
               </Route>
               <Route path="/settings" element={<SettingsPage />} />
