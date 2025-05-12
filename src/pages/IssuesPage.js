@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { Typography, Grid, Card, CardContent, FormControl, InputAdornment, OutlinedInput, Button } from "@mui/material";
 import { Warning, Error, Info, SearchRounded as SearchRoundedIcon } from "@mui/icons-material";
-import { fetchSdlData } from "../backend/fetchUserData";
+import { fetchSdlEventData } from "../backend/fetchUserData";
 
 function parseTimestamp(raw) {
     if (!raw) return null;
@@ -43,15 +43,15 @@ const mockData = [
 // Define columns for the DataGrid
 const columns = [
   { field: "id", headerName: "ID", width: 50 },
-  { field: "source", headerName: "Source", width: 100 },
-  { field: "type", headerName: "Type", width: 70 },
+  { field: "source", headerName: "Source", width: 120 },
+  { field: "name", headerName: "Name", width: 150 },
   { field: "cellID", headerName: "Cell ID", width: 100 },
   { field: "ueID", headerName: "UE ID", width: 80 },
-  { field: "time", headerName: "Time", width: 250 },
+  { field: "time", headerName: "Time", width: 200 },
   {
     field: "severity",
     headerName: "Severity",
-    width: 150,
+    width: 120,
     renderCell: (params) => {
       switch (params.value) {
         case "Critical":
@@ -77,7 +77,7 @@ const columns = [
       }
     },
   },
-  { field: "description", headerName: "Description", width: 550 },
+  { field: "description", headerName: "Description", width: 500 },
   {
     field: "insight",
     headerName: "",
@@ -102,90 +102,26 @@ function IssuesPage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchSdlData(setEvent);
+      fetchSdlEventData(setEvent);
     }, update_interval);
-    fetchSdlData(setEvent);
+    fetchSdlEventData(setEvent);
 
     return () => clearInterval(interval);
   }, []);
 
-  // load MobieXpert attack events
-  const eventdata = Object.keys(bevent).flatMap((bsId, index) => {
-    const cellData = bevent[bsId];
-    if (!cellData || !cellData.ue) return []; // Skip if no UE data
+  // load MobieXpert and MobiWatch event data
+  const eventdata = Object.values(bevent).map((event) => ({
+    id: event.id,
+    cellID: event.cellID,
+    ueID: event.ueID,
+    source: event.source || "Unknown", // Default to "Unknown" if source is missing
+    name: event.name || "Unknown", // Default to "Unknown" if name is missing
+    time: parseTimestamp(event.timestamp) || "N/A", // Parse timestamp or default to "N/A"
+    description: event.description || "No description available", // Default description
+    severity: event.severity || "Medium", // Default severity
+  }));
 
-    return Object.keys(cellData.ue).flatMap((ueId) => {
-      const ueData = cellData.ue[ueId];
-      if (!ueData.event || !Object.keys(ueData.event).length) {
-        // If no events, return a fallback row
-        // return [
-        //   {
-        //     id: `${bsId}-${ueId}-fallback`,
-        //     bsId,
-        //     ueId,
-        //     eventId: "fallback",
-        //     source: "Unknown",
-        //     type: "Unknown",
-        //     description: "No events available",
-        //     severity: "Medium",
-        //   },
-        // ];
-      }
-
-      // Map each event to a row
-      return Object.keys(ueData.event).map((eventId) => ({
-        id: eventId,
-        cellID: bsId,
-        ueID: ueId,
-        source: "MobieXpert",
-        type: "Attack",
-        time: parseTimestamp(ueData.event[eventId]?.Timestamp) || "N/A",
-        description: ueData.event[eventId]?.Description || "No description available",
-        severity: ueData.event[eventId]?.severity || "Critical",
-      }));
-    });
-  })
-  .sort((a, b) => a.id.localeCompare(b.id)); // Sort events by eventId
-
-  console.log("eventdata", bevent);
-
-  // load MobiWatch abnormal network events
-  const alertdata = Object.keys(bevent).flatMap((bsId, index) => {
-    const cellData = bevent[bsId];
-    if (!cellData || !cellData.ue) return []; // Skip if no UE data
-
-    return Object.keys(cellData.ue).flatMap((ueId) => {
-      const ueData = cellData.ue[ueId];
-      if (!ueData.mobiflow || !Object.keys(ueData.mobiflow).length) {
-        // If no events, return a fallback row
-        // return [
-        //   {
-        //     id: `${bsId}-${ueId}-fallback`,
-        //     bsId,
-        //     ueId,
-        //     eventId: "fallback",
-        //     source: "Unknown",
-        //     type: "Unknown",
-        //     description: "No events available",
-        //     severity: "Medium",
-        //   },
-        // ];
-      }
-
-      // Map each event to a row
-      return Object.keys(ueData.mobiflow).map((eventId) => ({
-        id: eventId,
-        cellID: bsId,
-        ueID: ueId,
-        source: "MobieXpert",
-        type: "Attack",
-        time: parseTimestamp(ueData.event[eventId]?.Timestamp) || "N/A",
-        description: ueData.event[eventId]?.Description || "No description available",
-        severity: ueData.event[eventId]?.Level || "Critical",
-      }));
-    });
-  })
-  .sort((a, b) => a.id.localeCompare(b.id)); // Sort events by eventId
+  // console.log("eventdata", bevent);
   
 
   // Filter rows based on the search query
