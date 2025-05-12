@@ -1,6 +1,6 @@
+// src/components/Chatbot.jsx
 import React, { useState } from 'react';
 import './Chatbot.css';
-import { fetchChatSummary } from '../backend/fetchUserData';
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -21,7 +21,7 @@ export default function Chatbot() {
 
   /**
    * Handle user sending a message.
-   * Add user msg, then bot replies with static summary.
+   * Add user msg, then send to LLM endpoint and append bot reply.
    */
   const handleSend = async () => {
     const text = inputText.trim();
@@ -31,13 +31,21 @@ export default function Chatbot() {
     setMessages(prev => [...prev, { sender: 'user', text }]);
     setInputText('');
 
-    // Bot replies with static summary
+    // Call LLM endpoint
     try {
-      const data = await fetchChatSummary();
-      const summaryText = formatSummary(data);
-      setMessages(prev => [...prev, { sender: 'bot', text: summaryText }]);
+      const res = await fetch("http://localhost:8080/llm/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Chat error');
+      }
+      const reply = data.reply;
+      setMessages(prev => [...prev, { sender: 'bot', text: reply }]);
     } catch (e) {
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Fetch data failed' }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Error: could not get reply' }]);
     }
   };
 
@@ -47,11 +55,6 @@ export default function Chatbot() {
       e.preventDefault();
       handleSend();
     }
-  };
-
-  /** Format summary data into lines */
-  const formatSummary = (data) => {
-    return `Base stations: ${data.base_station_count}\nUEs: ${data.ue_count}`;
   };
 
   return (
