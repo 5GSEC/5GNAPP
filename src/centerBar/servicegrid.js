@@ -38,12 +38,12 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
     {
       field: "service",
       headerName: "Service",
-      width: 180,
+      width: 220,
     },
     {
       field: "status",
       headerName: "Status",
-      width: 150,
+      width: 220,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <StatusIndicator status={params.value} />
