@@ -9,7 +9,10 @@ const StatusIndicator = ({ status }) => {
     case status.startsWith("Running"):
       color = "green";
       break;
-    case status.startsWith("Container Creating"):
+    case status.startsWith("ContainerCreating"):
+      color = "orange";
+      break;
+    case status.startsWith("Terminating"):
       color = "orange";
       break;
     case status.startsWith("Inactive"):
