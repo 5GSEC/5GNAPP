@@ -10,10 +10,11 @@ from langchain.tools import Tool # Import the Tool class
 from langchain import hub # For pre-built prompts
 
 
-class SecurityAgent:
+class MobiLLMAgent:
 
-    def __init__(self, google_api_key: str=None):
+    def __init__(self, google_api_key: str=None, gemini_llm_model: str="gemini-2.5-flash-preview-04-17"):
         self.init_completed = False
+        self.gemini_llm_model = gemini_llm_model
         # --- Configuration ---
         # IMPORTANT: Set your GOOGLE_API_KEY as an environment variable.
         # LangChain's Google Generative AI integration will automatically pick it up.
@@ -27,9 +28,6 @@ class SecurityAgent:
             os.environ["GOOGLE_API_KEY"] = google_api_key
             # You could set it here as a fallback, but it's not recommended for production:
             # os.environ["GOOGLE_API_KEY"] = "YOUR_ACTUAL_API_KEY"
-
-        self.gemini_llm_model = "gemini-2.5-flash-preview-04-17"
-        # gemini_llm_model = "gemini-2.5-pro-preview-05-06"
 
         # --- LLM Initialization ---
         # Initialize the Gemini LLM through LangChain
@@ -57,12 +55,12 @@ class SecurityAgent:
         try:
             # List of tools the agent can use
             self.tools = [
-                get_ue_mobiflow_data_all,
+                get_ue_mobiflow_data_all_tool,
                 get_ue_mobiflow_data_by_index_tool,
-                get_ue_mobiflow_description,
-                fetch_sdl_event_data_osc,
-                get_event_description,
-                fetch_service_status_osc
+                get_ue_mobiflow_description_tool,
+                fetch_sdl_event_data_osc_tool,
+                get_event_description_tool,
+                fetch_service_status_osc_tool
             ]
         except AttributeError as e:
             print(f"Error creating Tools: {e}. This often means a function is missing a docstring or is not correctly imported.")
@@ -148,7 +146,7 @@ class SecurityAgent:
     def init_successful(self) -> bool:
         return self.init_completed
 
-    def inference(self, prompt: str) -> dict:
+    def inference(self, user_query: str) -> dict:
         try:
             # The 'input' key in the dictionary corresponds to the {input} placeholder in the prompt.
             # The 'agent_scratchpad' is handled internally by the AgentExecutor.
@@ -178,7 +176,7 @@ if __name__ == "__main__":
     for user_query in queries:
         print(f"\n\nExecuting query: \"{user_query}\"")
         print("================================================")
-        security_agent = SecurityAgent("")
+        security_agent = MobiLLMAgent()
         if security_agent.init_successful() is True:
             response = security_agent.inference(user_query)
             print("------------------------------------------------")

@@ -38,8 +38,8 @@
   }
   
   .chatbot-window {
-    width: 280px;
-    height: 320px;
+    width: 400px;
+    height: 500px;
     margin-top: 8px;
     background: #ffffff;
     border: 1px solid #ccc;

@@ -241,6 +241,21 @@ function fetchChatSummary() {
     });
 }
 
+/** 
+ * Interface to chat with the MobiLLM Agent
+*/
+function mobiLLMChat() {
+  return fetch("http://localhost:8080/mobillm/chat", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.json();
+  });
+}
 
 
 export { fetchUserData };
@@ -253,3 +268,4 @@ export { buildXapp };
 export { fetchRulesText, saveRulesText };
 export { fetchChatSummary };
 export { fetchSdlEventData };
+export { mobiLLMChat };

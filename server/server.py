@@ -3,6 +3,7 @@ from flask import Flask # pip install flask
 from flask import request, jsonify
 
 import sdl_apis
+from mobillm import MobiLLMAgent
 
 # Gemini SDK
 from google import genai
@@ -130,6 +131,31 @@ llm_config = {
     "model": None
 }
 
+mobillm_agent = None
+
+@app.route('/mobillm/chat', methods=['POST'])
+def mobillm_chat():
+    """
+    Receive user message and dispatch to MobiLLM chat agent.
+    """
+    body = request.get_json() or {}
+    user_msg = body.get('message', '').strip()
+    if not user_msg:
+        return jsonify({"error": "No message provided"}), 400
+
+    global mobillm_agent
+    if mobillm_agent is None:
+        return jsonify({"reply": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
+
+    try:
+        response = mobillm_agent.inference(user_msg)
+        return jsonify({"reply": response['output']}), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/llm/config', methods=['GET', 'POST'])
 def llm_config_route():
     if request.method == 'GET':
@@ -137,6 +163,14 @@ def llm_config_route():
     data = request.get_json() or {}
     llm_config['api_key'] = data.get('api_key')
     llm_config['model']   = data.get('model')
+
+    # initialize MobiLLM agent
+    model_name = llm_config['model']
+    if model_name.startswith("models/"):
+        model_name = model_name.split("/", 1)[1]          # -> "gemini-1.5-flash-latest"
+    global mobillm_agent
+    mobillm_agent = MobiLLMAgent(google_api_key=llm_config['api_key'],  gemini_llm_model=model_name)
+
     return jsonify({"status": "ok"}), 200
 
 @app.route('/llm/chat', methods=['POST'])

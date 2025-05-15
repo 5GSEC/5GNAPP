@@ -33,7 +33,8 @@ export default function Chatbot() {
 
     // Call LLM endpoint
     try {
-      const res = await fetch("http://localhost:8080/llm/chat", {
+      // const res = await fetch("http://localhost:8080/llm/chat", {
+      const res = await fetch("http://localhost:8080/mobillm/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text })
