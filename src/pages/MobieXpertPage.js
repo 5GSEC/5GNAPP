@@ -4,6 +4,7 @@
  ******************************************************/
 
 import React, { useState, useEffect, useRef } from "react"; 
+import { Typography, Button, Box } from "@mui/material";
 import { fetchRulesText, saveRulesText } from "../backend/fetchUserData"; // NEW: import helpers
 
 /* ──────────────────────────────────────────────
@@ -108,8 +109,10 @@ return (
     }}
   >
     {/* Header / fixed top area */}
-    <div style={{ flexShrink: 0 }}>
-      <h3 style={{ marginTop: 0 }}>MobieXpert xApp Settings</h3>
+    <Box flexShrink={0}>
+      <Typography variant="h5" sx={{ mt: 0, mb: 1, fontWeight: "bold" }}>
+        MobieXpert xApp Settings
+      </Typography>
 
       {status ? (
         <ul style={{ marginTop: 0 }}>
@@ -121,18 +124,24 @@ return (
           </li>
         </ul>
       ) : (
-        <p>Loading xApp status…</p>
+        <Typography variant="body2" color="text.secondary">
+          Loading xApp status…
+        </Typography>
       )}
 
       {loadError && (
         <>
-          <p style={{ color: "tomato", fontWeight: "bold" }}>{loadError}</p>
+          <Typography variant="body2" sx={{ color: "tomato", fontWeight: "bold" }}>
+            {loadError}
+          </Typography>
           {errorHint && (
-            <p style={{ color: "#ffd27d", marginTop: -10 }}>{errorHint}</p>
+            <Typography variant="body2" sx={{ color: "#ffd27d", mt: -1 }}>
+              {errorHint}
+            </Typography>
           )}
         </>
       )}
-    </div>
+    </Box>
 
     {/* Scrollable main content */}
     <div
@@ -141,16 +150,22 @@ return (
         overflowY: "auto",
         paddingTop: 20,
         maxWidth: "100%",
-        minHeight: 0, // <- important for flex layout to allow shrinking
+        minHeight: 0,
         boxSizing: "border-box"
       }}
     >
-      <h4 style={{ marginTop: 0 }}>rules.pbest Editor</h4>
+      <Typography variant="h6" sx={{ mt: 0, mb: 2, fontWeight: "bold" }}>
+        rules.pbest Editor
+      </Typography>
 
       {loadingRules ? (
-        <p>Loading file…</p>
+        <Typography variant="body2" color="text.secondary">
+          Loading file…
+        </Typography>
       ) : loadError ? (
-        <p>Cannot edit until the file is available.</p>
+        <Typography variant="body2" color="text.secondary">
+          Cannot edit until the file is available.
+        </Typography>
       ) : (
         <>
           <textarea
@@ -171,22 +186,28 @@ return (
               resize: "both"
             }}
           />
-          <div style={{ marginTop: 10 }}>
-            <button
+          <Box mt={1}>
+            <Button
+              variant="contained"
+              color="primary"
               onClick={handleSave}
               disabled={saving}
-              style={{ padding: "6px 16px" }}
+              sx={{ px: 3, py: 1 }}
             >
               {saving ? "Saving…" : "Save"}
-            </button>
-            {saveMsg && <span style={{ marginLeft: 10 }}>{saveMsg}</span>}
-          </div>
+            </Button>
+            {saveMsg && (
+              <Typography variant="body2" sx={{ ml: 2, display: "inline" }}>
+                {saveMsg}
+              </Typography>
+            )}
+          </Box>
         </>
       )}
 
-      <button disabled style={{ marginTop: 30 }}>
+      <Button disabled sx={{ mt: 4 }}>
         Deploy (update coming soon)
-      </button>
+      </Button>
     </div>
   </div>
 );

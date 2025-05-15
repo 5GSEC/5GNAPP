@@ -39,7 +39,7 @@ const buildGenAIPrompt = (row) => `
 You are a cybersecurity expert focused on 5G network security. 
 Analyze the following event which is either an abnormal event or an attack event. 
 Provide the following information. 
-Keep the response as concise as possible and up to the point. Produce the output in well-formatted markdown text.
+Keep the response as concise as possible and up to the point. Produce the output in well-formatted plain-text.
 1. An in-depth explanation of the threat or anomaly beyond the description, by analyzing the associated MobiFlow data.
 2. Recommended effective countermeasures to address this problem.
 
