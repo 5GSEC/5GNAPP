@@ -60,7 +60,10 @@ class MobiLLMAgent:
                 get_ue_mobiflow_description_tool,
                 fetch_sdl_event_data_osc_tool,
                 get_event_description_tool,
-                fetch_service_status_osc_tool
+                fetch_service_status_osc_tool,
+                build_xapp_osc_tool,
+                deploy_xapp_osc_tool,
+                unDeploy_xapp_osc_tool
             ]
         except AttributeError as e:
             print(f"Error creating Tools: {e}. This often means a function is missing a docstring or is not correctly imported.")

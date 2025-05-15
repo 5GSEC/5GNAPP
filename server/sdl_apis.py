@@ -523,6 +523,8 @@ def build_xapp_osc_tool(xapp_name: str):
         step 6: check if build is successful
     Args:
         xapp_name (str): The name of the xApp to build.
+        Please match the user input to nearest valid xApp name listed in the following
+        ["MobieXpert xApp", "MobiWatch xApp", "MobiFlow Auditor xApp"]
     Returns:
         dict: A dictionary containing the status of the build process.
     """
@@ -641,6 +643,10 @@ def deploy_xapp_osc(xapp_name: str):
 def deploy_xapp_osc_tool(xapp_name: str):
     '''
     Deploy the xApp from the given xapp_name.
+    Args:
+        xapp_name (str): The name of the xApp to build.
+        Please match the user input to nearest valid xApp name listed in the following
+        ["MobieXpert xApp", "MobiWatch xApp", "MobiFlow Auditor xApp"]
     '''
     return deploy_xapp_osc(xapp_name)
 
@@ -706,6 +712,10 @@ def unDeploy_xapp_osc(xapp_name: str):
 def unDeploy_xapp_osc_tool(xapp_name: str):
     ''' 
     Undeploy the xApp from the given xapp_name.
+    Args:
+        xapp_name (str): The name of the xApp to build.
+        Please match the user input to nearest valid xApp name listed in the following
+        ["MobieXpert xApp", "MobiWatch xApp", "MobiFlow Auditor xApp"]
     Steps:
         step 1: find xapp_name corresponding directory
         step 2: check if xapp is deployed (kubectl get pods -A | grep)
