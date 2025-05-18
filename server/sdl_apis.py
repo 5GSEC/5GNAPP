@@ -731,6 +731,7 @@ def unDeploy_xapp_osc_tool(xapp_name: str):
 def get_ue_mobiflow_data_all_tool() -> list:
     '''
     Get all UE MobiFlow telemetry from SDL
+    Before analyzing the MobiFlow telemetry, ensure you have called get_ue_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
     Returns:
         list: a list of UE MobiFlow telemetry in raw format (separated by ; delimiter)
     '''
@@ -749,6 +750,7 @@ def get_ue_mobiflow_data_all_tool() -> list:
 def get_ue_mobiflow_data_by_index_tool(index_list_str: str) -> list:
     '''
     Get UE MobiFlow telemetry from SDL using a specified index list
+    Before analyzing the MobiFlow telemetry, ensure you have called get_ue_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
     Args:
         index_list_str (str): a string containing the MobiFlow indexes separated by comma, e.g., 1,2,3,4,5,6
     Returns:
