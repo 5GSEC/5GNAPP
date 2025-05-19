@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Chatbot.css';
 import {
   Box,
@@ -16,16 +16,42 @@ import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import PersonIcon from '@mui/icons-material/Person';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
 
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('mobillm_chat_history');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.length > 0
+          ? parsed
+          : [{ sender: 'bot', text: '👋 Hi! I\'m MobiLLM, your GenAI assistant. How can I help you today?' }];
+      }
+      return [{ sender: 'bot', text: '👋 Hi! I\'m MobiLLM, your GenAI assistant. How can I help you today?' }];
+  });
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('mobillm_chat_history', JSON.stringify(messages));
+  }, [messages]);
+
+  const handleClearHistory = () => {
+    localStorage.removeItem('mobillm_chat_history');
+    setMessages([{ sender: 'bot', text: '👋 Hi! I\'m MobiLLM, your GenAI assistant. How can I help you today?' }]);
+  };
+
   const toggleOpen = () => {
     if (!open) {
-      setMessages([{ sender: 'bot', text: '👋 Hi! I\'m MobiLLM, your GenAI assistant. How can I help you today?' }]);
+      const saved = localStorage.getItem('mobillm_chat_history');
+      if (saved) {
+        setMessages(JSON.parse(saved));
+      } else {
+        setMessages([{ sender: 'bot', text: '👋 Hi! I\'m MobiLLM, your GenAI assistant. How can I help you today?' }]);
+      }
     }
     setOpen(!open);
   };
@@ -51,6 +77,7 @@ export default function Chatbot() {
     }
     setIsBotTyping(false);
   };
+
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -112,12 +139,17 @@ export default function Chatbot() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <SmartToyIcon sx={{ fontSize: 28, color: 'white' }} />
               <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'white' }}>
-                MobiLLM GenAI Chat
+                MobiLLM Chat
               </Typography>
             </Box>
-            <IconButton size="small" onClick={toggleOpen} sx={{ color: 'white' }}>
-              <CloseIcon />
-            </IconButton>
+            <Box>
+              <IconButton size="small" onClick={handleClearHistory} sx={{ color: 'white' }} title="Clear chat history">
+                <DeleteOutlineIcon />
+              </IconButton>
+              <IconButton size="small" onClick={toggleOpen} sx={{ color: 'white' }}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
           </Box>
           {/* Messages */}
           <Box
