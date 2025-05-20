@@ -8,7 +8,7 @@ from langchain.agents import tool, AgentExecutor, create_react_agent
 from langchain_core.prompts import PromptTemplate # For custom prompts if needed
 from langchain.tools import Tool # Import the Tool class
 from langchain import hub # For pre-built prompts
-
+from langchain.memory import ConversationBufferWindowMemory # Import memory
 
 class MobiLLMAgent:
 
@@ -109,6 +109,9 @@ class MobiLLMAgent:
         Thought: I now have enough information to answer the user's question.
         Final Answer: the final answer to the original input question.
 
+        Previous conversation history:
+        {{chat_history}}
+
         Begin!
 
         Question: {{input}}
@@ -116,13 +119,25 @@ class MobiLLMAgent:
         """
 
         try:
-            self.prompt = PromptTemplate.from_template(self.CUSTOM_REACT_PROMPT_TEMPLATE)
-            # The input_variables should be automatically inferred by from_template,
-            # but it's good to be aware they are: 'tools', 'tool_names', 'input', 'agent_scratchpad'
-            # print(f"Prompt input variables: {prompt.input_variables}")
+            # The PromptTemplate needs to know about 'chat_history' as an input variable
+            self.prompt = PromptTemplate(
+                input_variables=["chat_history", "input", "agent_scratchpad", "tools", "tool_names"],
+                template=self.CUSTOM_REACT_PROMPT_TEMPLATE
+            )
         except Exception as e:
             print(f"Error creating custom prompt template: {e}")
             return
+
+        # --- Memory Initialization ---
+        # k is the number of past interactions to remember
+        # memory_key is the variable name in the prompt that will contain the chat history
+        # return_messages=True ensures the history is formatted as a list of messages, suitable for chat models
+        memory_key = "chat_history"
+        self.memory = ConversationBufferWindowMemory(
+            memory_key=memory_key,
+            k=5, # Remember the last 5 interactions
+            return_messages=True
+        )
 
 
         # Create the ReAct agent
@@ -139,6 +154,7 @@ class MobiLLMAgent:
         self.agent_executor = AgentExecutor(
             agent=self.agent,
             tools=self.tools,
+            memory=self.memory, # Pass the memory object
             verbose=True,  # Set to True to see the agent's thought process
             handle_parsing_errors=True, # Handles cases where the LLM output is not perfectly formatted
             max_iterations=10 # Prevent infinite loops
@@ -184,12 +200,18 @@ if __name__ == "__main__":
         # 2. Recommended effective countermeasures to address this problem.
         # '''
 
+        # '''
+        # You are a cybersecurity expert focused on 5G network security. 
+        # Analyze the MobiWath generated events detected on UE ID 38940 in the network.
+        # Provide the following information. 
+        # Keep the response as concise as possible and up to the point. Produce the output in well-formatted plain-text.
+        # 1. An in-depth explanation of the threat or anomaly beyond the description, combine the analysis using the event data and associated MobiFlow data if necessary.
+        # 2. Recommended effective countermeasures to address this problem.
+        # '''
+
         '''
-        You are a cybersecurity expert focused on 5G network security. 
-        Analyze the MobiWath generated events detected on UE ID 38940 in the network.
-        Provide the following information. 
-        Keep the response as concise as possible and up to the point. Produce the output in well-formatted plain-text.
-        1. An in-depth explanation of the threat or anomaly beyond the description, combine the analysis using the event data and associated MobiFlow data if necessary.
+        Provide an in-depth analysis on the events detected on UE 38940, including:
+        1. An in-depth explanation of the threat or anomaly beyond the given description, combine the analysis using the event data and associated MobiFlow data of the UE.
         2. Recommended effective countermeasures to address this problem.
         '''
     ]
