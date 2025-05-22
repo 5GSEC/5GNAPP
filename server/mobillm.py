@@ -1,4 +1,5 @@
 from sdl_apis import *
+from mitre_apis import *
 # Import necessary libraries from LangChain and Google
 # Make sure you have them installed:
 # pip install langchain langchain_google_genai google-generativeai
@@ -63,7 +64,9 @@ class MobiLLMAgent:
                 fetch_service_status_osc_tool,
                 build_xapp_osc_tool,
                 deploy_xapp_osc_tool,
-                unDeploy_xapp_osc_tool
+                unDeploy_xapp_osc_tool,
+                get_all_mitre_fight_techniques,
+                get_mitre_fight_technique_by_id
             ]
         except AttributeError as e:
             print(f"Error creating Tools: {e}. This often means a function is missing a docstring or is not correctly imported.")
@@ -211,8 +214,9 @@ if __name__ == "__main__":
 
         '''
         Provide an in-depth analysis on the events detected on UE 38940, including:
-        1. An in-depth explanation of the threat or anomaly beyond the given description, combine the analysis using the event data and associated MobiFlow data of the UE.
-        2. Recommended effective countermeasures to address this problem.
+        1. An explanation of the threat or anomaly beyond the given description, combine the analysis using the event data and associated MobiFlow data of the UE.
+        2. Based on the analysis report, try to classify the identified threats using the MiTRE fight techniques. For the output, please provide the MiTRE Fight technique ID (such as "FGT1588") that you believe the threat or anomaly belongs to.
+        3. If you have classified the threat or anomaly into a specific MiTRE Fight technique, report the corresponding mitigations in that MiTRE Fight technique.
         '''
     ]
 
