@@ -24,22 +24,11 @@ function parseTimestamp(raw) {
   }
 }
 
-// Mock data for detected events
-const mockData = [
-  { id: 1, source: "MobieXpert", type: "Threat", description: "Malware detected", severity: "High" },
-  { id: 2, source: "MobiWatch", type: "Anomaly", description: "Unusual login pattern", severity: "Medium" },
-  { id: 3, source: "MobieXpert", type: "Threat", description: "Phishing attempt", severity: "Critical" },
-  { id: 4, source: "MobiWatch", type: "Anomaly", description: "Data exfiltration", severity: "High" },
-  { id: 5, source: "MobieXpert", type: "Threat", description: "Ransomware detected", severity: "Critical" },
-  { id: 6, source: "MobiWatch", type: "Anomaly", description: "Suspicious activity", severity: "Medium" },
-];
-
 // Function to build prompt template for genAI threat analysis
 const buildGenAIPrompt = (row) => `
 You are a cybersecurity expert focused on 5G network security. 
 Analyze the following event which is either an abnormal event or an attack event. 
-Provide the following information. 
-Keep the response as concise as possible and up to the point. Produce the output in well-formatted plain-text.
+Provide the following information. Keep the response as concise as possible and up to the point. Produce the output in well-formatted plain-text.
 1. An in-depth explanation of the threat or anomaly beyond the description, by analyzing the associated MobiFlow data.
 2. Recommended effective countermeasures to address this problem.
 
