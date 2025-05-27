@@ -1,5 +1,6 @@
 from sdl_apis import *
 from mitre_apis import *
+from control_apis import *
 # Import necessary libraries from LangChain and Google
 # Make sure you have them installed:
 # pip install langchain langchain_google_genai google-generativeai
@@ -54,8 +55,9 @@ class MobiLLMAgent:
         # desc_event_desc = get_event_description.__doc__
 
         try:
-            # List of tools the agent can use
-            self.tools = [
+            # Define a list of tools the agent can use
+            # Tool set for analysis and orchestration
+            self.analysis_orchestraiton_tools = [
                 get_ue_mobiflow_data_all_tool,
                 get_ue_mobiflow_data_by_index_tool,
                 get_ue_mobiflow_description_tool,
@@ -69,6 +71,15 @@ class MobiLLMAgent:
                 unDeploy_xapp_tool,
                 get_all_mitre_fight_techniques,
                 get_mitre_fight_technique_by_id
+            ]
+
+            # Tool set for security threat response
+            self.threat_response_tools = [
+                get_all_mitre_fight_techniques,
+                get_mitre_fight_technique_by_id,
+                get_ran_cu_config_tool,
+                update_ran_cu_config_tool,
+                reboot_ran_cu_tool
             ]
         except AttributeError as e:
             print(f"Error creating Tools: {e}. This often means a function is missing a docstring or is not correctly imported.")
@@ -148,7 +159,7 @@ class MobiLLMAgent:
         # Create the ReAct agent
         # The agent itself is the logic that decides what to do.
         try:
-            self.agent = create_react_agent(self.llm, self.tools, self.prompt)
+            self.agent = create_react_agent(self.llm, self.analysis_orchestraiton_tools, self.prompt)
         except Exception as e:
             print(f"Error creating ReAct agent: {e}")
             return
@@ -158,7 +169,7 @@ class MobiLLMAgent:
         # until the agent decides it's finished.
         self.agent_executor = AgentExecutor(
             agent=self.agent,
-            tools=self.tools,
+            tools=self.analysis_orchestraiton_tools,
             memory=self.memory, # Pass the memory object
             verbose=True,  # Set to True to see the agent's thought process
             handle_parsing_errors=True, # Handles cases where the LLM output is not perfectly formatted
