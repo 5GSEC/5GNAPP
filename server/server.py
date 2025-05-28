@@ -262,7 +262,29 @@ def mobillm_chat():
         return jsonify({"reply": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
 
     try:
-        response = mobillm_agent.inference(user_msg)
+        response = mobillm_agent.chat(user_msg)
+        return jsonify({"reply": response['output']}), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/mobillm/security_analysis', methods=['POST'])
+def mobillm_security_analysis():
+    """
+    Receive user message and dispatch to MobiLLM's security analysis agent.
+    """
+    body = request.get_json() or {}
+    user_msg = body.get('message', '').strip()
+    if not user_msg:
+        return jsonify({"error": "No message provided"}), 400
+
+    global mobillm_agent
+    if mobillm_agent is None:
+        return jsonify({"reply": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
+
+    try:
+        response = mobillm_agent.security_analysis(user_msg)
         return jsonify({"reply": response['output']}), 200
 
     except Exception as e:

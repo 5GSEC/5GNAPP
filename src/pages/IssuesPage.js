@@ -28,9 +28,10 @@ function parseTimestamp(raw) {
 const buildGenAIPrompt = (row) => `
 You are a cybersecurity expert focused on 5G network security. 
 Analyze the following event which is either an abnormal event or an attack event. 
-Provide the following information. Keep the response as concise as possible and up to the point. Produce the output in well-formatted plain-text.
-1. An in-depth explanation of the threat or anomaly beyond the description, by analyzing the associated MobiFlow data.
-2. Recommended effective countermeasures to address this problem.
+Provide the following information. Keep the response as concise as possible and up to the point.
+1. An explanation of the threat or anomaly beyond the given description, combine the analysis using the event data and associated MobiFlow data of the UE.
+2. Based on the analysis report, try to classify the identified threats using the MiTRE fight techniques. For the output, please provide the MiTRE Fight technique ID (such as "FGT1588") that you believe the threat or anomaly belongs to.
+3. If you have classified the threat or anomaly into a specific MiTRE Fight technique, report the corresponding mitigations in that MiTRE Fight technique.
 
 
 Event Details:
@@ -82,7 +83,7 @@ function IssuesPage() {
         setGenaiResponse("");
         try {
           const prompt = buildGenAIPrompt(insightRow);
-          const res = await fetch("http://localhost:8080/mobillm/chat", {
+          const res = await fetch("http://localhost:8080/mobillm/security_analysis", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: prompt }),
