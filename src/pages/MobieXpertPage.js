@@ -96,33 +96,32 @@ function MobieXpertPage() {
   const errorHint = getHintForError(loadError);
 
 return (
-  <div
-    style={{
-      height: "100vh", // Fill the full viewport height
-      display: "flex",
-      flexDirection: "column",
-      overflow: "hidden", // Don't overflow the main layout
-      padding: "0 20px 20px",
-      width: "80%",
-      maxWidth: "100%",
-      boxSizing: "border-box"
-    }}
-  >
+  <Box sx={{ p: 3, width: "80%" }}>
     {/* Header / fixed top area */}
     <Box flexShrink={0}>
-      <Typography variant="h5" sx={{ mt: 0, mb: 1, fontWeight: "bold" }}>
+      <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
         MobieXpert xApp Settings
       </Typography>
 
       {status ? (
-        <ul style={{ marginTop: 0 }}>
-          <li>
-            <strong>Version:</strong> {status.version}
-          </li>
-          <li>
-            <strong>Last Deployed:</strong> {status.lastDeployed}
-          </li>
-        </ul>
+        <Box sx={{ mt: 0, mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#11182E", minWidth: 110 }}>
+              Version:
+            </Typography>
+            <Typography variant="body2" sx={{ ml: 1 }}>
+              {status.version}
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#11182E", minWidth: 110 }}>
+              Last Deployed:
+            </Typography>
+            <Typography variant="body2" sx={{ ml: 1 }}>
+              {status.lastDeployed}
+            </Typography>
+          </Box>
+        </Box>
       ) : (
         <Typography variant="body2" color="text.secondary">
           Loading xApp status…
@@ -155,7 +154,7 @@ return (
       }}
     >
       <Typography variant="h6" sx={{ mt: 0, mb: 2, fontWeight: "bold" }}>
-        rules.pbest Editor
+        P-Best Rule Editor
       </Typography>
 
       {loadingRules ? (
@@ -209,7 +208,7 @@ return (
         Deploy (update coming soon)
       </Button>
     </div>
-  </div>
+  </Box>
 );
 
 }

@@ -206,14 +206,39 @@ function IssuesPage() {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <FormControl sx={{ width: { xs: "100%", md: "25ch" } }} variant="outlined">
+              <FormControl
+                sx={{
+                  width: { xs: "100%", md: "25ch" },
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    bgcolor: 'white',
+                    '& fieldset': {
+                      borderColor: '#e0e4ef',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#2d3c6b',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#11182E',
+                      borderWidth: 2,
+                    },
+                  },
+                }}
+                variant="outlined"
+              >
                 <OutlinedInput
                   size="small"
                   id="search"
                   placeholder="Search…"
-                  sx={{ flexGrow: 1 }}
+                  sx={{
+                    flexGrow: 1,
+                    color: '#11182E',
+                    fontWeight: 500,
+                    '& input': { color: '#11182E' },
+                  }}
                   startAdornment={
-                    <InputAdornment position="start" sx={{ color: "text.primary" }}>
+                    <InputAdornment position="start" sx={{ color: "#23305a" }}>
                       <SearchRoundedIcon fontSize="small" />
                     </InputAdornment>
                   }
@@ -223,7 +248,18 @@ function IssuesPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </FormControl>
-              <div style={{ height: 600, width: "100%", marginTop: "16px" }}>
+
+              <div
+                style={{
+                  height: 600,
+                  width: "100%",
+                  marginTop: "16px",
+                  background: "#f3f6fa",
+                  borderRadius: 8,
+                  border: "1px solid #e0e4ef",
+                  boxShadow: "0 2px 8px rgba(35,48,90,0.04)",
+                }}
+              >
                 <DataGrid
                   rows={filteredRows}
                   columns={columns}
@@ -237,6 +273,35 @@ function IssuesPage() {
                   pageSizeOptions={[5, 10, 25]}
                   disableColumnResize
                   density="compact"
+                  sx={{
+                    bgcolor: "#f3f6fa",
+                    border: "none",
+                    color: "#11182E",
+                    fontSize: 15,
+                    '& .MuiDataGrid-columnHeaders': {
+                      background: 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      fontSize: 16,
+                      borderTopLeftRadius: 8,
+                      borderTopRightRadius: 8,
+                    },
+                    '& .MuiDataGrid-row': {
+                      bgcolor: "#fff",
+                      '&.even': { bgcolor: "#f8fafd" },
+                      '&:hover': { bgcolor: "#e0e4ef" },
+                    },
+                    '& .MuiDataGrid-cell': {
+                      borderBottom: '1px solid #e0e4ef',
+                    },
+                    '& .MuiCheckbox-root': {
+                      color: '#11182E !important',
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      background: '#f3f6fa',
+                      borderTop: '1px solid #e0e4ef',
+                    },
+                  }}
                 />
               </div>
             </CardContent>
