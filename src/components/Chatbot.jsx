@@ -95,10 +95,11 @@ export default function Chatbot() {
             size="large"
             onClick={toggleOpen}
             sx={{
-              background: 'rgba(255,255,255,0.7)',
+              background: 'rgba(17,24,46,0.85)', // #11182E with opacity
+              color: '#fff',
               boxShadow: 3,
               backdropFilter: 'blur(6px)',
-              '&:hover': { backgroundColor: 'grey.100' },
+              '&:hover': { backgroundColor: '#2d3c6b' },
             }}
           >
             <ChatBubbleOutlineIcon fontSize="large" />
@@ -129,7 +130,7 @@ export default function Chatbot() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: 'linear-gradient(90deg, #1976d2 60%, #42a5f5 100%)',
+              background: 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)',
               color: 'primary.contrastText',
               px: 2,
               py: 1.2,
@@ -175,17 +176,19 @@ export default function Chatbot() {
               >
                 <Avatar
                   sx={{
-                    bgcolor: msg.sender === 'user' ? 'primary.main' : 'grey.300',
+                    bgcolor: msg.sender === 'user' ? '#11182E' : '#23305a',
                     width: 32,
                     height: 32,
                   }}
                 >
-                  {msg.sender === 'user' ? <PersonIcon /> : <SmartToyIcon color="primary" />}
+                  {msg.sender === 'user'
+                    ? <PersonIcon sx={{ color: 'white' }} />
+                    : <SmartToyIcon sx={{ color: 'white' }} />}
                 </Avatar>
                 <Box
                   sx={{
-                    bgcolor: msg.sender === 'user' ? 'primary.light' : 'grey.100',
-                    color: 'text.primary',
+                    bgcolor: msg.sender === 'user' ? '#23305a' : '#f3f6fa',
+                    color: msg.sender === 'user' ? '#fff' : '#11182E',
                     px: 2,
                     py: 1,
                     borderRadius: 2,
@@ -193,6 +196,7 @@ export default function Chatbot() {
                     whiteSpace: 'pre-line',
                     fontSize: 15,
                     boxShadow: 1,
+                    border: msg.sender === 'user' ? '1px solid #11182E' : '1px solid #e0e4ef',
                   }}
                 >
                   {msg.text}
@@ -201,13 +205,13 @@ export default function Chatbot() {
             ))}
             {isBotTyping && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                <Avatar sx={{ bgcolor: 'grey.300', width: 32, height: 32 }}>
-                  <SmartToyIcon color="primary" />
+                <Avatar sx={{ bgcolor: '#23305a', width: 32, height: 32 }}>
+                  <SmartToyIcon sx={{ color: 'white' }} />
                 </Avatar>
                 <Box
                   sx={{
-                    bgcolor: 'grey.100',
-                    color: 'text.primary',
+                    bgcolor: '#f3f6fa',
+                    color: '#11182E',
                     px: 2,
                     py: 1,
                     borderRadius: 2,
@@ -215,7 +219,7 @@ export default function Chatbot() {
                     boxShadow: 1,
                   }}
                 >
-                  <CircularProgress size={18} sx={{ mr: 1 }} /> MobiLLM is thinking...
+                  <CircularProgress size={18} sx={{ mr: 1, color: '#11182E' }} /> MobiLLM is thinking...
                 </Box>
               </Box>
             )}
@@ -225,12 +229,12 @@ export default function Chatbot() {
             component="form"
             onSubmit={e => { e.preventDefault(); handleSend(); }}
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              p: 1.2,
-              borderTop: '1px solid #eee',
-              bgcolor: 'background.paper',
-              gap: 1,
+                display: 'flex',
+                alignItems: 'center',
+                p: 1.2,
+                borderTop: '1px solid #23305a',
+                bgcolor: '#f3f6fa',
+                gap: 1,
             }}
           >
             <TextField
@@ -245,16 +249,32 @@ export default function Chatbot() {
                 bgcolor: 'white',
                 borderRadius: 2,
                 '& .MuiOutlinedInput-root': { pr: 0 },
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#11182E',
+                },
+                '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: '#11182E',
+                  borderWidth: 2,
+                },
               }}
               autoFocus
             />
             <Button
               variant="contained"
-              color="primary"
+              sx={{
+                backgroundColor: '#11182E',
+                color: '#fff',
+                minWidth: 0,
+                px: 2,
+                borderRadius: 2,
+                boxShadow: 1,
+                '&:hover': {
+                  backgroundColor: '#2d3c6b',
+                },
+              }}
               endIcon={<SendIcon />}
               onClick={handleSend}
               disabled={!inputText.trim() || isBotTyping}
-              sx={{ minWidth: 0, px: 2, borderRadius: 2, boxShadow: 1 }}
             >
               Send
             </Button>

@@ -1,5 +1,16 @@
 // src/pages/MobiLLMPage.js
 import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Select,
+  Alert,
+} from "@mui/material";
 
 export default function MobiLLMPage() {
   const [apiKey, setApiKey]       = useState("");
@@ -77,44 +88,108 @@ export default function MobiLLMPage() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h3>mobiLLM Settings</h3>
+    <Box sx={{ p: 3, maxWidth: 420 }}>
+      <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
+        MobiLLM API Settings
+      </Typography>
 
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: "block", marginBottom: 4 }}>API Key:</label>
-        <input
+      <FormControl fullWidth sx={{ mb: 2 }}>
+        <InputLabel
+          htmlFor="api-key"
+          sx={{
+            color: '#11182E',
+            '&.Mui-focused': { color: '#11182E' }
+          }}
+        >
+          
+        </InputLabel>
+        <TextField
+          id="api-key"
           type="password"
+          label="API Key"
           value={apiKey}
           onChange={e => setApiKey(e.target.value)}
-          style={{ width: 300, padding: 6 }}
           placeholder="Enter your API key"
+          variant="outlined"
+          fullWidth
+          sx={{
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#e0e4ef',
+            },
+            '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#11182E',
+              borderWidth: 2,
+            },
+          }}
+          InputLabelProps={{
+            style: { color: '#11182E' }
+          }}
         />
-      </div>
+      </FormControl>
 
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ display: "block", marginBottom: 4 }}>Model:</label>
-        <select
-          value={model}
-          onChange={e => setModel(e.target.value)}
-          style={{ width: 300, padding: 6 }}
-          disabled={modelList.length === 0}
+      <FormControl fullWidth sx={{ mb: 2 }}>
+        <InputLabel
+          id="model-label"
+          sx={{
+            color: '#11182E',
+            '&.Mui-focused': { color: '#11182E' }
+          }}
         >
-          {modelList.length === 0
-            ? <option value="">No models available</option>
-            : modelList.map(m => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))
-          }
-        </select>
-      </div>
+          Model
+        </InputLabel>
+        <Select
+          labelId="model-label"
+          id="model"
+          value={model}
+          label="Model"
+          onChange={e => setModel(e.target.value)}
+          disabled={modelList.length === 0}
+          sx={{
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#e0e4ef',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: '#11182E',
+              borderWidth: 2,
+            },
+          }}
+        >
+          {modelList.length === 0 ? (
+            <MenuItem value="">
+              No models available
+            </MenuItem>
+          ) : (
+            modelList.map(m => (
+              <MenuItem key={m} value={m}>
+                {m}
+              </MenuItem>
+            ))
+          )}
+        </Select>
+      </FormControl>
 
-      <button onClick={handleSave} style={{ padding: "8px 16px" }}>
+      <Button
+        variant="contained"
+        onClick={handleSave}
+        sx={{
+          px: 3,
+          py: 1,
+          mt: 1,
+          backgroundColor: '#11182E',
+          color: '#fff',
+          '&:hover': {
+            backgroundColor: '#2d3c6b',
+          },
+        }}
+      >
         Save Settings
-      </button>
+      </Button>
 
-      {status && <p style={{ marginTop: 12 }}>{status}</p>}
-    </div>
+      {status && (
+        <Alert severity={status === "Settings saved" ? "success" : "error"} sx={{ mt: 2 }}>
+          {status}
+        </Alert>
+      )}
+    </Box>
   );
 }

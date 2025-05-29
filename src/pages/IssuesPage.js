@@ -10,6 +10,7 @@ import { Warning, Error, Info, SearchRounded as SearchRoundedIcon } from "@mui/i
 import { fetchSdlEventData } from "../backend/fetchUserData";
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import ReactMarkdown from 'react-markdown';
 
 function parseTimestamp(raw) {
   if (!raw) return null;
@@ -173,7 +174,15 @@ function IssuesPage() {
         <Button
           variant="contained"
           size="small"
-          color="primary"
+          sx={{
+            backgroundColor: '#23305a',
+            color: '#fff',
+            borderColor: '#11182E',
+            '&:hover': {
+              backgroundColor: '#2d3c6b',
+              borderColor: '#11182E',
+            },
+          }}
           onClick={() => handleInsightClick(params.row)}
         >
           <AutoAwesomeIcon sx={{ fontSize: 20, color: 'white', marginRight: 1 }} />
@@ -257,13 +266,14 @@ function IssuesPage() {
       >
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            px: 2,
-            py: 1.2,
-            borderBottom: "1px solid #e3e3e3",
-            background: "linear-gradient(90deg, #1976d2 60%, #42a5f5 100%)",
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)',
+              color: 'primary.contrastText',
+              px: 2,
+              py: 1.2,
+              borderBottom: '1px solid #e3e3e3',
           }}
         >
           <SmartToyIcon sx={{ fontSize: 28, color: 'white' }} />
@@ -285,16 +295,32 @@ function IssuesPage() {
               <Typography color="error">Error: {genaiError}</Typography>
             )}
             {insightRow && !genaiLoading && !genaiError && (
-              <Typography
-                component="pre"
-                sx={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}
-              >
-                {genaiResponse}
-              </Typography>
+              <Box sx={{ fontSize: 15, color: "text.primary" }}>
+                <ReactMarkdown
+                  components={{
+                    strong: ({node, ...props}) => <Typography component="span" sx={{ fontWeight: 'bold', color: '#11182E', display: 'inline' }} {...props} />
+                  }}
+                >
+                  {genaiResponse}
+                </ReactMarkdown>
+              </Box>
             )}
         </Box>
         <Box sx={{ p: 1, borderTop: "1px solid #eee", textAlign: "right" }}>
-          <Button onClick={() => setInsightOpen(false)} color="primary" variant="outlined">
+          <Button 
+            onClick={() => setInsightOpen(false)} 
+            sx={{
+              backgroundColor: '#11182E',
+              color: '#fff',
+              minWidth: 0,
+              px: 2,
+              borderRadius: 2,
+              boxShadow: 1,
+              '&:hover': {
+                backgroundColor: '#2d3c6b',
+              },
+            }}
+            variant="outlined">
             Close
           </Button>
         </Box>
