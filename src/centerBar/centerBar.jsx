@@ -5,6 +5,9 @@ import { deployXapp, undeployXapp, buildXapp } from '../backend/fetchUserData';
 import refreshIcond from '../assets/refresh.png';
 import './centerBar.css'; // Import the external CSS file for the banner, animations, etc.
 import { FaArrowRight } from 'react-icons/fa'; // Import an icon from react-icons
+import { Box } from "@mui/material";
+import ServiceGrid from './servicegrid'; // Adjust the path based on the file location
+import ActiveCellInfo from './cellinfocard'; // Adjust the path based on the file location
 
 /**
  * Wrapper: main layout container.
@@ -168,10 +171,33 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
         </div>
       )}
 
-      <Wrapper>
+      <Box sx={{ display: "flex", gap: 2, padding: 0, width: "100%" }}>
         {/* First container: RIC Services */}
-        <Container style={{ width: '40%' }}>
-          <h2 style={{ marginTop: '0em' }}>Control-Plane RIC Services</h2>
+        <Box sx={{ flex: 1, width: "55%" }}>
+          <ServiceGrid
+            services={services}
+            handleBuild={handleBuild}
+            handleDeploy={handleDeploy}
+            handleUndeploy={handleUndeploy}
+          />
+        </Box>
+
+        {/* Second container: Active Cell & UE Information */}
+        <Box sx={{ flex: 1, maxWidth: "45%" }}>
+          <ActiveCellInfo
+            bsevent={bsevent}
+            bsId={bsId}
+            setEvent={setEvent}
+            setService={setService}
+            updateData={updateData}
+          />
+        </Box>
+      </Box>
+
+      {/* <Wrapper> */}
+        {/* First container: RIC Services */}
+        {/* <Container style={{ width: '50%' }}>
+          <h2 style={{ marginTop: '0em' }}>SE-RAN AISecOps Services</h2>
           <div>
             {Object.keys(services).map((svcName, idx) => {
               const rawData = services[svcName] || "";
@@ -196,10 +222,10 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
               );
             })}
           </div>
-        </Container>
+        </Container> */}
 
         {/* Second container: Active Cell & UE Information */}
-        <Container style={{ width: '40%' }}>
+        {/* <Container style={{ width: '50%' }}>
           <div style={{ display: 'flex' }}>
             <h2 style={{ margin: '0em' }}>Active Cell and UE Information</h2>
             <button
@@ -225,6 +251,10 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
               return (
                 <div key={index}>
                   <p>
+                    <strong>Total Events</strong>: {getTotalEvents(bsId)} &nbsp;&nbsp;
+                    <strong>Critical Events</strong>: {getCriticalEvents(bsId)}
+                  </p>
+                  <p>
                     <strong>Cell ID:</strong> {cellId} &nbsp;&nbsp;
                     <strong>Active UEs:</strong> {ueCount} &nbsp;&nbsp;
                     <strong>Report interval:</strong> {repPeriod / 1000}s
@@ -232,7 +262,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
                   {bsevent[cellId]?.ue &&
                     Object.keys(bsevent[cellId].ue).map((ueId) => (
                       <p key={ueId} style={{ display: 'flex', alignItems: 'center' }}>
-                        <FaArrowRight style={{ marginRight: '8px', color: '#11182E' }} /> {/* Icon indicating UE belongs to the cell */}
+                        <FaArrowRight style={{ marginRight: '8px', color: '#11182E' }} />
                         <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
                         <strong>S-TMSI:</strong> {bsevent[cellId].ue[ueId]?.s_tmsi || 'N/A'}
                       </p>
@@ -241,9 +271,9 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
               );
             })}
           </div>
-        </Container>
+        </Container> */}
 
-        {/* Third container: Network Events */}
+        {/* Third container: Network Events
         <Container style={{ width: '20%' }}>
           <div style={{ display: 'flex' }}>
             <h2 style={{ marginTop: '0em' }}>Network Events</h2>
@@ -278,8 +308,8 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
               </div>
             )}
           </div>
-        </Container>
-      </Wrapper>
+        </Container> */}
+      {/* </Wrapper> */}
     </>
   );
 }

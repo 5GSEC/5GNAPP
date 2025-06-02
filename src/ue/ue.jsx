@@ -3,7 +3,21 @@ import './ue.css';
 import ue_cctvCamera from '../assets/cctv3.png';
 import ue_phone from '../assets/ue-phone.png';
 import { format } from 'date-fns';
-
+import {
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Button,
+  Box,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 //TODO: add the timestamp to normal UE
 //TODO: change the UE and BS icon
@@ -18,6 +32,7 @@ const fieldsToRender = [
   ];
 
   const metadataFields = [
+    "msg_id",
     "rrc_msg",
     "nas_msg",
     "rrc_state",
@@ -213,63 +228,62 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                       <strong>Events:</strong> {eventsCount}
                     </p>
 
-          {/* Render each event or fallback event */}
-          {eventsArray.map(({ eventId, singleEvent }) => (
-            <div key={eventId} style={{ marginBottom: '0.5em' }}>
+                    {/* Render each event or fallback event */}
+                    {eventsArray.map(({ eventId, singleEvent }) => (
+                      <div key={eventId} style={{ marginBottom: '0.5em' }}>
 
 
-              {/* <p><em>Event ID: {eventId}</em></p> */}
+                        {/* <p><em>Event ID: {eventId}</em></p> */}
 
-              {fieldsToRender.map((fieldName) => {
-                if (!Object.prototype.hasOwnProperty.call(singleEvent, fieldName)) {
-                  return null;
-                }
+                        {fieldsToRender.map((fieldName) => {
+                          if (!Object.prototype.hasOwnProperty.call(singleEvent, fieldName)) {
+                            return null;
+                          }
 
-                if (fieldName === "Timestamp") {
+                          if (fieldName === "Timestamp") {
 
 
-                  const rawTime = singleEvent["Timestamp"];
-                  const dateObj = parseTimestamp(rawTime);
-                  let displayTime = "(Invalid timestamp)";
-                  if (dateObj && !isNaN(dateObj.getTime())) {
-                    displayTime = format(dateObj, 'PPpp');
-                  }
-                  return (
-                    <div key={fieldName} className="info-row">
-                      <span className="info-label">{fieldName}:</span>
-                      <span className="info-value">{displayTime}</span>
-                    </div>
-                  );
-                } else {
-                  // If it's an object, do JSON.stringify
-                  let val = singleEvent[fieldName];
-                  if (typeof val === 'object' && val !== null) {
-                    val = JSON.stringify(val);
-                  }
-                  return (
-                    <div key={fieldName} className="info-row">
-                      <span className="info-label">{fieldName}:</span>
-                      <span className="info-value">{val}</span>
-                    </div>
-                  );
-                }
-              })}
-            </div>
-          ))}
-        </div>
+                            const rawTime = singleEvent["Timestamp"];
+                            const dateObj = parseTimestamp(rawTime);
+                            let displayTime = "(Invalid timestamp)";
+                            if (dateObj && !isNaN(dateObj.getTime())) {
+                              displayTime = format(dateObj, 'PPpp');
+                            }
+                            return (
+                              <div key={fieldName} className="info-row">
+                                <span className="info-label">{fieldName}:</span>
+                                <span className="info-value">{displayTime}</span>
+                              </div>
+                            );
+                          } else {
+                            // If it's an object, do JSON.stringify
+                            let val = singleEvent[fieldName];
+                            if (typeof val === 'object' && val !== null) {
+                              val = JSON.stringify(val);
+                            }
+                            return (
+                              <div key={fieldName} className="info-row">
+                                <span className="info-label">{fieldName}:</span>
+                                <span className="info-value">{val}</span>
+                              </div>
+                            );
+                          }
+                        })}
+                      </div>
+                    ))}
+                  </div>
       )}
 
       {/* showinfo window for clicking */}
         {showDetails && (
-          <div
-            className="details-window"
-            style={{
+          <Box
+            sx={{
               position: 'fixed',
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)', 
               backgroundColor: '#fff',
-              color: '#000',
+              // color: '#000',
               padding: '16px',
               border: '1px solid #000', // Added black border
               width: '900px', // Increased width
@@ -278,92 +292,97 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
               zIndex: 9999
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {/* x button */}
-              <button
-                onClick={handleCloseDetailsWindow}
-                style={{
-                  background: 'transparent',
-                  color: '#000',
-                  border: 'none',
-                  fontSize: '1.2em',
-                  cursor: 'pointer'
-                }}
-              >
-                ×
-              </button>
-            </div>
 
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 0,
+              }}
+            >
+            {/* Close Button */}
+            <IconButton
+              onClick={handleCloseDetailsWindow}
+              sx={{
+                color: "black",
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
 
-
-{/* replaced single row with a table for metadata in two rows */}
-<h4 style={{ margin: '0' }}>UE Metadata</h4>
-<table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', marginTop: '16px' }}>
-  <thead>
-    <tr>
-      {[
-        'gnb_cu_ue_f1ap_id',
-        'rnti',
-        's_tmsi',
-        'rrc_cipher_alg',
-        'rrc_integrity_alg',
-        'nas_cipher_alg',
-        'nas_integrity_alg'
-      ].map(label => (
-        <th key={label} style={{ border: '1px solid #000', padding: '8px', backgroundColor: '#f2f2f2' }}>
-          {label}
-        </th>
-      ))}
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      {[
-        'gnb_cu_ue_f1ap_id',
-        'rnti',
-        's_tmsi',
-        'rrc_cipher_alg',
-        'rrc_integrity_alg',
-        'nas_cipher_alg',
-        'nas_integrity_alg'
-      ].map(label => (
-        <td key={label} style={{ border: '1px solid #000', padding: '8px' }}>
-          {backendEvent?.[label] || "N/A"}
-        </td>
-      ))}
-    </tr>
-  </tbody>
-</table>
+            {/* replaced single row with a table for metadata in two rows */}
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginTop: 0, marginBottom: 1 }}>
+              UE Metadata
+            </Typography>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    {[
+                      "gnb_cu_ue_f1ap_id",
+                      "rnti",
+                      "s_tmsi",
+                      "rrc_cipher_alg",
+                      "rrc_integrity_alg",
+                      "nas_cipher_alg",
+                      "nas_integrity_alg",
+                    ].map((label) => (
+                      <TableCell key={label} sx={{ fontWeight: "bold", backgroundColor: "#f2f2f2" }}>
+                        {label}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    {[
+                      "gnb_cu_ue_f1ap_id",
+                      "rnti",
+                      "s_tmsi",
+                      "rrc_cipher_alg",
+                      "rrc_integrity_alg",
+                      "nas_cipher_alg",
+                      "nas_integrity_alg",
+                    ].map((label) => (
+                      <TableCell key={label}>{backendEvent?.[label] || "N/A"}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
 
 
             {/* rest of the content, e.g. rrc_msg, nas_msg etc. */}
-            <h4 style={{ margin: '0' }}>MobiFlow Telemetry</h4>
-            <table style={{ width: '100%', marginTop: '16px', borderCollapse: 'collapse' }}>
-            <thead>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginTop: 1, marginBottom: 1 }}>
+              MobiFlow Telemetry
+            </Typography>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    {metadataFields.map((fld) => (
+                      <TableCell key={fld} sx={{ fontWeight: "bold", backgroundColor: "#f2f2f2" }}>
+                        {fld}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {metadataObj.map((item, index) => (
+                    <TableRow key={index}>
+                      {metadataFields.map((fld) => (
+                        <TableCell key={fld}>{item[fld] || "N/A"}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
 
-
-
-              <tr>
-                {metadataFields.map((fld) => (
-                  <th key={fld} style={{ border: '1px solid #000', padding: '8px', backgroundColor: '#f2f2f2' }}>{fld}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {metadataObj.map((item, index) => (
-                <tr key={index}>
-                  {metadataFields.map((fld) => {
-                    let val = item[fld] || "N/A";
-                    return (
-                      <td key={fld} style={{ border: '1px solid #000', padding: '8px' }}>{val}</td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-                </table>
-              </div>
-            )}
+          </Box>
+          )}
 
       
     </div>

@@ -18,7 +18,9 @@ import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
 import { fetchCsvData, fetchSdlData, fetchServiceStatus } from "./backend/fetchUserData";
+import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
+import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
 
 /* ──────────────────────────────────────────────
    NEW: xApps child pages (very small placeholders)
@@ -30,6 +32,7 @@ function XAppsIndex() {
       Select an xApp on the left, or visit<br />
       <Link to="mobiexpert">/xapps/mobiexpert</Link>&nbsp;or&nbsp;
       <Link to="mobiflow-auditor">/xapps/mobiflow-auditor</Link>.
+      <Link to="mobillm">/xapps/mobillm</Link>.
     </p>
   );
 }
@@ -69,7 +72,7 @@ export function updateData(setEvent, setService) {
     setService({
       "mobiexpert-xapp": "",
       "mobiflow-auditor": "ricxapp-mobiflow-auditor-6f695ddc84-8n469;1/1;Running;0;95m",
-      "mobiintrospect": "",
+      "MobiFlow Agent": "",
       "mobiwatch-xapp": "",
       "ricplt-e2mgr": "deployment-ricplt-e2mgr-b988db566-hrhj2;1/1;Running;2;4d20h"
     });
@@ -138,17 +141,6 @@ function ProfilePage() {
   );
 }
 
-// ----------------------------------------
-// Issues (path="/issues")
-// ----------------------------------------
-function IssuesPage() {
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2>Issues Page</h2>
-      <p>Placeholder for the Issues page.</p>
-    </div>
-  );
-}
 
 // ----------------------------------------
 // Compliance (path="/compliance")
@@ -187,8 +179,8 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/issues" element={<IssuesPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/compliance" element={<CompliancePage />} />
 
               {/* /xapps parent + nested children */}
@@ -198,6 +190,8 @@ function App() {
                 <Route path="mobiexpert" element={<MobieXpertPage />} />
                 {/* still stubbed inline */}
                 <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
+                {/* NEW: dedicated MobiLLM page */}
+                <Route path="mobillm" element={<MobiLLMPage />} />
                 <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
               </Route>
               <Route path="/settings" element={<SettingsPage />} />

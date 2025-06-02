@@ -1,2 +1,8 @@
 flask
 flask-cors
+genai
+openai
+google-genai
+langchain 
+langchain_google_genai 
+google-generativeai

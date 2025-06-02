@@ -41,6 +41,28 @@ function fetchSdlData(setEvent) {
 }
 
 
+function fetchSdlEventData(setEvent) {
+  fetch("http://localhost:8080/fetchSdlEventData", {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      setEvent(data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+
+
 // Return a promise from deployXapp
 function deployXapp(xappName) {
   return fetch("http://localhost:8080/deployXapp", {
@@ -219,6 +241,21 @@ function fetchChatSummary() {
     });
 }
 
+/** 
+ * Interface to chat with the MobiLLM Agent
+*/
+function mobiLLMChat() {
+  return fetch("http://localhost:8080/mobillm/chat", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.json();
+  });
+}
 
 
 export { fetchUserData };
@@ -230,3 +267,5 @@ export { undeployXapp };
 export { buildXapp };
 export { fetchRulesText, saveRulesText };
 export { fetchChatSummary };
+export { fetchSdlEventData };
+export { mobiLLMChat };
