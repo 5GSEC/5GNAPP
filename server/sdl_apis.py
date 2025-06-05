@@ -760,7 +760,7 @@ def unDeploy_xapp_tool(xapp_name: str):
 @tool
 def get_ue_mobiflow_data_all_tool() -> list:
     '''
-    Get all UE MobiFlow telemetry from SDL
+    Get all UE MobiFlow telemetry from SDL. UE MobiFlow telemetry records UE meta data, identifiers, and RRC/NAS security algorithms, as well as RRC/NAS messages.
     Before analyzing the MobiFlow telemetry, ensure you have called get_ue_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
     Returns:
         list: a list of UE MobiFlow telemetry in raw format (separated by ; delimiter)
@@ -779,7 +779,7 @@ def get_ue_mobiflow_data_all_tool() -> list:
 @tool
 def get_ue_mobiflow_data_by_index_tool(index_list_str: str) -> list:
     '''
-    Get UE MobiFlow telemetry from SDL using a specified index list
+    Get UE MobiFlow telemetry from SDL using a specified index list. UE MobiFlow telemetry records UE meta data, identifiers, and RRC/NAS security algorithms, as well as RRC/NAS messages.
     Before analyzing the MobiFlow telemetry, ensure you have called get_ue_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
     Args:
         index_list_str (str): a string containing the MobiFlow indexes separated by comma, e.g., 1,2,3,4,5,6
@@ -827,6 +827,75 @@ def get_ue_mobiflow_data_by_index(index_list: list) -> list:
     return list(mf_data.values())
 
 @tool
+def get_bs_mobiflow_data_all_tool() -> list:
+    '''
+    Get all Base Station (BS) MobiFlow telemetry from SDL. BS MobiFlow telemetry records Base Station / gNodeB / Cell meta data such as cell ID, MCC, MNC, etc.
+    Before analyzing the MobiFlow telemetry, ensure you have called get_bs_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
+    Returns:
+        list: a list of BS MobiFlow telemetry in raw format (separated by ; delimiter)
+    '''
+    # get all keys for bs_mobiflow namespace
+    namespace = sdl_namespaces[1]
+    get_key_command = f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get keys {namespace}'
+    keys_output = execute_command(get_key_command)
+
+    # Parse keys (split by newlines)
+    keys = [int(key.strip()) for key in keys_output.split("\n") if key.strip()]
+    keys = sorted(keys)
+
+    return get_bs_mobiflow_data_by_index(keys)
+
+@tool
+def get_bs_mobiflow_data_by_index_tool(index_list_str: str) -> list:
+    '''
+    Get Base Station (BS) MobiFlow telemetry from SDL using a specified index list. BS MobiFlow telemetry records Base Station / gNodeB / Cell meta data such as cell ID, MCC, MNC, etc.
+    Before analyzing the MobiFlow telemetry, ensure you have called get_bs_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
+    Args:
+        index_list_str (str): a string containing the MobiFlow indexes separated by comma, e.g., 1,2,3,4,5,6
+    Returns:
+        list: a list of UE MobiFlow telemetry in raw format (separated by ; delimiter) 
+    '''
+    if index_list_str is None or len(index_list_str) == 0:
+        return []
+    index_list = []
+    for i in index_list_str.split(","):
+        index_list.append(int(i))
+    return get_bs_mobiflow_data_by_index(index_list)
+
+def get_bs_mobiflow_data_by_index(index_list: list) -> list:
+    '''
+    Get BS MobiFlow telemetry from SDL using a specified index list
+    Args:
+        index_list (list): a list of MobiFlow indexes (integers)
+    Returns:
+        list: a list of BS MobiFlow telemetry in raw format (separated by ; delimiter) 
+    '''
+    if index_list is None or len(index_list) == 0:
+        return []
+    max_batch_get_value = 20  # max number of keys to fetch in a single batch
+    get_val_command = lambda ns, key: f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get {ns} {key}'  # template get value command
+
+    # get all BS mobiflow
+    mf_data = {}
+    bs_mobiflow_key = sdl_namespaces[1]
+    for i in range(0, len(index_list), max_batch_get_value):
+        # Create a batch of keys
+        batch_keys = [str(index_list[j]) for j in range(i, min(i + max_batch_get_value, len(index_list)))]
+
+        # Create the command for the batch
+        command = get_val_command(bs_mobiflow_key, " ".join(batch_keys))
+        value = execute_command(command)
+
+        # Process each value in the batch
+        for line in [val.strip() for val in value.split("\n") if val.strip()]:
+            k = int(line.split(":")[0])
+            v = line.split(":")[1][2:]  # remove prefix
+            mf_data[k] = v
+        mf_data = dict(sorted(mf_data.items())) # sort values based on Index
+
+    return list(mf_data.values())
+
+@tool
 def get_ue_mobiflow_description_tool() -> str:
     '''
     API to retreve the description of UE MobiFlow data fields. Each field is defined with its default value, description, and value range if applicable.
@@ -857,6 +926,32 @@ def get_ue_mobiflow_description_tool() -> str:
     reserved_field_1 = 0       # UE packet-specific telemetry
     reserved_field_2 = 0       # UE packet-specific telemetry
     reserved_field_3 = 0       # UE packet-specific telemetry
+    '''
+
+@tool
+def get_bs_mobiflow_description_tool() -> str:
+    '''
+    API to retreve the description of BS MobiFlow data fields. Each field is defined with its default value, description, and value range if applicable.
+    '''
+    return '''
+    msg_type = "BS"            # Msg hdr  - mobiflow type [UE, BS]
+    msg_id = 0                 # Msg hdr  - unique mobiflow event ID
+    timestamp = get_time_ms()              # Msg hdr  - timestamp (ms)
+    mobiflow_ver = MOBIFLOW_VERSION        # Msg hdr  - version of Mobiflow
+    generator_name = GENERATOR_NAME        # Msg hdr  - generator name (e.g., SECSM)
+    ################################################################
+    nr_cell_id = 0             # BS meta  - basestation id
+    mcc = ""                   # BS meta  - mobile country code
+    mnc = ""                   # BS meta  - mobile network code
+    tac = ""                   # BS meta  - tracking area code
+    report_period = 0          # BS meta  - report period (ms)
+    ################################################################
+    connected_ue_cnt = 0       # BS stats -
+    idle_ue_cnt = 0            # BS stats -
+    max_ue_cnt = 0             # BS stats -
+    ################################################################
+    initial_timer = 0          # BS timer  -
+    inactive_timer = 0         # BS timer  -
     '''
 
 @tool
