@@ -12,9 +12,9 @@ xapp_names = {
 }
 
 branch_map = {
-    "mobiflow-auditor": "v1.0.0",
+    "mobiflow-auditor": "main",
     "MobiWatch": "main",
-    "MobieXpert": "v1.0.0"
+    "MobieXpert": "main"
     # add more if needed
 }
 
