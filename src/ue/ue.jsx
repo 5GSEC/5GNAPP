@@ -225,7 +225,8 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                 <div className="floating-window">
                     <p>
                       <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
-                      <strong>Events:</strong> {eventsCount}
+                      <strong>Events:</strong> {eventsCount} &nbsp;&nbsp;
+                      <strong>IMSI: </strong> {backendEvent?.mobile_id || "N/A"} 
                     </p>
 
                     {/* Render each event or fallback event */}

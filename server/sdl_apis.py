@@ -149,7 +149,7 @@ def fetch_sdl_data_osc() -> dict:
 
     # get all UE mobiflow
     ue_mobiflow_key = ns_target[0]
-    ue_meta = "DataType,Index,Version,Generator,Timestamp,nr_cell_id,gnb_cu_ue_f1ap_id,gnb_du_ue_f1ap_id,rnti,s_tmsi,rrc_cipher_alg,rrc_integrity_alg,nas_cipher_alg,nas_integrity_alg,rrc_msg,nas_msg,rrc_state,nas_state,rrc_sec_state,reserved_field_1,reserved_field_2,reserved_field_3".split(",")
+    ue_meta = "DataType,Index,Version,Generator,Timestamp,nr_cell_id,gnb_cu_ue_f1ap_id,gnb_du_ue_f1ap_id,rnti,s_tmsi,mobile_id,rrc_cipher_alg,rrc_integrity_alg,nas_cipher_alg,nas_integrity_alg,rrc_msg,nas_msg,rrc_state,nas_state,rrc_sec_state,reserved_field_1,reserved_field_2,reserved_field_3".split(",")
     for i in range(0, key_len_by_namespace[ue_mobiflow_key], max_batch_get_value):
         # Create a batch of keys
         batch_keys = [str(j) for j in range(i, min(i + max_batch_get_value, key_len_by_namespace[ue_mobiflow_key]))]
@@ -177,6 +177,7 @@ def fetch_sdl_data_osc() -> dict:
                         "gnb_cu_ue_f1ap_id": ue_mf_item[ue_meta.index("gnb_cu_ue_f1ap_id")],
                         "rnti": ue_mf_item[ue_meta.index("rnti")],
                         "s_tmsi": ue_mf_item[ue_meta.index("s_tmsi")],
+                        "mobile_id": ue_mf_item[ue_meta.index("mobile_id")],
                         "rrc_cipher_alg": ue_mf_item[ue_meta.index("rrc_cipher_alg")],
                         "rrc_integrity_alg": ue_mf_item[ue_meta.index("rrc_integrity_alg")],
                         "nas_cipher_alg": ue_mf_item[ue_meta.index("nas_cipher_alg")],
@@ -205,6 +206,7 @@ def fetch_sdl_data_osc() -> dict:
                     network[nr_cell_id]["ue"][ue_id]["gnb_cu_ue_f1ap_id"] = ue_mf_item[ue_meta.index("gnb_cu_ue_f1ap_id")]
                     network[nr_cell_id]["ue"][ue_id]["rnti"] = ue_mf_item[ue_meta.index("rnti")]
                     network[nr_cell_id]["ue"][ue_id]["s_tmsi"] = ue_mf_item[ue_meta.index("s_tmsi")]
+                    network[nr_cell_id]["ue"][ue_id]["mobile_id"] = ue_mf_item[ue_meta.index("mobile_id")]
                     network[nr_cell_id]["ue"][ue_id]["rrc_cipher_alg"] = ue_mf_item[ue_meta.index("rrc_cipher_alg")]
                     network[nr_cell_id]["ue"][ue_id]["rrc_integrity_alg"] = ue_mf_item[ue_meta.index("rrc_integrity_alg")]
                     network[nr_cell_id]["ue"][ue_id]["nas_cipher_alg"] = ue_mf_item[ue_meta.index("nas_cipher_alg")]
@@ -912,6 +914,7 @@ def get_ue_mobiflow_description_tool() -> str:
     gnb_du_ue_f1ap_id = 0      # UE meta  - UE id identified by gNB DU F1AP
     rnti = 0                   # UE meta  - ue rnti
     s_tmsi = 0                 # UE meta  - ue s-tmsi
+    mobile_id = 0              # UE meta  - mobile device id (e.g., SUPI, SUCI, IMEI)
     rrc_cipher_alg = 0         # UE packet telemetry  - rrc cipher algorithm
     rrc_integrity_alg = 0      # UE packet telemetry  - rrc integrity algorithm
     nas_cipher_alg = 0         # UE packet telemetry  - nas cipher algorithm
