@@ -79,24 +79,32 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
         const ueIcon = document.querySelector(`#_${ueId}`);
         if (!ueIcon) return;
     
-        // if backendEvent["event"] exist，check "Level" === "Critical"
-        let isCritical = false;
+        // Default to transparent
+        let bgColor = 'rgba(0,0,0,0)';
+
         if (backendEvent && backendEvent.event) {
-          // event is an object, key=eventId
+          let foundLevel = null;
           for (const eventId of Object.keys(backendEvent.event)) {
             const singleEvent = backendEvent.event[eventId];
             if (singleEvent["Level"] === "Critical") {
-              isCritical = true;
+              foundLevel = "Critical";
               break;
+            } else if (singleEvent["Level"] === "Warning") {
+              foundLevel = "Warning";
+            } else if (singleEvent["Level"] === "Info" && !foundLevel) {
+              foundLevel = "Info";
             }
           }
+          if (foundLevel === "Critical") {
+            bgColor = 'rgba(255, 0, 0, 0.25)'; // Red
+          } else if (foundLevel === "Warning") {
+            bgColor = 'rgba(255, 215, 0, 0.25)'; // Yellow
+          } else if (foundLevel === "Info") {
+            bgColor = 'rgba(0, 255, 0, 0.18)'; // Green
+          }
         }
-    
-        if (isCritical) {
-          ueIcon.style.background = 'rgba(255, 0, 0, 0.25)';
-        } else {
-          ueIcon.style.background = 'rgba(0,0,0,0)';
-        }
+
+        ueIcon.style.background = bgColor;
       }, [backendEvent, ueId]);
 
     useEffect(() => {
