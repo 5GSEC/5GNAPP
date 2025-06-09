@@ -198,6 +198,26 @@ function fetchCsvData(setEvent) {
     });
 }
 
+function setSimulationMode() {
+  fetch("http://localhost:8080/setSimulationMode", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Simulation mode set result:', data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
 
 /* -------------------------------------------
    NEW: MobieXpert rules.pbest helpers
@@ -269,3 +289,4 @@ export { fetchRulesText, saveRulesText };
 export { fetchChatSummary };
 export { fetchSdlEventData };
 export { mobiLLMChat };
+export { setSimulationMode };

@@ -23,7 +23,7 @@ pod_names = ["ricplt-e2mgr", "mobiflow-auditor", "mobiexpert-xapp", "mobiwatch-x
 display_names = ["E2 Manager", "MobiFlow Auditor xApp", "MobieXpert xApp", "MobiWatch xApp"]
 
 
-def fetch_service_status_osc() -> dict:
+def fetch_service_status_osc(simulation_mode=False) -> dict:
     ''' 
         Fetch the status of the network control-plane services, including xApps deployed at OSC near-RT RIC.
         An empty string will return if the specified service is inactive.
@@ -31,6 +31,16 @@ def fetch_service_status_osc() -> dict:
             dict: A dictionary containing the status of each service
     '''
     services = {}
+
+    # if simulation mode is enabled, read from the sample data file
+    if simulation_mode is True:
+        with open("../src/db/5G-Sample-Data - Service.csv", "r") as f:
+            lines = f.readlines()
+            for line in lines:
+                tokens = line.split(":")
+                services[tokens[0]] = tokens[1]
+        return services
+
     command = "kubectl get pods -A | awk {'print $2\";\"$3\";\"$4\";\"$5\";\"$6'}"
     output = execute_command(command)
     lines = output.split("\n")
@@ -125,8 +135,9 @@ def fetch_sdl_data_osc() -> dict:
         values = {}
         for line in [val.strip() for val in value.split("\n") if val.strip()]:
             k = int(line.split(":")[0])
-            v = line.split(":")[1][2:]  # remove osc sdl prefix
-            values[k] = v
+            v = line.split(":")[1]
+            start_index = v.index("BS;")
+            values[k] = v[start_index:] # remove prefix
         values = dict(sorted(values.items())) # sort values based on Index
 
         for val in values.values():
@@ -162,8 +173,9 @@ def fetch_sdl_data_osc() -> dict:
         values = {}
         for line in [val.strip() for val in value.split("\n") if val.strip()]:
             k = int(line.split(":")[0])
-            v = line.split(":")[1][2:]  # remove prefix
-            values[k] = v
+            v = line.split(":")[1]
+            start_index = v.index("UE;")
+            values[k] = v[start_index:] # remove prefix
         values = dict(sorted(values.items())) # sort values based on Index
 
         for val in values.values():
@@ -822,8 +834,9 @@ def get_ue_mobiflow_data_by_index(index_list: list) -> list:
         # Process each value in the batch
         for line in [val.strip() for val in value.split("\n") if val.strip()]:
             k = int(line.split(":")[0])
-            v = line.split(":")[1][2:]  # remove prefix
-            mf_data[k] = v
+            v = line.split(":")[1]
+            start_index = v.index("UE;")
+            mf_data[k] = v[start_index:] # remove prefix
         mf_data = dict(sorted(mf_data.items())) # sort values based on Index
 
     return list(mf_data.values())
@@ -891,8 +904,9 @@ def get_bs_mobiflow_data_by_index(index_list: list) -> list:
         # Process each value in the batch
         for line in [val.strip() for val in value.split("\n") if val.strip()]:
             k = int(line.split(":")[0])
-            v = line.split(":")[1][2:]  # remove prefix
-            mf_data[k] = v
+            v = line.split(":")[1]
+            start_index = v.index("BS;")
+            mf_data[k] = v[start_index:] # remove prefix
         mf_data = dict(sorted(mf_data.items())) # sort values based on Index
 
     return list(mf_data.values())

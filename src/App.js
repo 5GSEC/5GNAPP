@@ -17,7 +17,7 @@ import Chatbot from './components/Chatbot';
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
-import { fetchCsvData, fetchSdlData, fetchServiceStatus } from "./backend/fetchUserData";
+import { fetchCsvData, fetchSdlData, fetchServiceStatus, setSimulationMode } from "./backend/fetchUserData";
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
@@ -65,22 +65,12 @@ const data_simulation = 1;
 const update_interval = 10000;
 
 export function updateData(setEvent, setService) {
-  if (data_simulation === 1) {
-    // Simulate CSV data
-    fetchCsvData(setEvent);
-    // Mock some service data
-    setService({
-      "mobiexpert-xapp": "",
-      "mobiflow-auditor": "ricxapp-mobiflow-auditor-6f695ddc84-8n469;1/1;Running;0;95m",
-      "MobiFlow Agent": "",
-      "mobiwatch-xapp": "",
-      "ricplt-e2mgr": "deployment-ricplt-e2mgr-b988db566-hrhj2;1/1;Running;2;4d20h"
-    });
-  } else {
-    // Real data fetch
-    fetchSdlData(setEvent);
-    fetchServiceStatus(setService);
-  }
+  if (data_simulation === 1)
+    setSimulationMode();
+
+  // Data fetch
+  fetchSdlData(setEvent);
+  fetchServiceStatus(setService);
 }
 
 // ----------------------------------------
