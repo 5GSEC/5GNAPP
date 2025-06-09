@@ -124,108 +124,46 @@ def fetch_sdl_data_osc() -> dict:
     # get all BS mobiflow
     bs_mobiflow_key = ns_target[1]
     bs_meta = "DataType,Index,Timestamp,Version,Generator,nr_cell_id,mcc,mnc,tac,report_period".split(",")
-    for i in range(0, key_len_by_namespace[bs_mobiflow_key], max_batch_get_value):
-        # Create a batch of keys
-        batch_keys = [str(j) for j in range(i, min(i + max_batch_get_value, key_len_by_namespace[bs_mobiflow_key]))]
-
-        # Create the command for the batch
-        command = get_val_command(bs_mobiflow_key, " ".join(batch_keys))
-        value = execute_command(command)
-
-        # Process each value in the batch
-        values = {}
-        for line in [val.strip() for val in value.split("\n") if val.strip()]:
-            k = int(line.split(":")[0])
-            v = line.split(":")[1]
-            start_index = v.index("BS;")
-            values[k] = v[start_index:] # remove prefix
-        values = dict(sorted(values.items())) # sort values based on Index
-
-        for val in values.values():
-            bs_mf_item = val.split(";")
-            nr_cell_id = bs_mf_item[bs_meta.index("nr_cell_id")]
-            timestamp = bs_mf_item[bs_meta.index("Timestamp")]
-            mcc = bs_mf_item[bs_meta.index("mcc")]
-            mnc = bs_mf_item[bs_meta.index("mnc")]
-            tac = bs_mf_item[bs_meta.index("tac")]
-            report_period = bs_mf_item[bs_meta.index("report_period")]
-            network[nr_cell_id] = {
-                "mcc": mcc,
-                "mnc": mnc,
-                "tac": tac,
-                "report_period": report_period,
-                "timestamp": timestamp,
-                "ue": {}
-            }
-
+    values = get_bs_mobiflow_data_all_tool("")
+    for val in values:
+        bs_mf_item = val.split(";")
+        nr_cell_id = bs_mf_item[bs_meta.index("nr_cell_id")]
+        timestamp = bs_mf_item[bs_meta.index("Timestamp")]
+        mcc = bs_mf_item[bs_meta.index("mcc")]
+        mnc = bs_mf_item[bs_meta.index("mnc")]
+        tac = bs_mf_item[bs_meta.index("tac")]
+        report_period = bs_mf_item[bs_meta.index("report_period")]
+        network[nr_cell_id] = {
+            "mcc": mcc,
+            "mnc": mnc,
+            "tac": tac,
+            "report_period": report_period,
+            "timestamp": timestamp,
+            "ue": {}
+        }
 
     # get all UE mobiflow
     ue_mobiflow_key = ns_target[0]
     ue_meta = "DataType,Index,Version,Generator,Timestamp,nr_cell_id,gnb_cu_ue_f1ap_id,gnb_du_ue_f1ap_id,rnti,s_tmsi,mobile_id,rrc_cipher_alg,rrc_integrity_alg,nas_cipher_alg,nas_integrity_alg,rrc_msg,nas_msg,rrc_state,nas_state,rrc_sec_state,reserved_field_1,reserved_field_2,reserved_field_3".split(",")
-    for i in range(0, key_len_by_namespace[ue_mobiflow_key], max_batch_get_value):
-        # Create a batch of keys
-        batch_keys = [str(j) for j in range(i, min(i + max_batch_get_value, key_len_by_namespace[ue_mobiflow_key]))]
-
-        # Create the command for the batch
-        command = get_val_command(ue_mobiflow_key, " ".join(batch_keys))
-        value = execute_command(command)
-
-        # Process each value in the batch
-        values = {}
-        for line in [val.strip() for val in value.split("\n") if val.strip()]:
-            k = int(line.split(":")[0])
-            v = line.split(":")[1]
-            start_index = v.index("UE;")
-            values[k] = v[start_index:] # remove prefix
-        values = dict(sorted(values.items())) # sort values based on Index
-
-        for val in values.values():
-            ue_mf_item = val.split(";")
-            ue_id = ue_mf_item[ue_meta.index("gnb_du_ue_f1ap_id")]
-            nr_cell_id = ue_mf_item[ue_meta.index("nr_cell_id")]
-            if nr_cell_id in network:
-                if ue_id not in network[nr_cell_id]["ue"]:
-                    # add UE
-                    network[nr_cell_id]["ue"][ue_id] = {
-                        "gnb_cu_ue_f1ap_id": ue_mf_item[ue_meta.index("gnb_cu_ue_f1ap_id")],
-                        "rnti": ue_mf_item[ue_meta.index("rnti")],
-                        "s_tmsi": ue_mf_item[ue_meta.index("s_tmsi")],
-                        "mobile_id": ue_mf_item[ue_meta.index("mobile_id")],
-                        "rrc_cipher_alg": ue_mf_item[ue_meta.index("rrc_cipher_alg")],
-                        "rrc_integrity_alg": ue_mf_item[ue_meta.index("rrc_integrity_alg")],
-                        "nas_cipher_alg": ue_mf_item[ue_meta.index("nas_cipher_alg")],
-                        "nas_integrity_alg": ue_mf_item[ue_meta.index("nas_integrity_alg")],
-                        "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
-                        "mobiflow": [{
-                            "msg_id": int(ue_mf_item[ue_meta.index("Index")]),
-                            "abnormal": {
-                                "value": False,
-                                "source": "None"
-                            },
-                            "rrc_msg": ue_mf_item[ue_meta.index("rrc_msg")],
-                            "nas_msg": ue_mf_item[ue_meta.index("nas_msg")],
-                            "rrc_state": ue_mf_item[ue_meta.index("rrc_state")],
-                            "nas_state": ue_mf_item[ue_meta.index("nas_state")],
-                            "rrc_sec_state": ue_mf_item[ue_meta.index("rrc_sec_state")],
-                            "reserved_field_1": ue_mf_item[ue_meta.index("reserved_field_1")],
-                            "reserved_field_2": ue_mf_item[ue_meta.index("reserved_field_2")],
-                            "reserved_field_3": ue_mf_item[ue_meta.index("reserved_field_3")],
-                            "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
-                        }],
-                        "event": {}
-                    }
-                else:
-                    # update UE
-                    network[nr_cell_id]["ue"][ue_id]["gnb_cu_ue_f1ap_id"] = ue_mf_item[ue_meta.index("gnb_cu_ue_f1ap_id")]
-                    network[nr_cell_id]["ue"][ue_id]["rnti"] = ue_mf_item[ue_meta.index("rnti")]
-                    network[nr_cell_id]["ue"][ue_id]["s_tmsi"] = ue_mf_item[ue_meta.index("s_tmsi")]
-                    network[nr_cell_id]["ue"][ue_id]["mobile_id"] = ue_mf_item[ue_meta.index("mobile_id")]
-                    network[nr_cell_id]["ue"][ue_id]["rrc_cipher_alg"] = ue_mf_item[ue_meta.index("rrc_cipher_alg")]
-                    network[nr_cell_id]["ue"][ue_id]["rrc_integrity_alg"] = ue_mf_item[ue_meta.index("rrc_integrity_alg")]
-                    network[nr_cell_id]["ue"][ue_id]["nas_cipher_alg"] = ue_mf_item[ue_meta.index("nas_cipher_alg")]
-                    network[nr_cell_id]["ue"][ue_id]["nas_integrity_alg"] = ue_mf_item[ue_meta.index("nas_integrity_alg")]
-                    network[nr_cell_id]["ue"][ue_id]["Timestamp"] = ue_mf_item[ue_meta.index("Timestamp")]
-                    network[nr_cell_id]["ue"][ue_id]["mobiflow"].append({
+    values = get_ue_mobiflow_data_all_tool("")
+    for val in values:
+        ue_mf_item = val.split(";")
+        ue_id = ue_mf_item[ue_meta.index("gnb_du_ue_f1ap_id")]
+        nr_cell_id = ue_mf_item[ue_meta.index("nr_cell_id")]
+        if nr_cell_id in network:
+            if ue_id not in network[nr_cell_id]["ue"]:
+                # add UE
+                network[nr_cell_id]["ue"][ue_id] = {
+                    "gnb_cu_ue_f1ap_id": ue_mf_item[ue_meta.index("gnb_cu_ue_f1ap_id")],
+                    "rnti": ue_mf_item[ue_meta.index("rnti")],
+                    "s_tmsi": ue_mf_item[ue_meta.index("s_tmsi")],
+                    "mobile_id": ue_mf_item[ue_meta.index("mobile_id")],
+                    "rrc_cipher_alg": ue_mf_item[ue_meta.index("rrc_cipher_alg")],
+                    "rrc_integrity_alg": ue_mf_item[ue_meta.index("rrc_integrity_alg")],
+                    "nas_cipher_alg": ue_mf_item[ue_meta.index("nas_cipher_alg")],
+                    "nas_integrity_alg": ue_mf_item[ue_meta.index("nas_integrity_alg")],
+                    "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
+                    "mobiflow": [{
                         "msg_id": int(ue_mf_item[ue_meta.index("Index")]),
                         "abnormal": {
                             "value": False,
@@ -240,46 +178,65 @@ def fetch_sdl_data_osc() -> dict:
                         "reserved_field_2": ue_mf_item[ue_meta.index("reserved_field_2")],
                         "reserved_field_3": ue_mf_item[ue_meta.index("reserved_field_3")],
                         "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
-                    })
+                    }],
+                    "event": {}
+                }
             else:
-                print("nr_cell_id not found")
+                # update UE
+                network[nr_cell_id]["ue"][ue_id]["gnb_cu_ue_f1ap_id"] = ue_mf_item[ue_meta.index("gnb_cu_ue_f1ap_id")]
+                network[nr_cell_id]["ue"][ue_id]["rnti"] = ue_mf_item[ue_meta.index("rnti")]
+                network[nr_cell_id]["ue"][ue_id]["s_tmsi"] = ue_mf_item[ue_meta.index("s_tmsi")]
+                network[nr_cell_id]["ue"][ue_id]["mobile_id"] = ue_mf_item[ue_meta.index("mobile_id")]
+                network[nr_cell_id]["ue"][ue_id]["rrc_cipher_alg"] = ue_mf_item[ue_meta.index("rrc_cipher_alg")]
+                network[nr_cell_id]["ue"][ue_id]["rrc_integrity_alg"] = ue_mf_item[ue_meta.index("rrc_integrity_alg")]
+                network[nr_cell_id]["ue"][ue_id]["nas_cipher_alg"] = ue_mf_item[ue_meta.index("nas_cipher_alg")]
+                network[nr_cell_id]["ue"][ue_id]["nas_integrity_alg"] = ue_mf_item[ue_meta.index("nas_integrity_alg")]
+                network[nr_cell_id]["ue"][ue_id]["Timestamp"] = ue_mf_item[ue_meta.index("Timestamp")]
+                network[nr_cell_id]["ue"][ue_id]["mobiflow"].append({
+                    "msg_id": int(ue_mf_item[ue_meta.index("Index")]),
+                    "abnormal": {
+                        "value": False,
+                        "source": "None"
+                    },
+                    "rrc_msg": ue_mf_item[ue_meta.index("rrc_msg")],
+                    "nas_msg": ue_mf_item[ue_meta.index("nas_msg")],
+                    "rrc_state": ue_mf_item[ue_meta.index("rrc_state")],
+                    "nas_state": ue_mf_item[ue_meta.index("nas_state")],
+                    "rrc_sec_state": ue_mf_item[ue_meta.index("rrc_sec_state")],
+                    "reserved_field_1": ue_mf_item[ue_meta.index("reserved_field_1")],
+                    "reserved_field_2": ue_mf_item[ue_meta.index("reserved_field_2")],
+                    "reserved_field_3": ue_mf_item[ue_meta.index("reserved_field_3")],
+                    "timestamp": ue_mf_item[ue_meta.index('Timestamp')],
+                })
+        else:
+            print("nr_cell_id not found")
 
 
     # get all mobiexpert-event
+    events = fetch_sdl_event_data_osc()
     event_key = ns_target[2]
     event_meta = "Event ID,Event Name,Affected base station ID,Time,Affected UE ID,Description,Level".split(",")
-    for i in range(1, key_len_by_namespace[event_key] + 1, max_batch_get_value):  # event index starts from 1
-        # Create a batch of keys
-        batch_keys = [str(j) for j in range(i, min(i + max_batch_get_value, key_len_by_namespace[event_key] + 1))]
-
-        # Create the command for the batch
-        command = get_val_command(event_key, " ".join(batch_keys))
-        value = execute_command(command)
-
-        # Process each value in the batch
-        values = [val.strip() for val in value.split("\n") if val.strip()]
-
-        for val in values:
-            val = ''.join([c for c in val if 32 <= ord(c) <= 126])[2:]  # Remove non-ASCII characters
-            event_item = val.split(";")
-            nr_cell_id = event_item[event_meta.index("Affected base station ID")]
-            event_id = event_item[event_meta.index("Event ID")]
-            ue_id = event_item[event_meta.index("Affected UE ID")]
+    for event in events.values():
+        # load MobieXpert events
+        if event['source'] == "MobieXpert":
+            nr_cell_id = event["cellID"]
+            event_id = event["id"]
+            ue_id = event["ueID"]
             if nr_cell_id in network:
                 if ue_id in network[nr_cell_id]["ue"]:
                     # add event
                     network[nr_cell_id]["ue"][ue_id]["event"][event_id] = {
-                        "Event Name": event_item[event_meta.index("Event Name")],
-                        "Timestamp": event_item[event_meta.index("Time")],
+                        "Event Name": event["name"],
+                        "Timestamp": event["timestamp"],
                         "Affected base station ID": nr_cell_id,
                         "Affected UE ID": ue_id,
-                        "Level": event_item[event_meta.index("Level")],
-                        "Description": event_item[event_meta.index("Description")]
+                        "Level": event["severity"],
+                        "Description": event["description"]
                     }
                 else:
                     print(f"gnb_du_ue_f1ap_id {ue_id} not found")
-            else:
-                print(f"nr_cell_id {nr_cell_id} not found")
+        else:
+            print(f"nr_cell_id {nr_cell_id} not found")
     
     # get all mobiwatch-event
 
@@ -301,6 +258,48 @@ def fetch_sdl_event_data_osc() -> dict:
     Returns:
         dict: A dictionary containing the network event data.
     '''
+    event = {}
+    # if simulation mode is enabled, read from the sample data file
+    if global_vars.simulation_mode is True:
+        # read MobieXpert events
+        with open("../src/db/5G-Sample-Data - Event - MobieXpert.csv", "r") as f:
+            event_meta = "Event ID,Event Name,Affected base station ID,Time,Affected UE ID,Description,Level".split(",")
+            lines = f.readlines()
+            for line in lines:
+                event_item = line.strip().split(";")
+                event[len(event)+1] = {
+                    "id": len(event)+1,
+                    "source": "MobieXpert",
+                    "name": event_item[event_meta.index("Event Name")],
+                    "cellID": event_item[event_meta.index("Affected base station ID")],
+                    "ueID": event_item[event_meta.index("Affected UE ID")],
+                    "timestamp": event_item[event_meta.index("Time")],
+                    "severity": event_item[event_meta.index("Level")],
+                    "description": event_item[event_meta.index("Description")],
+                }
+
+        # read MobiWatch events
+        with open("../src/db/5G-Sample-Data - Event - MobiWatch.csv", "r") as f:
+            event_meta = "id,source,name,cellID,ueID,timestamp,severity,mobiflow_index,description".split(",")
+            lines = f.readlines()
+            for line in lines:
+                event_item = line.strip().split(";")
+                model_name = event_item[0]
+                # f"{model_name};{event['event_name']};{event['nr_cell_id']};{event['ue_id']};{event['timestamp']};{index_str};{event_desc}"
+                event[len(event)+1] = {
+                    "id": len(event)+1,
+                    "source": f"MobiWatch_{model_name}",
+                    "name": event_item[1],
+                    "cellID": event_item[2],
+                    "ueID": event_item[3],
+                    "timestamp": event_item[4],
+                    "severity": "Medium",
+                    "mobiflow_index": event_item[5],
+                    "description": event_item[6],
+                }
+
+        return event
+
     # get namespaces from SDL
     get_ns_command = 'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get namespaces'
     ns_output = execute_command(get_ns_command)
@@ -329,7 +328,6 @@ def fetch_sdl_event_data_osc() -> dict:
     # variable to hold sdl event data
     max_batch_get_value = 20  # max number of keys to fetch in a single batch
     get_val_command = lambda ns, key: f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get {ns} {key}'  # template get value command
-    event = {}
     
     # get all mobiexpert-event
     event_key = ns_target[0]
@@ -818,6 +816,17 @@ def get_ue_mobiflow_data_by_index(index_list: list) -> list:
     '''
     if index_list is None or len(index_list) == 0:
         return []
+
+    # if simulation mode is enabled, read from the sample data file
+    if global_vars.simulation_mode is True:
+        mf_list = []
+        with open("../src/db/5G-Sample-Data - UE.csv", "r") as file:
+            for line in file.readlines():
+                index = int(line.split(";")[1])
+                if index in index_list:
+                    mf_list.append(line)
+        return mf_list
+
     max_batch_get_value = 20  # max number of keys to fetch in a single batch
     get_val_command = lambda ns, key: f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get {ns} {key}'  # template get value command
 
@@ -888,6 +897,17 @@ def get_bs_mobiflow_data_by_index(index_list: list) -> list:
     '''
     if index_list is None or len(index_list) == 0:
         return []
+    
+    # if simulation mode is enabled, read from the sample data file
+    if global_vars.simulation_mode is True:
+        mf_list = []
+        with open("../src/db/5G-Sample-Data - BS.csv", "r") as file:
+            for line in file.readlines():
+                index = int(line.split(";")[1])
+                if index in index_list:
+                    mf_list.append(line)
+        return mf_list
+
     max_batch_get_value = 20  # max number of keys to fetch in a single batch
     get_val_command = lambda ns, key: f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get {ns} {key}'  # template get value command
 

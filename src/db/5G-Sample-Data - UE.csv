@@ -1,4 +1,3 @@
-DataType,Index,Version,Generator,Timestamp,nr_cell_id,gnb_cu_ue_f1ap_id,gnb_du_ue_f1ap_id,rnti,s_tmsi,rrc_cipher_alg,rrc_integrity_alg,nas_cipher_alg,nas_integrity_alg,rrc_msg,nas_msg,rrc_state,nas_state,rrc_sec_state,reserved_field_1,reserved_field_2,reserved_field_3
 UE;0;v2.1;SECSM;1749482829;10000;1;2880;2880;0;2089900004778;2;2;0;2;RRCSetupRequest; ;0;0;0;3;0;0
 UE;1;v2.1;SECSM;1749482829;10000;1;2880;2880;0;2089900004778;2;2;0;2;RRCSetup; ;2;0;0;0;0;0
 UE;2;v2.1;SECSM;1749482829;10000;1;2880;2880;0;2089900004778;2;2;0;2;RRCSetupComplete;Registrationrequest;2;1;0;1;0;0
