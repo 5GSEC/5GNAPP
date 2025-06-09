@@ -61,7 +61,7 @@ function XAppsLayout() {
 // ----------------------------------------
 // Global config
 // ----------------------------------------
-const data_simulation = 0;
+const data_simulation = 1;
 const update_interval = 10000;
 
 export function updateData(setEvent, setService) {

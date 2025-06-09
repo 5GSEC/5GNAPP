@@ -218,6 +218,11 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
     return (
         <div className="ue-container">
 
+            {/* NEW: permanent UE ID label above the icon */}
+            <div className="ue-label">{ueId}</div>
+
+
+
             <div
                 className="ue-icon"
                 style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }} // Adjusted size for unhovered state

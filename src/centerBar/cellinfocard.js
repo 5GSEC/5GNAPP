@@ -1,31 +1,52 @@
 import React from "react";
-import { Card, CardContent, Typography, Button, Box } from "@mui/material";
-import RefreshIcon from "@mui/icons-material/Refresh"; // MUI Refresh Icon
-import { FaArrowRight } from "react-icons/fa"; // React Icons for arrow
+import { Card, CardContent, Typography, Button, Box, Grid } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+
+// Icons for each card
+import CellTowerIcon from "@mui/icons-material/CellTower";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 
 function ActiveCellInfo({ bsevent, bsId, setEvent, setService, updateData }) {
-  const getTotalEvents = (cellId) => {
-    if (!bsevent[cellId] || !bsevent[cellId].ue) return 0;
-    return Object.values(bsevent[cellId].ue).reduce(
-      (sum, ueObj) => sum + Object.keys(ueObj.event).length,
-      0
-    );
+  // Extract summary statistics from the event data
+  const getSummaryStats = () => {
+    const activeCells = Object.keys(bsevent).length;
+    let totalUEs = 0;
+    let totalEvents = 0;
+    let criticalEvents = 0;
+
+    for (const cell of Object.values(bsevent)) {
+      const ueMap = cell.ue || {};
+      totalUEs += Object.keys(ueMap).length;
+
+      for (const ue of Object.values(ueMap)) {
+        const events = Object.values(ue.event || {});
+        totalEvents += events.length;
+        criticalEvents += events.filter(ev => ev.Level === "Critical").length;
+      }
+    }
+
+    return { activeCells, totalUEs, criticalEvents, totalEvents };
   };
 
-  const getCriticalEvents = (cellId) => {
-    if (!bsevent[cellId] || !bsevent[cellId].ue) return 0;
-    return Object.values(bsevent[cellId].ue).reduce((sum, ueObj) => {
-      return sum + Object.values(ueObj.event).filter((ev) => ev.Level === "Critical").length;
-    }, 0);
+  const { activeCells, totalUEs, criticalEvents, totalEvents } = getSummaryStats();
+
+  // Icons mapped to each summary label
+  const iconMap = {
+    "Active Cells": <CellTowerIcon fontSize="small" sx={{ mr: 1 }} />,
+    "Active UEs": <PeopleAltIcon fontSize="small" sx={{ mr: 1 }} />,
+    "Critical Events": <WarningAmberIcon fontSize="small" sx={{ mr: 1, color: "orange" }} />,
+    "Total Events": <AssessmentIcon fontSize="small" sx={{ mr: 1 }} />,
   };
 
   return (
-    <Card sx={{ width: "100%", marginBottom: 3, height: "100%"}}>
+    <Card sx={{ width: "100%", marginBottom: 3 }}>
       <CardContent>
-        {/* Title and Refresh Button */}
+        {/* Header section with title and refresh button */}
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            Active Cell and UE Information
+            Network Summary
           </Typography>
           <Button
             variant="outlined"
@@ -37,37 +58,39 @@ function ActiveCellInfo({ bsevent, bsId, setEvent, setService, updateData }) {
           </Button>
         </Box>
 
-        {/* Cell and UE Information */}
-        {Object.keys(bsevent).map((cellId, index) => {
-          const ueCount = bsevent[cellId]?.ue ? Object.keys(bsevent[cellId].ue).length : 0;
-          const repPeriod = bsevent[cellId].report_period || 0;
-
-          return (
-            <Box key={index} sx={{ marginBottom: 2 }}>
-              <Typography variant="body1">
-                <strong>Total Events:</strong> {getTotalEvents(cellId)} &nbsp;&nbsp;
-                <strong>Critical Events:</strong> {getCriticalEvents(cellId)}
-              </Typography>
-              <Typography variant="body1" sx={{ marginTop: 1 }}>
-                <strong>Cell ID:</strong> {cellId} &nbsp;&nbsp;
-                <strong>Active UEs:</strong> {ueCount} &nbsp;&nbsp;
-                <strong>Report Interval:</strong> {repPeriod / 1000}s
-              </Typography>
-              {bsevent[cellId]?.ue &&
-                Object.keys(bsevent[cellId].ue).map((ueId) => (
-                  <Typography
-                    key={ueId}
-                    variant="body1"
-                    sx={{ display: "flex", alignItems: "center", marginLeft: 2, marginTop: 1 }}
-                  >
-                    <FaArrowRight style={{ marginRight: "8px", color: "#11182E" }} />
-                    <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
-                    <strong>S-TMSI:</strong> {bsevent[cellId].ue[ueId]?.s_tmsi || "N/A"}
+        {/* Summary cards for stats */}
+        <Grid container spacing={2}>
+          {[
+            { label: "Active Cells", value: activeCells },
+            { label: "Active UEs", value: totalUEs },
+            { label: "Critical Events", value: criticalEvents },
+            { label: "Total Events", value: totalEvents },
+          ].map(({ label, value }, idx) => (
+            <Grid item xs={12} sm={6} md={3} key={idx}>
+              <Card
+                variant="outlined"
+                sx={{
+                  minHeight: 120,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                    {iconMap[label]}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      {label}
+                    </Typography>
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                    {value}
                   </Typography>
-                ))}
-            </Box>
-          );
-        })}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       </CardContent>
     </Card>
   );

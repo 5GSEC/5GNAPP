@@ -173,7 +173,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
 
       <Box sx={{ display: "flex", gap: 2, padding: 0, width: "100%" }}>
         {/* First container: RIC Services */}
-        <Box sx={{ flex: 1, width: "55%" }}>
+        <Box sx={{ flex: 1, width: "50%" }}>
           <ServiceGrid
             services={services}
             handleBuild={handleBuild}
@@ -183,7 +183,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
         </Box>
 
         {/* Second container: Active Cell & UE Information */}
-        <Box sx={{ flex: 1, maxWidth: "45%" }}>
+        <Box sx={{ flex: 1, maxWidth: "50%" }}>
           <ActiveCellInfo
             bsevent={bsevent}
             bsId={bsId}
