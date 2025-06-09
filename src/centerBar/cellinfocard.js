@@ -51,8 +51,19 @@ function ActiveCellInfo({ bsevent, bsId, setEvent, setService, updateData }) {
           <Button
             variant="outlined"
             size="small"
-            startIcon={<RefreshIcon />}
+            startIcon={<RefreshIcon sx={{ color: '#11182E' }} />}
             onClick={() => updateData(setEvent, setService)}
+            sx={{
+              borderColor: '#11182E',
+              color: '#11182E',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#f3f6fa',
+                borderColor: '#2d3c6b',
+                color: '#2d3c6b',
+                '& .MuiSvgIcon-root': { color: '#2d3c6b' },
+              },
+            }}
           >
             Refresh
           </Button>
