@@ -459,6 +459,11 @@ def build_xapp_osc(xapp_name: str):
     Returns:
         dict: A dictionary containing the status of the build process.
     """
+
+    # if simulation mode is enabled, return sample message
+    if global_vars.simulation_mode is True:
+        return {"message": "Build finished", "logs": []}, 200
+
     original_cwd = os.getcwd()
     logs = []  # We'll accumulate logs here
 
@@ -580,6 +585,10 @@ def deploy_xapp_osc(xapp_name: str):
     '''
     Deploy the xApp from the given xapp_name.
     '''
+    # if simulation mode is enabled, return sample message
+    if global_vars.simulation_mode is True:
+        return {"message": f"{xapp_name} is deployed successfully", "logs": []}, 200
+
     original_cwd = os.getcwd()  # Remember our original directory
     logs = []  # We'll collect log messages in this list
 
@@ -705,6 +714,9 @@ def unDeploy_xapp_osc(xapp_name: str):
         step 3: run ./undeploy.sh
         step 4: check undeployment is successful or not
     '''
+    # if simulation mode is enabled, return sample message
+    if global_vars.simulation_mode is True:
+        return {"message": f"{xapp_name} is undeployed successfully", "logs": []}, 200
     
     original_cwd = os.getcwd()
     try:
@@ -778,15 +790,23 @@ def get_ue_mobiflow_data_all_tool() -> list:
     Returns:
         list: a list of UE MobiFlow telemetry in raw format (separated by ; delimiter)
     '''
-    # get all keys for ue_mobiflow namespace
-    namespace = sdl_namespaces[0]
-    get_key_command = f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get keys {namespace}'
-    keys_output = execute_command(get_key_command)
+    keys = []
+    # if simulation mode is enabled, grab the data keys from the sample data file
+    if global_vars.simulation_mode is True:
+        with open("../src/db/5G-Sample-Data - UE.csv", "r") as file:
+            for line in file.readlines():
+                index = int(line.split(";")[1])
+                keys.append(index)
+    else:
+        # get all keys for ue_mobiflow namespace in the actual SDL
+        namespace = sdl_namespaces[0]
+        get_key_command = f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get keys {namespace}'
+        keys_output = execute_command(get_key_command)
 
-    # Parse keys (split by newlines)
-    keys = [int(key.strip()) for key in keys_output.split("\n") if key.strip()]
+        # Parse keys (split by newlines)
+        keys = [int(key.strip()) for key in keys_output.split("\n") if key.strip()]
+    
     keys = sorted(keys)
-
     return get_ue_mobiflow_data_by_index(keys)
 
 @tool
@@ -859,15 +879,23 @@ def get_bs_mobiflow_data_all_tool() -> list:
     Returns:
         list: a list of BS MobiFlow telemetry in raw format (separated by ; delimiter)
     '''
-    # get all keys for bs_mobiflow namespace
-    namespace = sdl_namespaces[1]
-    get_key_command = f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get keys {namespace}'
-    keys_output = execute_command(get_key_command)
+    keys = []
+    # if simulation mode is enabled, grab the data keys from the sample data file
+    if global_vars.simulation_mode is True:
+        with open("../src/db/5G-Sample-Data - BS.csv", "r") as file:
+            for line in file.readlines():
+                index = int(line.split(";")[1])
+                keys.append(index)
+    else:
+        # get all keys for bs_mobiflow namespace in the actual SDL
+        namespace = sdl_namespaces[1]
+        get_key_command = f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get keys {namespace}'
+        keys_output = execute_command(get_key_command)
 
-    # Parse keys (split by newlines)
-    keys = [int(key.strip()) for key in keys_output.split("\n") if key.strip()]
+        # Parse keys (split by newlines)
+        keys = [int(key.strip()) for key in keys_output.split("\n") if key.strip()]
+        
     keys = sorted(keys)
-
     return get_bs_mobiflow_data_by_index(keys)
 
 @tool
