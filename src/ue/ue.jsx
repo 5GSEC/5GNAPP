@@ -16,11 +16,9 @@ import {
   IconButton,
   Button,
   Box,
+  Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-
-//TODO: add the timestamp to normal UE
-//TODO: change the UE and BS icon
 
 const fieldsToRender = [
     "Event Name",
@@ -221,8 +219,6 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
             {/* NEW: permanent UE ID label above the icon */}
             <div className="ue-label">{ueId}</div>
 
-
-
             <div
                 className="ue-icon"
                 style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }} // Adjusted size for unhovered state
@@ -235,17 +231,49 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
             </div>
 
             {showInfo && (
-                <div className="floating-window">
-                    <p>
-                      <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
-                      <strong>Events:</strong> {eventsCount} &nbsp;&nbsp;
-                      <strong>IMSI: </strong> {backendEvent?.mobile_id || "N/A"} 
-                    </p>
+                <Box className="floating-window" sx={{ background: "#f8fafd" }}>
+                    <Box sx={{ mb: 0.5 }}>
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        UE ID:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {ueId}
+                      </Typography>
+                      &nbsp;&nbsp;
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        IMSI:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {backendEvent?.mobile_id || "N/A"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 0.5 }}>
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        Last Update Time:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {(() => {
+                          const dateObj = parseTimestamp(backendEvent?.Timestamp);
+                          return dateObj && !isNaN(dateObj.getTime())
+                            ? format(dateObj, 'PPpp')
+                            : "N/A";
+                        })()}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        UE Events:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {eventsCount}
+                      </Typography>
+                    </Box>
 
                     {/* Render each event or fallback event */}
                     {eventsArray.map(({ eventId, singleEvent }) => (
-                      <div key={eventId} style={{ marginBottom: '0.5em' }}>
+                        <Box key={eventId} sx={{ mb: 1 }}>
 
+                        {eventsCount > 0 && <Divider sx={{my: 1}}></Divider>}
 
                         {/* <p><em>Event ID: {eventId}</em></p> */}
 
@@ -255,8 +283,6 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                           }
 
                           if (fieldName === "Timestamp") {
-
-
                             const rawTime = singleEvent["Timestamp"];
                             const dateObj = parseTimestamp(rawTime);
                             let displayTime = "(Invalid timestamp)";
@@ -264,10 +290,14 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                               displayTime = format(dateObj, 'PPpp');
                             }
                             return (
-                              <div key={fieldName} className="info-row">
-                                <span className="info-label">{fieldName}:</span>
-                                <span className="info-value">{displayTime}</span>
-                              </div>
+                              <Box key={fieldName} sx={{ display: 'flex', alignItems: 'top', textAlign: 'left', mb: 0.5 }}>
+                                <Typography variant="body1" sx={{ fontWeight: 600, minWidth: 110, textAlign: 'left' }}>
+                                  {fieldName}:
+                                </Typography>
+                                <Typography variant="body1" sx={{ ml: 0, textAlign: 'left' }}>
+                                  {displayTime}
+                                </Typography>
+                              </Box>
                             );
                           } else {
                             // If it's an object, do JSON.stringify
@@ -276,16 +306,20 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                               val = JSON.stringify(val);
                             }
                             return (
-                              <div key={fieldName} className="info-row">
-                                <span className="info-label">{fieldName}:</span>
-                                <span className="info-value">{val}</span>
-                              </div>
+                              <Box key={fieldName} sx={{ display: 'flex', alignItems: 'top', textAlign: 'left', mb: 0.5 }}>
+                                <Typography variant="body1" sx={{ fontWeight: 600, minWidth: 110, textAlign: 'left' }}>
+                                  {fieldName}:
+                                </Typography>
+                                <Typography variant="body1" sx={{ ml: 0, textAlign: 'left' }}>
+                                  {val}
+                                </Typography>
+                              </Box>
                             );
                           }
                         })}
-                      </div>
+                      </Box>
                     ))}
-                  </div>
+                  </Box>
       )}
 
       {/* showinfo window for clicking */}

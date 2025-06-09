@@ -17,7 +17,7 @@ import Chatbot from './components/Chatbot';
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
-import { fetchCsvData, fetchSdlData, fetchServiceStatus, setSimulationMode } from "./backend/fetchUserData";
+import { fetchSdlData, fetchServiceStatus, setSimulationMode } from "./backend/fetchUserData";
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
@@ -65,9 +65,6 @@ const data_simulation = 1;
 const update_interval = 10000;
 
 export function updateData(setEvent, setService) {
-  if (data_simulation === 1)
-    setSimulationMode();
-
   // Data fetch
   fetchSdlData(setEvent);
   fetchServiceStatus(setService);
@@ -80,6 +77,9 @@ function DashboardPage() {
   const [bevent, setEvent] = useState({});
   const [services, setService] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
+
+  if (data_simulation === 1)
+    setSimulationMode();
 
   useEffect(() => {
     const interval = setInterval(() => {
