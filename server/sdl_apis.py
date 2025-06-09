@@ -3,6 +3,7 @@ import os
 import json
 from utils import *
 from langchain.tools import tool
+import global_vars
 
 # gloabal mappings
 xapp_names = {
@@ -23,7 +24,7 @@ pod_names = ["ricplt-e2mgr", "mobiflow-auditor", "mobiexpert-xapp", "mobiwatch-x
 display_names = ["E2 Manager", "MobiFlow Auditor xApp", "MobieXpert xApp", "MobiWatch xApp"]
 
 
-def fetch_service_status_osc(simulation_mode=False) -> dict:
+def fetch_service_status_osc() -> dict:
     ''' 
         Fetch the status of the network control-plane services, including xApps deployed at OSC near-RT RIC.
         An empty string will return if the specified service is inactive.
@@ -33,7 +34,7 @@ def fetch_service_status_osc(simulation_mode=False) -> dict:
     services = {}
 
     # if simulation mode is enabled, read from the sample data file
-    if simulation_mode is True:
+    if global_vars.simulation_mode is True:
         with open("../src/db/5G-Sample-Data - Service.csv", "r") as f:
             lines = f.readlines()
             for line in lines:

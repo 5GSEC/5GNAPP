@@ -19,23 +19,21 @@ import csv
 import re
 import os
 import traceback # for debugging the agentic AI
+import global_vars
 
 app = Flask(__name__)
 CORS(app) # for remote access
 
-simulation_mode = False
-
 @app.route('/setSimulationMode', methods=['POST'])
 def set_simultion_mode():
-    global simulation_mode
-    simulation_mode = True
+    global_vars.simulation_mode = True
     return {"message": "Simulation Mode Set"}, 200
 
 @app.route('/fetchServiceStatus', methods=['GET'])
 def fetch_service_status():
     ''' Fetch the status of the SE-RAN services '''
     global simulation_mode
-    return sdl_apis.fetch_service_status_osc(simulation_mode)
+    return sdl_apis.fetch_service_status_osc()
 
 
 @app.route('/buildXapp', methods=['POST'])
