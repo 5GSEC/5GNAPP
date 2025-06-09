@@ -232,7 +232,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
 
             {showInfo && (
                 <Box className="floating-window" sx={{ background: "#f8fafd" }}>
-                    <Box sx={{ mb: 0.5 }}>
+                    <Box sx={{ mb: 1 }}>
                       <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
                         UE ID:
                       </Typography>{" "}
@@ -247,7 +247,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                         {backendEvent?.mobile_id || "N/A"}
                       </Typography>
                     </Box>
-                    <Box sx={{ mb: 0.5 }}>
+                    <Box sx={{ mb: 1 }}>
                       <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
                         Last Update Time:
                       </Typography>{" "}
@@ -260,7 +260,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                         })()}
                       </Typography>
                     </Box>
-                    <Box>
+                    <Box sx={{ mb: 1 }}>
                       <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
                         UE Events:
                       </Typography>{" "}
