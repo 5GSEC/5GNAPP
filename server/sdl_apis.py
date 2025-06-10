@@ -39,7 +39,12 @@ def fetch_service_status_osc() -> dict:
             lines = f.readlines()
             for line in lines:
                 tokens = line.split(":")
-                services[tokens[0]] = tokens[1]
+                if tokens[0].strip() not in pod_names:
+                    services[tokens[0].strip()] = tokens[1].strip()
+                else:
+                    pod_index = pod_names.index(tokens[0].strip())
+                    display_name = display_names[pod_index]
+                    services[display_name] = tokens[1].strip()
         return services
 
     command = "kubectl get pods -A | awk {'print $2\";\"$3\";\"$4\";\"$5\";\"$6'}"
