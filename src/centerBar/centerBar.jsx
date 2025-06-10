@@ -44,7 +44,7 @@ const StatusIndicator = styled.span`
   margin-right: 8px;
 `;
 
-function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
+function CenterBar({ setNetwork, setService, setEvent, network, events, services, bsId, ueId }) {
   // Banner message and visibility
   const [bannerMessage, setBannerMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -91,7 +91,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
     } catch (e) {
       showNotification(`Deploy of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setEvent, setService);
+      updateData(setNetwork, setEvent, setService);
     }
   };
 
@@ -106,7 +106,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
     } catch (e) {
       showNotification(`Undeploy of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setEvent, setService);
+      updateData(setNetwork, setEvent, setService);
     }
   };
 
@@ -121,43 +121,8 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
     } catch (e) {
       showNotification(`Build of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setEvent, setService);
+      updateData(setNetwork, setEvent, setService);
     }
-  };
-
-  // Below are your event-counting helper functions, unchanged
-  const getTotalEventsGlobal = () => {
-    return Object.values(bsevent).reduce((total, bs) => {
-      if (!bs.ue) return total;
-      return total + Object.values(bs.ue).reduce(
-        (ueTotal, ue) => ueTotal + Object.keys(ue.event).length,
-        0
-      );
-    }, 0);
-  };
-
-  const getCriticalEventsGlobal = () => {
-    return Object.values(bsevent).reduce((total, bs) => {
-      if (!bs.ue) return total;
-      return total + Object.values(bs.ue).reduce((ueTotal, ue) => {
-        return ueTotal + Object.values(ue.event).filter(ev => ev.Level === 'Critical').length;
-      }, 0);
-    }, 0);
-  };
-
-  const getTotalEvents = (cellId) => {
-    if (!bsevent[cellId] || !bsevent[cellId].ue) return 0;
-    return Object.values(bsevent[cellId].ue).reduce(
-      (sum, ueObj) => sum + Object.keys(ueObj.event).length,
-      0
-    );
-  };
-
-  const getCriticalEvents = (cellId) => {
-    if (!bsevent[cellId] || !bsevent[cellId].ue) return 0;
-    return Object.values(bsevent[cellId].ue).reduce((sum, ueObj) => {
-      return sum + Object.values(ueObj.event).filter(ev => ev.Level === 'Critical').length;
-    }, 0);
   };
 
   return (
@@ -185,8 +150,10 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
         {/* Second container: Active Cell & UE Information */}
         <Box sx={{ flex: 1, maxWidth: "50%" }}>
           <ActiveCellInfo
-            bsevent={bsevent}
+            network={network}
+            events={events}
             bsId={bsId}
+            setNetwork={setNetwork}
             setEvent={setEvent}
             setService={setService}
             updateData={updateData}

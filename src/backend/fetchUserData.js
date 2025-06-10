@@ -19,7 +19,7 @@ function fetchUserData(setEvent) {
     });
 }
 
-function fetchSdlData(setEvent) {
+function fetchSdlData(setNetwork) {
   fetch("http://localhost:8080/fetchSdlData", {
     method: 'GET',
     headers: {
@@ -33,7 +33,7 @@ function fetchSdlData(setEvent) {
       return response.json();
     })
     .then(data => {
-      setEvent(data);
+      setNetwork(data);
     })
     .catch(error => {
       console.error('Error:', error);

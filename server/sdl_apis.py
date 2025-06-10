@@ -109,10 +109,8 @@ def fetch_sdl_data_osc() -> dict:
             get_key_command = f'kubectl exec -it statefulset-ricplt-dbaas-server-0 -n ricplt -- sdlcli get keys {namespace}'
             keys_output = execute_command(get_key_command)
 
-
             # Parse keys (split by newlines)
             keys = [key.strip() for key in keys_output.split("\n") if key.strip()]
-
 
             # Store the keys by namespace
             key_len_by_namespace[namespace] = len(keys)
@@ -217,31 +215,31 @@ def fetch_sdl_data_osc() -> dict:
             print("nr_cell_id not found")
 
 
-    # get all mobiexpert-event
-    events = fetch_sdl_event_data_osc()
-    event_key = ns_target[2]
-    event_meta = "Event ID,Event Name,Affected base station ID,Time,Affected UE ID,Description,Level".split(",")
-    for event in events.values():
-        # load MobieXpert events
-        if event['source'] == "MobieXpert":
-            nr_cell_id = event["cellID"]
-            event_id = event["id"]
-            ue_id = event["ueID"]
-            if nr_cell_id in network:
-                if ue_id in network[nr_cell_id]["ue"]:
-                    # add event
-                    network[nr_cell_id]["ue"][ue_id]["event"][event_id] = {
-                        "Event Name": event["name"],
-                        "Timestamp": event["timestamp"],
-                        "Affected base station ID": nr_cell_id,
-                        "Affected UE ID": ue_id,
-                        "Level": event["severity"],
-                        "Description": event["description"]
-                    }
-                else:
-                    print(f"gnb_du_ue_f1ap_id {ue_id} not found")
-        else:
-            print(f"nr_cell_id {nr_cell_id} not found")
+    # # get all mobiexpert-event
+    # events = fetch_sdl_event_data_osc()
+    # event_key = ns_target[2]
+    # event_meta = "Event ID,Event Name,Affected base station ID,Time,Affected UE ID,Description,Level".split(",")
+    # for event in events.values():
+    #     # load MobieXpert events
+    #     if event['source'] == "MobieXpert":
+    #         nr_cell_id = event["cellID"]
+    #         event_id = event["id"]
+    #         ue_id = event["ueID"]
+    #         if nr_cell_id in network:
+    #             if ue_id in network[nr_cell_id]["ue"]:
+    #                 # add event
+    #                 network[nr_cell_id]["ue"][ue_id]["event"][event_id] = {
+    #                     "Event Name": event["name"],
+    #                     "Timestamp": event["timestamp"],
+    #                     "Affected base station ID": nr_cell_id,
+    #                     "Affected UE ID": ue_id,
+    #                     "Level": event["severity"],
+    #                     "Description": event["description"]
+    #                 }
+    #             else:
+    #                 print(f"gnb_du_ue_f1ap_id {ue_id} not found")
+    #     else:
+    #         print(f"nr_cell_id {nr_cell_id} not found")
     
     # get all mobiwatch-event
 

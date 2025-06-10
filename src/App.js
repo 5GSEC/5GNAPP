@@ -17,7 +17,7 @@ import Chatbot from './components/Chatbot';
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
-import { fetchSdlData, fetchServiceStatus, setSimulationMode } from "./backend/fetchUserData";
+import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, setSimulationMode } from "./backend/fetchUserData";
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
@@ -64,9 +64,10 @@ function XAppsLayout() {
 const data_simulation = 1;
 const update_interval = 10000;
 
-export function updateData(setEvent, setService) {
+export function updateData(setNetwork, setEvent, setService) {
   // Data fetch
-  fetchSdlData(setEvent);
+  fetchSdlData(setNetwork);
+  fetchSdlEventData(setEvent);
   fetchServiceStatus(setService);
 }
 
@@ -74,8 +75,9 @@ export function updateData(setEvent, setService) {
 // Dashboard page (path="/dashboard")
 // ----------------------------------------
 function DashboardPage() {
-  const [bevent, setEvent] = useState({});
+  const [network, setNetwork] = useState({});
   const [services, setService] = useState({});
+  const [events, setEvent] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
   if (data_simulation === 1)
@@ -83,9 +85,9 @@ function DashboardPage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      updateData(setEvent, setService);
+      updateData(setNetwork, setEvent, setService);
     }, update_interval);
-    updateData(setEvent, setService);
+    updateData(setNetwork, setEvent, setService);
 
     return () => clearInterval(interval);
   }, []);
@@ -97,21 +99,23 @@ function DashboardPage() {
       <div style={{ height: "2em" }} />
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
         <CenterBar
+          setNetwork={setNetwork}
           setEvent={setEvent}
           setService={setService}
-          bsevent={bevent}
+          network={network}
+          events={events}
           services={services}
           bsId={hoveredBsId}
           ueId={hoveredUeId}
         />
       </div>
       <div className="App">
-        {Object.keys(bevent).map((bsId, index) => (
+        {Object.keys(network).map((bsId, index) => (
           <BsIcon
             key={index}
             bsId={bsId}
-            backendEvents={bevent[bsId]["ue"]}
-            backendData={bevent[bsId]}
+            backendEvents={network[bsId]["ue"]}
+            backendData={network[bsId]}
           />
         ))}
       </div>

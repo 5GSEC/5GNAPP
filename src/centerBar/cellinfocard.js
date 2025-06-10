@@ -8,24 +8,36 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 
-function ActiveCellInfo({ bsevent, bsId, setEvent, setService, updateData }) {
+function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, updateData }) {
   // Extract summary statistics from the event data
   const getSummaryStats = () => {
-    const activeCells = Object.keys(bsevent).length;
+    const activeCells = Object.keys(network).length;
     let totalUEs = 0;
     let totalEvents = 0;
     let criticalEvents = 0;
 
-    for (const cell of Object.values(bsevent)) {
+    // Below are your event-counting helper functions, unchanged
+    const getTotalEventsGlobal = () => {
+      return Object.values(events).length;
+    };
+
+    const getCriticalEventsGlobal = () => {
+      return Object.values(events).filter(ev => String(ev.severity) === "Critical").length;
+    };
+
+    for (const cell of Object.values(network)) {
       const ueMap = cell.ue || {};
       totalUEs += Object.keys(ueMap).length;
 
-      for (const ue of Object.values(ueMap)) {
-        const events = Object.values(ue.event || {});
-        totalEvents += events.length;
-        criticalEvents += events.filter(ev => ev.Level === "Critical").length;
-      }
+      // for (const ue of Object.values(ueMap)) {
+      //   const events = Object.values(ue.event || {});
+      //   totalEvents += events.length;
+      //   criticalEvents += events.filter(ev => ev.Level === "Critical").length;
+      // }
     }
+
+    totalEvents = getTotalEventsGlobal();
+    criticalEvents = getCriticalEventsGlobal();
 
     return { activeCells, totalUEs, criticalEvents, totalEvents };
   };
@@ -40,6 +52,21 @@ function ActiveCellInfo({ bsevent, bsId, setEvent, setService, updateData }) {
     "Total Events": <AssessmentIcon fontSize="small" sx={{ mr: 1 }} />,
   };
 
+  const getTotalEvents = (cellId) => {
+    if (!network[cellId] || !network[cellId].ue) return 0;
+    return Object.values(network[cellId].ue).reduce(
+      (sum, ueObj) => sum + Object.keys(ueObj.event).length,
+      0
+    );
+  };
+
+  const getCriticalEvents = (cellId) => {
+    if (!network[cellId] || !network[cellId].ue) return 0;
+    return Object.values(network[cellId].ue).reduce((sum, ueObj) => {
+      return sum + Object.values(ueObj.event).filter(ev => ev.Level === 'Critical').length;
+    }, 0);
+  };
+
   return (
     <Card sx={{ width: "100%", marginBottom: 3 }}>
       <CardContent>
@@ -52,7 +79,7 @@ function ActiveCellInfo({ bsevent, bsId, setEvent, setService, updateData }) {
             variant="outlined"
             size="small"
             startIcon={<RefreshIcon sx={{ color: '#11182E' }} />}
-            onClick={() => updateData(setEvent, setService)}
+            onClick={() => updateData(setNetwork, setEvent, setService)}
             sx={{
               borderColor: '#11182E',
               color: '#11182E',
