@@ -80,13 +80,12 @@ function DashboardPage() {
   const [events, setEvent] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
-  if (data_simulation === 1)
-    setSimulationMode();
-
   useEffect(() => {
     const interval = setInterval(() => {
       updateData(setNetwork, setEvent, setService);
     }, update_interval);
+    if (data_simulation === 1)
+      setSimulationMode();
     updateData(setNetwork, setEvent, setService);
 
     return () => clearInterval(interval);
@@ -114,8 +113,11 @@ function DashboardPage() {
           <BsIcon
             key={index}
             bsId={bsId}
-            backendEvents={network[bsId]["ue"]}
-            backendData={network[bsId]}
+            ueData={network[bsId]["ue"]}
+            bsData={network[bsId]}
+            bsEvent={Object.fromEntries(
+              Object.entries(events).filter(([_, ev]) => ev.cellID === bsId)
+            )}
           />
         ))}
       </div>

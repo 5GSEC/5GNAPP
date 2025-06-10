@@ -24,7 +24,7 @@ function everyOtherDegree(index, length) {
 }
 
 /* ──────────────────────  main BS icon component  ──────────────────── */
-const BsIcon = ({ bsId, backendData, backendEvents = {} }) => {
+const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
   const [isHovered, setIsHovered]   = useState(false);
   const [mousePos, setMousePos]     = useState({ x: 0, y: 0 });
   const iconContainerRef            = useRef(null);
@@ -63,35 +63,38 @@ const BsIcon = ({ bsId, backendData, backendEvents = {} }) => {
           style={{ position: 'fixed', top: mousePos.y + 30, left: mousePos.x + 30 }}
         >
           <p><strong>BS ID</strong>: {bsId}</p>
-          <p><strong>MCC</strong>: {backendData.mcc}</p>
-          <p><strong>MNC</strong>: {backendData.mnc}</p>
-          <p><strong>TAC</strong>: {backendData.tac}</p>
-          <p><strong>Report Period</strong>: {backendData.report_period}</p>
+          <p><strong>MCC</strong>: {bsData.mcc}</p>
+          <p><strong>MNC</strong>: {bsData.mnc}</p>
+          <p><strong>TAC</strong>: {bsData.tac}</p>
+          <p><strong>Report Period</strong>: {bsData.report_period}</p>
           <p><strong>Time Created</strong>: {
-            parseTimestamp(backendData.timestamp)?.toLocaleString() || ''
+            parseTimestamp(bsData.timestamp)?.toLocaleString() || ''
           }</p>
         </div>
       )}
 
       {/* UE / camera branches */}
       <div className="branches">
-        {Object.keys(backendEvents).map((ueId, index) => (
+        {Object.keys(ueData).map((ueId, index) => (
           <div
             key={ueId}
             className="branch"
             style={{
               position: 'absolute',
-              top:  `calc(39% + ${(isHovered ? 10 * Object.keys(backendEvents).length + 100 : 60)
-                     * Math.sin(everyOtherDegree(index, Object.keys(backendEvents).length) * Math.PI / 180)}px)`,
-              left: `calc(39% + ${(isHovered ? 10 * Object.keys(backendEvents).length + 100 : 60)
-                     * Math.cos(everyOtherDegree(index, Object.keys(backendEvents).length) * Math.PI / 180)}px)`
+              top:  `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60)
+                     * Math.sin(everyOtherDegree(index, Object.keys(ueData).length) * Math.PI / 180)}px)`,
+              left: `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60)
+                     * Math.cos(everyOtherDegree(index, Object.keys(ueData).length) * Math.PI / 180)}px)`
             }}
           >
             <UeIcon
               ueId={ueId}
               isHovered={isHovered}
               click={click}
-              backendEvent={backendEvents[ueId]}
+              ueData={ueData[ueId]}
+              ueEvent={Object.fromEntries(
+                Object.entries(bsEvent).filter(([_, ev]) => ev.ueID === ueId)
+              )}
               setHoveredUeId={setHoveredUeId}
               setIsBsHovered={setIsHovered}
               setBsHoverId={setHoveredBsId}

@@ -148,13 +148,13 @@ function IssuesPage() {
                 <Error color="error" /> {params.value}
               </>
             );
-          case "High":
+          case "Warning":
             return (
               <>
                 <Warning color="warning" /> {params.value}
               </>
             );
-          case "Medium":
+          case "Info":
             return (
               <>
                 <Info color="info" /> {params.value}

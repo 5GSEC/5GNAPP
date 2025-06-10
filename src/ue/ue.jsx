@@ -21,13 +21,18 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 
 const fieldsToRender = [
-    "Event Name",
-    "Timestamp",
-    // "Affected base station ID",
-    // "Affected UE ID",
-    "Level",
-    "Description"
+    "name",
+    "timestamp",
+    "severity",
+    // "description"
   ];
+
+const fieldRenderNames = {
+  name: "Event Name",
+  timestamp: "Time",
+  severity: "Severity",
+  // Add more mappings as needed
+};
 
   const metadataFields = [
     "msg_id",
@@ -62,7 +67,7 @@ function parseTimestamp(raw) {
     }
   }
 
-const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId}) => {
+const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId}) => {
     const [showInfo, setShowInfo] = useState(false);
     const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
@@ -80,16 +85,17 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
         // Default to transparent
         let bgColor = 'rgba(0,0,0,0)';
 
-        if (backendEvent && backendEvent.event) {
+        if (ueData && ueEvent) {
           let foundLevel = null;
-          for (const eventId of Object.keys(backendEvent.event)) {
-            const singleEvent = backendEvent.event[eventId];
-            if (singleEvent["Level"] === "Critical") {
+          console.log("ueEvent", ueEvent);
+          for (const eventId of Object.keys(ueEvent)) {
+            const singleEvent = ueEvent[eventId];
+            if (singleEvent["severity"] === "Critical") {
               foundLevel = "Critical";
               break;
-            } else if (singleEvent["Level"] === "Warning") {
+            } else if (singleEvent["severity"] === "Warning") {
               foundLevel = "Warning";
-            } else if (singleEvent["Level"] === "Info" && !foundLevel) {
+            } else if (singleEvent["severity"] === "Info" && !foundLevel) {
               foundLevel = "Info";
             }
           }
@@ -103,7 +109,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
         }
 
         ueIcon.style.background = bgColor;
-      }, [backendEvent, ueId]);
+      }, [ueData, ueId, ueEvent]);
 
     useEffect(() => {
         const handleMouseActions = () => {
@@ -157,16 +163,16 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
   // If there's no "event" or it's empty,
   // we define a "fallback" singleEvent with some default fields
   // so we still show something.
-  const hasEvent = backendEvent?.event && Object.keys(backendEvent.event).length > 0;
+  const hasEvent = Object.keys(ueEvent).length > 0;
            
   // We'll build an array of "renderable events".
   let eventsArray = [];
-  let eventsCount = Object.keys(backendEvent.event).length;
+  let eventsCount = Object.keys(ueEvent).length;
   if (hasEvent) {
     // Turn the event object into an array of { eventId, singleEvent } for convenience
-    eventsArray = Object.keys(backendEvent.event).map(eventId => ({
+    eventsArray = Object.keys(ueEvent).map(eventId => ({
       eventId,
-      singleEvent: backendEvent.event[eventId]
+      singleEvent: ueEvent[eventId]
     }));
   } else {
     // Provide a fallback "virtual event"
@@ -176,7 +182,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
         // "Event Name": "None",
         // "Level": "normal",
         // "Timestamp": Date.now(), // or some placeholder
-        // "Affected base station ID": backendEvent?.["Affected base station ID"] || "N/A",
+        // "Affected base station ID": ueData?.["Affected base station ID"] || "N/A",
         // "Affected UE ID": ueId,
         // "Description": "No event data"
       }
@@ -187,24 +193,24 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
 
   /**
    * prepare clicking metadata
-   * pretend that backend dats put “mobiflow” in backendEvent.mobiflow (array)
+   * pretend that backend dats put “mobiflow” in ueData.mobiflow (array)
    * for example test, we take mobiflow[0] as metadata
    */
   let metadataObj = [];
-  if (backendEvent && backendEvent.mobiflow && backendEvent.mobiflow.length > 0) {
-    // metadataObj = backendEvent.mobiflow[0]; 
-    backendEvent.mobiflow.forEach((item) => {
+  if (ueData && ueData.mobiflow && ueData.mobiflow.length > 0) {
+    // metadataObj = ueData.mobiflow[0]; 
+    ueData.mobiflow.forEach((item) => {
       metadataObj.push(item);
     });
   }
 
 
 
-    //const formattedTimestamp = backendEvent ? format(new Date(backendEvent.timestamp * 1000), 'PPpp') : '';
-    // const formattedTimestamp = backendEvent ? format(new Date(backendEvent.timestamp), 'PPpp') : '';
+    //const formattedTimestamp = ueData ? format(new Date(ueData.timestamp * 1000), 'PPpp') : '';
+    // const formattedTimestamp = ueData ? format(new Date(ueData.timestamp), 'PPpp') : '';
     // let formattedTimestamp = '';
-    // if (backendEvent && backendEvent.timestamp !== undefined) {
-    //   const dateObj = parseTimestamp(backendEvent.timestamp);
+    // if (ueData && ueData.timestamp !== undefined) {
+    //   const dateObj = parseTimestamp(ueData.timestamp);
     //   if (dateObj && !isNaN(dateObj.getTime())) {
     //     formattedTimestamp = format(dateObj, 'PPpp');
     //   } else {
@@ -244,7 +250,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                         IMSI:
                       </Typography>{" "}
                       <Typography variant="body1" component="span">
-                        {backendEvent?.mobile_id || "N/A"}
+                        {ueData?.mobile_id || "N/A"}
                       </Typography>
                     </Box>
                     <Box sx={{ mb: 1 }}>
@@ -253,7 +259,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                       </Typography>{" "}
                       <Typography variant="body1" component="span">
                         {(() => {
-                          const dateObj = parseTimestamp(backendEvent?.Timestamp);
+                          const dateObj = parseTimestamp(ueData?.Timestamp);
                           return dateObj && !isNaN(dateObj.getTime())
                             ? format(dateObj, 'PPpp')
                             : "N/A";
@@ -270,7 +276,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                     </Box>
 
                     {/* Render each event or fallback event */}
-                    {eventsArray.map(({ eventId, singleEvent }) => (
+                    {eventsArray.map(({ eventId, singleEvent }, eventIdx) => (
                         <Box key={eventId} sx={{ mb: 1 }}>
 
                         {eventsCount > 0 && <Divider sx={{my: 1}}></Divider>}
@@ -282,19 +288,19 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                             return null;
                           }
 
-                          if (fieldName === "Timestamp") {
-                            const rawTime = singleEvent["Timestamp"];
+                          if (fieldName === "timestamp") {
+                            const rawTime = singleEvent["timestamp"];
                             const dateObj = parseTimestamp(rawTime);
                             let displayTime = "(Invalid timestamp)";
                             if (dateObj && !isNaN(dateObj.getTime())) {
                               displayTime = format(dateObj, 'PPpp');
                             }
                             return (
-                              <Box key={fieldName} sx={{ display: 'flex', alignItems: 'top', textAlign: 'left', mb: 0.5 }}>
-                                <Typography variant="body1" sx={{ fontWeight: 600, minWidth: 110, textAlign: 'left' }}>
-                                  {fieldName}:
+                              <Box key={fieldName} sx={{ display: 'flex', alignItems: 'top', textAlign: 'left', mb: 0 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 110, textAlign: 'left' }}>
+                                  {fieldRenderNames[fieldName] || fieldName}:
                                 </Typography>
-                                <Typography variant="body1" sx={{ ml: 0, textAlign: 'left' }}>
+                                <Typography variant="body2" sx={{ ml: 0, textAlign: 'left' }}>
                                   {displayTime}
                                 </Typography>
                               </Box>
@@ -305,12 +311,15 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                             if (typeof val === 'object' && val !== null) {
                               val = JSON.stringify(val);
                             }
+                            let renderName = fieldRenderNames[fieldName] || fieldName
+                            if (fieldName === "name")
+                              renderName = "Event " + (eventIdx + 1);
                             return (
-                              <Box key={fieldName} sx={{ display: 'flex', alignItems: 'top', textAlign: 'left', mb: 0.5 }}>
-                                <Typography variant="body1" sx={{ fontWeight: 600, minWidth: 110, textAlign: 'left' }}>
-                                  {fieldName}:
+                              <Box key={fieldName} sx={{ display: 'flex', alignItems: 'top', textAlign: 'left', mb: 0 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 110, textAlign: 'left' }}>
+                                  {renderName}:
                                 </Typography>
-                                <Typography variant="body1" sx={{ ml: 0, textAlign: 'left' }}>
+                                <Typography variant="body2" sx={{ ml: 0, textAlign: 'left' }}>
                                   {val}
                                 </Typography>
                               </Box>
@@ -394,7 +403,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                       "nas_cipher_alg",
                       "nas_integrity_alg",
                     ].map((label) => (
-                      <TableCell key={label}>{backendEvent?.[label] || "N/A"}</TableCell>
+                      <TableCell key={label}>{ueData?.[label] || "N/A"}</TableCell>
                     ))}
                   </TableRow>
                 </TableBody>
