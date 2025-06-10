@@ -10,11 +10,12 @@ const HoverContext = createContext();
 /* ───────────────────── helper functions ───────────────────────────── */
 function parseTimestamp(raw) {
   if (!raw) return null;
-  const s = String(raw);
-  const n = parseInt(s, 10);
-  if (s.length === 13) return new Date(n);
-  if (s.length === 10) return new Date(n * 1000);
-  return null;
+  const n = Number(raw);
+  if (isNaN(n)) return null;
+  // If the number is in seconds (10 digits), convert to ms
+  if (n < 1e12) return new Date(n * 1000);
+  // If the number is in ms (13+ digits), use as is
+  return new Date(n);
 }
 
 function everyOtherDegree(index, length) {

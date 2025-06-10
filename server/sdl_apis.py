@@ -1005,7 +1005,7 @@ def get_bs_mobiflow_description_tool() -> str:
     return '''
     msg_type = "BS"            # Msg hdr  - mobiflow type [UE, BS]
     msg_id = 0                 # Msg hdr  - unique mobiflow event ID
-    timestamp = get_time_ms()              # Msg hdr  - timestamp (ms)
+    timestamp = get_time_sec()             # Msg hdr  - timestamp (s)
     mobiflow_ver = MOBIFLOW_VERSION        # Msg hdr  - version of Mobiflow
     generator_name = GENERATOR_NAME        # Msg hdr  - generator name (e.g., SECSM)
     ################################################################
