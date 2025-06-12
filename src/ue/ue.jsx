@@ -87,7 +87,6 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
 
         if (ueData && ueEvent) {
           let foundLevel = null;
-          console.log("ueEvent", ueEvent);
           for (const eventId of Object.keys(ueEvent)) {
             const singleEvent = ueEvent[eventId];
             if (singleEvent["severity"] === "Critical") {
@@ -111,26 +110,27 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
         ueIcon.style.background = bgColor;
       }, [ueData, ueId, ueEvent]);
 
-    useEffect(() => {
-        const handleMouseActions = () => {
-            const interval = setInterval(() => {
-                if (ueIconRef.current && ueIconRef.current.matches(':hover')) {
-                    setShowInfo(true);
-                    setHoveredUeId(ueId);
-                } else if (click) {
-                    setShowInfo(false);
-                }
-            }, 750);
-            return interval;
-        };
-        const interval2 = handleMouseActions();
+    // useEffect(() => {
+    //     const handleMouseActions = () => {
+    //         const interval = setInterval(() => {
+    //             if (ueIconRef.current && ueIconRef.current.matches(':hover')) {
+    //                 setShowInfo(true);
+    //                 setHoveredUeId(ueId);
+    //             } else if (click) {
+    //                 setShowInfo(false);
+    //             }
+    //         }, 750);
+    //         return interval;
+    //     };
+    //     const interval2 = handleMouseActions();
 
-        return () => { clearInterval(interval2) };
-      }, [click, ueId, setHoveredUeId]
-    );
+    //     return () => { clearInterval(interval2) };
+    //   }, [click, ueId, setHoveredUeId]
+    // );
 
   const handleUeMouseOnEnter = (e) => {
     setHoveredUeId(ueId);
+    setShowInfo(true);
   };
 
   const handleUeMouseOnLeave = (e) => {
@@ -158,7 +158,6 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
     setShowDetails(false);
     setBsHoverId(null);
   };
-
 
   // If there's no "event" or it's empty,
   // we define a "fallback" singleEvent with some default fields
@@ -237,7 +236,16 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
             </div>
 
             {showInfo && (
-                <Box className="floating-window" sx={{ background: "#f8fafd" }}>
+                <Box className="floating-window" 
+                  sx={{
+                    background: "#f8fafd",
+                    maxHeight: 320,
+                    overflowY: "auto",
+                    boxShadow: 3,
+                    borderRadius: 2,
+                    p: 2,
+                  }}
+                >
                     <Box sx={{ mb: 1 }}>
                       <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
                         UE ID:
