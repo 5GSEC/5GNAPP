@@ -110,24 +110,6 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
         ueIcon.style.background = bgColor;
       }, [ueData, ueId, ueEvent]);
 
-    // useEffect(() => {
-    //     const handleMouseActions = () => {
-    //         const interval = setInterval(() => {
-    //             if (ueIconRef.current && ueIconRef.current.matches(':hover')) {
-    //                 setShowInfo(true);
-    //                 setHoveredUeId(ueId);
-    //             } else if (click) {
-    //                 setShowInfo(false);
-    //             }
-    //         }, 750);
-    //         return interval;
-    //     };
-    //     const interval2 = handleMouseActions();
-
-    //     return () => { clearInterval(interval2) };
-    //   }, [click, ueId, setHoveredUeId]
-    // );
-
   const handleUeMouseOnEnter = (e) => {
     setHoveredUeId(ueId);
     setShowInfo(true);
@@ -149,6 +131,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
     setClickPos({ x: e.clientX, y: e.clientY });
     setHoveredUeId(ueId);
     setMouseClicked(true);
+    setShowInfo(false);
     setShowDetails((prev) => !prev);
   };
 
@@ -203,23 +186,11 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
     });
   }
 
-
-
-    //const formattedTimestamp = ueData ? format(new Date(ueData.timestamp * 1000), 'PPpp') : '';
-    // const formattedTimestamp = ueData ? format(new Date(ueData.timestamp), 'PPpp') : '';
-    // let formattedTimestamp = '';
-    // if (ueData && ueData.timestamp !== undefined) {
-    //   const dateObj = parseTimestamp(ueData.timestamp);
-    //   if (dateObj && !isNaN(dateObj.getTime())) {
-    //     formattedTimestamp = format(dateObj, 'PPpp');
-    //   } else {
-    //     formattedTimestamp = '(Invalid timestamp)';
-    //   }
-    // }
-
-
     return (
-        <div className="ue-container">
+        <div className="ue-container"
+          onMouseEnter={handleUeMouseOnEnter}
+          onMouseLeave={handleUeMouseOnLeave}
+        >
 
             {/* NEW: permanent UE ID label above the icon */}
             <div className="ue-label">{ueId}</div>
@@ -228,8 +199,6 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                 className="ue-icon"
                 style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }} // Adjusted size for unhovered state
                 ref={ueIconRef}
-                onMouseEnter={handleUeMouseOnEnter}
-                onMouseLeave={handleUeMouseOnLeave}
                 onClick={handleUeClick}  // clicking event
             >
                 <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
@@ -239,6 +208,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                 <Box className="floating-window" 
                   sx={{
                     background: "#f8fafd",
+                    transform: 'translate(-50%, -50%)', 
                     maxHeight: 320,
                     overflowY: "auto",
                     boxShadow: 3,

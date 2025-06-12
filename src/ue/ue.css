@@ -50,7 +50,6 @@
     width: auto;             
     min-width: 375px;        
     max-width: 600px;  
-    pointer-events: none; /* Prevents the floating window from interfering with mouse events */
 }
 
 
