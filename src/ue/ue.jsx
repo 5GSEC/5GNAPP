@@ -208,10 +208,9 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                 <Box className="floating-window" 
                   sx={{
                     background: "#f8fafd",
-                    transform: 'translate(-50%, -50%)', 
+                    transform: 'translate(50%, 15%)', 
                     maxHeight: 320,
                     overflowY: "auto",
-                    boxShadow: 3,
                     borderRadius: 2,
                     p: 2,
                   }}

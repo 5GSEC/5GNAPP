@@ -3,6 +3,7 @@ import './bs.css';
 import UeIcon from '../ue/ue';
 import bsIcon from '../assets/bs.png';
 import { format } from 'date-fns';
+import { Box } from '@mui/material';
 
 /* ──────────────────────  shared hover context  ────────────────────── */
 const HoverContext = createContext();
@@ -59,19 +60,27 @@ const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
 
       {/* floating meta info card */}
       {isHovered && !hoveredUeId && (
-        <div
+        <Box
           className="bs-showinfo"
-          style={{ position: 'fixed', top: mousePos.y + 30, left: mousePos.x + 30 }}
+          // style={{ position: 'fixed', top: mousePos.y + 30, left: mousePos.x + 30 }}
+          sx={{
+            background: "#f8fafd",
+            transform: 'translate(50%, 15%)', 
+            maxHeight: 320,
+            overflowY: "auto",
+            borderRadius: 2,
+            p: 2,
+          }}
         >
-          <p><strong>BS ID</strong>: {bsId}</p>
+          <p><strong>Base Station ID</strong>: {bsId}</p>
           <p><strong>MCC</strong>: {bsData.mcc}</p>
           <p><strong>MNC</strong>: {bsData.mnc}</p>
           <p><strong>TAC</strong>: {bsData.tac}</p>
-          <p><strong>Report Period</strong>: {bsData.report_period}</p>
+          <p><strong>Report Period</strong>: {bsData.report_period}ms</p>
           <p><strong>Time Created</strong>: {
             parseTimestamp(bsData.timestamp)?.toLocaleString() || ''
           }</p>
-        </div>
+        </Box>
       )}
 
       {/* UE / camera branches */}
