@@ -125,7 +125,7 @@ class MobiLLMAgent:
                 get_mitre_fight_technique_by_id,
                 get_ran_cu_config_tool,
                 update_ran_cu_config_tool,
-                reboot_ran_cu_tool
+                # reboot_ran_cu_tool
             ]
         except AttributeError as e:
             print(f"Error creating Tools: {e}. This often means a function is missing a docstring or is not correctly imported.")

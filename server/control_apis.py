@@ -8,6 +8,8 @@ from langchain.tools import tool
 def get_ran_cu_config_tool() -> str:
     '''
     Get the configuration of the currently running CU.
+    Return:
+        str: The configuration of the currently running CU.
     '''
     return get_oai_ran_cu_config()
 
@@ -15,7 +17,6 @@ def get_oai_ran_cu_config() -> str:
     '''
     Get the OAI RAN CU configuration 
     '''
-
     # load OAI RAN path from env variable
     oai_ran_cu_config_path = os.getenv('OAI_RAN_CU_CONFIG_PATH', '/opt/oai-ran')
     if oai_ran_cu_config_path is None or oai_ran_cu_config_path == "":
@@ -35,6 +36,8 @@ def get_oai_ran_cu_config() -> str:
 def update_ran_cu_config_tool(config_data: str) -> bool:
     '''
     Update the configuration of the currently running CU.
+    Args:
+        config_data (str): The new configuration data to be written to the CU.
     '''
     return update_oai_ran_cu_config(config_data)
 
