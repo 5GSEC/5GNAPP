@@ -1090,5 +1090,3 @@ def get_event_description_tool() -> str:
         mobiflow_index (if available): the MobiFlow telemetry index associated with the event, matching the msg_id field in each MobiFlow telemetry,
         description: The event description
     '''
-
-print(fetch_service_status_osc())
