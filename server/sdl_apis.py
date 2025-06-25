@@ -65,13 +65,63 @@ def fetch_service_status_osc() -> dict:
                 break
 
     # MobiFlow Agent
-    program_name = "loader"
-    command = f"pgrep -x {program_name}" # need to makes sure pgrep is available
-    output = execute_command(command)
-    if output:
-        services["MobiFlow Agent"] = " ; ;Running; ;" # TODO get the age of the process
-    else:
-        services["MobiFlow Agent"] = ""
+    display_name = "MobiFlow Agent"
+    program_name = "mobiflow-agent"
+    
+    command_ps = "docker ps --format {{.ID}}\\\\t{{.Names}}\\\\t{{.Status}} --filter name=mobiflow-agent"
+    process_ps = execute_command(command_ps)
+    lines = process_ps.strip().split('\n')
+    services[display_name] = ""  # Default to empty string if not found
+
+    if lines and lines != ['']:
+        parts = lines[-1].split('\t')
+        if len(parts) >= 3:
+            # Skip malformed lines
+            container_id = parts[0]
+            container_name = parts[1]
+            raw_status = parts[2] # e.g., "Up 2 hours", "Exited (0) 5 minutes ago"
+
+            status_parts = raw_status.split(' ')
+            status = "Unknown"
+            up_time = "N/A"
+
+            # Determine status and uptime
+            if status_parts[0] == "Up":
+                status = "Running"
+                # Extract uptime from "Up X (minutes/hours/days)"
+                if len(status_parts) >= 3:
+                    up_time = status_parts[1] + status_parts[2][0] # e.g., "95m", "2h", "1d"
+            elif status_parts[0] == "Exited":
+                status = "Inactive"
+                if len(status_parts) >= 4:
+                    up_time = status_parts[2] + status_parts[3][0] # e.g., "5m", "1h"
+            else:
+                status = raw_status # Fallback if format is unexpected
+
+            # Get restart count using docker inspect
+            restart_count = 0
+            try:
+                command_inspect = "docker inspect -f '{{.RestartCount}}' %s" % program_name
+                process_inspect = execute_command(command_inspect)
+                restart_count = int(process_inspect.strip())
+            except subprocess.CalledProcessError as e_inspect:
+                print(f"Error inspecting container {container_id}: {e_inspect}")
+            except ValueError:
+                print(f"Could not parse restart count for {container_name}")
+
+
+            # Format and print the output
+            # The '1/1' part is assumed to be a static string as per your example.
+            formatted_output = f"{display_name};1/1;{status};{restart_count};{up_time}"
+            services[display_name] = formatted_output
+    
+
+    # command = f"pgrep -x {program_name}" # need to makes sure pgrep is available
+    # output = execute_command(command)
+    # if output:
+    #     services["MobiFlow Agent"] = " ; ;Running; ;" # TODO get the age of the process
+    # else:
+    #     services["MobiFlow Agent"] = ""
     
     # print(json.dumps(services, indent=4))
     return services
@@ -1040,3 +1090,5 @@ def get_event_description_tool() -> str:
         mobiflow_index (if available): the MobiFlow telemetry index associated with the event, matching the msg_id field in each MobiFlow telemetry,
         description: The event description
     '''
+
+print(fetch_service_status_osc())
