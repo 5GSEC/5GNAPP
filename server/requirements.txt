@@ -6,3 +6,5 @@ google-genai
 langchain 
 langchain_google_genai 
 google-generativeai
+langgraph
+langgraph-supervisor
