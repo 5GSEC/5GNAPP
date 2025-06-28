@@ -21,7 +21,7 @@ def get_all_mitre_fight_techniques(fight_json_path: str="mitre_fight_techniques.
 @tool
 def get_mitre_fight_technique_by_id(tech_id: str, fight_json_path: str="mitre_fight_techniques.json") -> dict:
     '''
-    This function will read a specific MiTRE Fight technique from a local json file that is created from the official MiTRE Fight Git Repo (https://github.com/mitre/FiGHT/). A speficied technique ID needs to be provided.
+    This function will read a specific MiTRE Fight technique's descriptions. A speficied technique ID needs to be provided.
     Input: tech_id (str) - the ID of a MiTRE Fight technique (e.g., "FGT1199.501")
     Returns:
         dict: A dictionary containing the specified MiTRE Fight technique. Each dict object is a specific technique encoded as (key, value) pairs. Each technique will contain fields like Name, Descriptions, and Mitigations. If the technique ID is not found, an empty dict will be returned.

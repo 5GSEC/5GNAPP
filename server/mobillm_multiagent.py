@@ -146,6 +146,31 @@ def mobillm_security_classification_agent_node(state: MobiLLMState) -> MobiLLMSt
     state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
     return state
 
+###################### MobiLLM Security Response agent ######################
+
+mobillm_security_response_tools = [
+    get_all_mitre_fight_techniques,
+    get_mitre_fight_technique_by_id,
+    get_ran_cu_config_tool,
+    update_ran_cu_config_tool,
+    reboot_ran_cu_tool,
+]
+
+mobillm_security_response_agent = create_react_agent(model=llm, tools=mobillm_security_response_tools, prompt=DEFAULT_SECURITY_RESPONSE_TASK_BACKGROUND, name="mobillm_security_response_agent")
+
+def mobillm_security_response_agent_node(state: MobiLLMState) -> MobiLLMState:
+    threat_summary = state["threat_summary"]
+    mitre_technique = state["mitre_technique"]
+    if threat_summary is None or threat_summary.strip() == "":
+        return state
+    if mitre_technique is None or mitre_technique.strip() == "":
+        return state
+    call_result = mobillm_security_response_agent.invoke({"messages": [("user", f"Threat summary:\n{threat_summary}\nRelevant MiTRE FiGHT Techniques:\n{mitre_technique}")]})
+    response = call_result["messages"][-1].content
+    state["countermeasures"] = response
+    state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
+    return state
+
 ###################### Building Graph ######################
 
 builder = StateGraph(MobiLLMState)
@@ -153,9 +178,11 @@ builder.add_node("supervisor", supervisor)
 builder.add_node("mobillm_chat_agent", mobillm_chat_agent_node)
 builder.add_node("mobillm_security_analysis_agent", mobillm_security_analysis_agent_node)
 builder.add_node("mobillm_security_classification_agent", mobillm_security_classification_agent_node)
+builder.add_node("mobillm_security_response_agent", mobillm_security_response_agent_node)
 
 builder.add_edge(START, "supervisor")
 builder.add_edge("mobillm_security_analysis_agent", "mobillm_security_classification_agent")
+builder.add_edge("mobillm_security_classification_agent", "mobillm_security_response_agent")
 
 builder.add_conditional_edges(
     "supervisor",
@@ -170,7 +197,7 @@ graph = builder.compile()
 
 # input_state = {"query": "[chat] How many services are currently in Running state and how long they have been running?", "tools_called": []}
 # input_state = {"query": "[chat] How many cells are currently deployed in the network?", "tools_called": []}
-input_state = {"query": "[security analysis] Generate a detailed threat analysis report for event ID 1", "tools_called": []}
+input_state = {"query": "[security analysis] Conduct a thorough security analysis for event ID 1", "tools_called": []}
 result = graph.invoke(input_state)
 # print(result)
 
@@ -182,6 +209,9 @@ if "threat_summary" in result:
     print("\n\n")
 if "mitre_technique" in result:
     print("MITRE Technique:", result["mitre_technique"])
+    print("\n\n")
+if "countermeasures" in result:
+    print("Countermeasures:", result["countermeasures"])
     print("\n\n")
 if "tools_called" in result:
     print("Tools Called:")
