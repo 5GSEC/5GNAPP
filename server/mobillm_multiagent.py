@@ -1,5 +1,7 @@
 import os
 import operator
+import re
+import json
 from typing import TypedDict, Annotated, List, Literal
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import PromptTemplate
@@ -29,7 +31,7 @@ if not os.getenv("GOOGLE_API_KEY"):
     print("Warning: GOOGLE_API_KEY not found in environment variables.")
     print("Please set it for the LangChain Gemini LLM to work.")
 
-gemini_llm_model = "gemini-2.5-flash-preview-04-17"
+gemini_llm_model = "gemini-2.5-flash" # "gemini-2.5-flash-preview-04-17"
 llm = ChatGoogleGenerativeAI(model=gemini_llm_model, temperature=0.3)
 
 
@@ -51,6 +53,9 @@ class MobiLLMState(TypedDict):
     threat_summary: str #Annotated[str, operator.setitem]
     mitre_technique: str #Annotated[str, operator.setitem]
     countermeasures: str #Annotated[str, operator.setitem]
+    actionable: Literal["yes", "no"]
+    action_strategy: Literal["config tuning", "reboot", "none"]
+    action_plan: str
     chat_response: str
     task: str
     tools_called: List[str]
@@ -166,9 +171,57 @@ def mobillm_security_response_agent_node(state: MobiLLMState) -> MobiLLMState:
     if mitre_technique is None or mitre_technique.strip() == "":
         return state
     call_result = mobillm_security_response_agent.invoke({"messages": [("user", f"Threat summary:\n{threat_summary}\nRelevant MiTRE FiGHT Techniques:\n{mitre_technique}")]})
-    response = call_result["messages"][-1].content
+    raw_response = call_result["messages"][-1].content
+
+    # ensure the response is json formatted string
+    try:
+        response = raw_response.strip().replace("\n", "")
+        response = json.loads(response)  # Try direct parse first
+    except json.JSONDecodeError:
+        # Fallback: Extract with regex and try to parse
+        json_match = re.search(r'{[\s\S]*}', response)
+        if json_match:
+            try:
+                response = json.loads(json_match.group())
+            except json.JSONDecodeError:
+                print("Error: Unable to parse the response as JSON.")
+                response = ""
+    
+    if response != "":
+        state["actionable"] = response["actionable"] # should be "yes" or "no"
+        state["action_plan"] = response["action plan"]
+        state["action_strategy"] = response["strategy"]
     state["countermeasures"] = response
     state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
+    return state
+
+###################### MobiLLM Config tuning agent ######################
+
+mobillm_config_tuning_tools = [
+    get_all_mitre_fight_techniques,
+    get_mitre_fight_technique_by_id,
+    get_ran_cu_config_tool,
+    update_ran_cu_config_tool,
+    reboot_ran_cu_tool,
+]
+
+mobillm_config_tuning_agent = create_react_agent(model=llm, tools=mobillm_config_tuning_tools, prompt=DEFAULT_CONFIG_TUNING_TASK_BACKGROUND, name="mobillm_config_tuning_agent")
+
+def mobillm_config_tuning_agent_node(state: MobiLLMState) -> MobiLLMState:
+    actionable = state["actionable"] # should be "yes" or "no"
+    action_plan = state["action_plan"]
+    action_strategy = state["action_strategy"]
+
+    if actionable.lower() != "yes" or action_strategy != "config tuning" or action_plan != "": 
+        # ensure the action plan and action strategy are matched
+        print("No actionable plan can be executed with the given tools.")
+        return state
+    
+    call_result = mobillm_security_response_agent.invoke({"messages": [("user", f"Action plan:\n{action_plan}")]})
+    raw_response = call_result["messages"][-1].content
+
+    print("raw_response", raw_response)
+
     return state
 
 ###################### Building Graph ######################
@@ -179,6 +232,7 @@ builder.add_node("mobillm_chat_agent", mobillm_chat_agent_node)
 builder.add_node("mobillm_security_analysis_agent", mobillm_security_analysis_agent_node)
 builder.add_node("mobillm_security_classification_agent", mobillm_security_classification_agent_node)
 builder.add_node("mobillm_security_response_agent", mobillm_security_response_agent_node)
+builder.add_node("mobillm_config_tuning_agent", mobillm_config_tuning_agent_node)
 
 builder.add_edge(START, "supervisor")
 builder.add_edge("mobillm_security_analysis_agent", "mobillm_security_classification_agent")
@@ -193,7 +247,28 @@ builder.add_conditional_edges(
     }
 )
 
+def route_after_response_agent(state):
+    if state["actionable"] == "yes" and state["action_strategy"] == "config tuning":
+        return "config_tuning"
+    else:
+        return "end"
+
+builder.add_conditional_edges(
+    "mobillm_security_response_agent",
+    route_after_response_agent,
+    {
+        "config_tuning": "mobillm_config_tuning_agent",
+        "end": END
+    }
+)
+
 graph = builder.compile()
+
+image_data = graph.get_graph().draw_mermaid_png()
+
+# Write to a local file
+with open("mobillm_langgraph.png", "wb") as f:
+    f.write(image_data)
 
 # input_state = {"query": "[chat] How many services are currently in Running state and how long they have been running?", "tools_called": []}
 # input_state = {"query": "[chat] How many cells are currently deployed in the network?", "tools_called": []}
