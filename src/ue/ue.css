@@ -93,10 +93,11 @@
 .ue-label {
   margin-top: 4px;
   font-size: 0.75rem;
-  color: #111;
+  color: #5c2127;  /* blue color */
   font-weight: 500;
   max-width: 60px;
   white-space: nowrap;
+  font-family: 'Courier New', Courier, monospace; 
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;

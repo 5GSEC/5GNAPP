@@ -67,7 +67,7 @@ function parseTimestamp(raw) {
     }
   }
 
-const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId}) => {
+const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId, angle}) => {
     const [showInfo, setShowInfo] = useState(false);
     const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
@@ -186,14 +186,31 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
     });
   }
 
+
+    //  Refined bottom label rule: only when angle is between 110 and 250
+    const labelOnBottom = angle >= 50 && angle <= 150;
+
     return (
         <div className="ue-container"
           onMouseEnter={handleUeMouseOnEnter}
           onMouseLeave={handleUeMouseOnLeave}
         >
 
+      {/* Show the UE ID label above or below the icon based on labelOnBottom prop */}
+      {!labelOnBottom && <div className="ue-label ue-label-top">{ueId}</div>}
+      <div
+        className="ue-icon"
+        style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }}
+        ref={ueIconRef}
+        onClick={handleUeClick}
+      >
+        <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
+      </div>
+      {labelOnBottom && <div className="ue-label ue-label-bottom">{ueId}</div>}
+
+
             {/* NEW: permanent UE ID label above the icon */}
-            <div className="ue-label">{ueId}</div>
+            {/* <div className="ue-label">{ueId}</div>
 
             <div
                 className="ue-icon"
@@ -202,7 +219,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                 onClick={handleUeClick}  // clicking event
             >
                 <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
-            </div>
+            </div> */}
 
             {showInfo && (
                 <Box className="floating-window" 
