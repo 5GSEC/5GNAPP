@@ -5,9 +5,10 @@ import { deployXapp, undeployXapp, buildXapp } from '../backend/fetchUserData';
 import refreshIcond from '../assets/refresh.png';
 import './centerBar.css'; // Import the external CSS file for the banner, animations, etc.
 import { FaArrowRight } from 'react-icons/fa'; // Import an icon from react-icons
-import { Box } from "@mui/material";
+import { Box } from "@mui/material/index.js"; // added .js 
 import ServiceGrid from './servicegrid'; // Adjust the path based on the file location
 import ActiveCellInfo from './cellinfocard'; // Adjust the path based on the file location
+
 
 /**
  * Wrapper: main layout container.
@@ -148,7 +149,7 @@ function CenterBar({ setNetwork, setService, setEvent, network, events, services
         </Box>
 
         {/* Second container: Active Cell & UE Information */}
-        <Box sx={{ flex: 1, maxWidth: "50%" }}>
+        <Box sx={{ display: "flex", maxWidth: "70%", width: "45%" }}>
           <ActiveCellInfo
             network={network}
             events={events}

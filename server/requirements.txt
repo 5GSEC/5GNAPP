@@ -1,6 +1,5 @@
 flask
 flask-cors
-genai
 openai
 google-genai
 langchain 
@@ -9,5 +8,5 @@ google-generativeai
 langgraph
 langgraph-supervisor
 faiss-cpu
-SentenceTransformer
+sentence-transformers
 numpy
