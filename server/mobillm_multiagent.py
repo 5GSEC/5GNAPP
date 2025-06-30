@@ -308,27 +308,46 @@ with open("mobillm_langgraph.png", "wb") as f:
 
 # input_state = {"query": "[chat] How many services are currently in Running state and how long they have been running?", "tools_called": []}
 # input_state = {"query": "[chat] How many cells are currently deployed in the network?", "tools_called": []}
-input_state = {"query": "[security analysis] Conduct a thorough security analysis for event ID 1", "tools_called": []}
+# input_state = {"query": "[security analysis] Conduct a thorough security analysis for event ID 1", "tools_called": []}
+input_state = {"query": """[security analysis] Conduct a thorough security analysis for the following event detected in the network: 
+Event Details:
+- Source: MobieXpert
+- Name: RRC Null Cipher
+- Cell ID: 20000
+- UE ID: 54649
+- Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
+- Severity: Critical
+- Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
+""", "tools_called": []}
+
 result = graph.invoke(input_state, config=config)
-# print(result)
+print(result.keys())
 
-# resume after interruption for update_ran_cu_config_tool
-user_input = input(f'Approve the tool call?\n{result["__interrupt__"][0].value}\nYour option (yes/edit/no):')
-resume_command = {"type": "accept"}
-if user_input == "yes":
-    resume_command = {"type": "accept"}
-elif user_input == "no":
-    resume_command = {"type": "deny"}
-result = graph.invoke(Command(resume=resume_command), config=config)
+while True:
+    # Check if an interrupt occurred in the result
+    if "__interrupt__" in result.keys():
+        interrupt_value = result["__interrupt__"][0].value
+        # Ask the user for input to handle the interrupt
+        user_input = input(f'Approve the tool call?\n{interrupt_value}\nYour option (yes/edit/no): ')
 
-# resume after interruption for reboot CU
-user_input = input(f'Approve the tool call?\n{result["__interrupt__"][0].value}\nYour option (yes/edit/no):')
-resume_command = {"type": "accept"}
-if user_input == "yes":
-    resume_command = {"type": "accept"}
-elif user_input == "no":
-    resume_command = {"type": "deny"}
-result = graph.invoke(Command(resume=resume_command), config=config)
+        if user_input.lower() == "yes":
+            resume_command = {"type": "accept"}
+        elif user_input.lower() == "no":
+            resume_command = {"type": "deny"}
+        elif user_input.lower() == "edit":
+            new_value = input("Enter your edited value: ")
+            resume_command = {
+                "type": "edit",
+                "config_data": new_value
+            }
+        else:
+            print("Invalid input. Please enter 'yes', 'no', or 'edit'.")
+            continue  # re-prompt
+
+        # Resume the graph with the chosen command
+        result = graph.invoke(Command(resume=resume_command), config=config)
+    else:
+        break  # No interrupt means the flow is complete; exit the loop
 
 
 if "chat_response" in result:
