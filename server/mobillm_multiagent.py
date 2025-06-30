@@ -16,7 +16,8 @@ from IPython.display import display, Image
 from langgraph.prebuilt import create_react_agent
 from langgraph_supervisor import create_supervisor
 from langgraph.graph import StateGraph, START, MessagesState, END
-from langgraph.types import Command
+from langgraph.types import Command, interrupt
+from langgraph.checkpoint.memory import InMemorySaver
 
 from sdl_apis import *
 from mitre_apis import *
@@ -58,6 +59,8 @@ class MobiLLMState(TypedDict):
     action_plan: str
     chat_response: str
     task: str
+    updated_config: str
+    outcome: str
     tools_called: List[str]
 
 def supervisor(state: MobiLLMState) -> MobiLLMState:
@@ -170,7 +173,11 @@ def mobillm_security_response_agent_node(state: MobiLLMState) -> MobiLLMState:
         return state
     if mitre_technique is None or mitre_technique.strip() == "":
         return state
+
     call_result = mobillm_security_response_agent.invoke({"messages": [("user", f"Threat summary:\n{threat_summary}\nRelevant MiTRE FiGHT Techniques:\n{mitre_technique}")]})
+    
+    print(call_result)
+    
     raw_response = call_result["messages"][-1].content
 
     # ensure the response is json formatted string
@@ -189,8 +196,13 @@ def mobillm_security_response_agent_node(state: MobiLLMState) -> MobiLLMState:
     
     if response != "":
         state["actionable"] = response["actionable"] # should be "yes" or "no"
-        state["action_plan"] = response["action plan"]
-        state["action_strategy"] = response["strategy"]
+        state["action_plan"] = response["action_plan"]
+        state["action_strategy"] = response["action_strategy"]
+    else:
+        state["actionable"] = "no"
+        state["action_plan"] = ""
+        state["action_strategy"] = "none"
+
     state["countermeasures"] = response
     state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
     return state
@@ -212,15 +224,36 @@ def mobillm_config_tuning_agent_node(state: MobiLLMState) -> MobiLLMState:
     action_plan = state["action_plan"]
     action_strategy = state["action_strategy"]
 
-    if actionable.lower() != "yes" or action_strategy != "config tuning" or action_plan != "": 
+    if actionable.lower() != "yes" or action_strategy != "config tuning" or action_plan == "": 
         # ensure the action plan and action strategy are matched
-        print("No actionable plan can be executed with the given tools.")
+        print("No actionable plan provided.")
         return state
     
-    call_result = mobillm_security_response_agent.invoke({"messages": [("user", f"Action plan:\n{action_plan}")]})
+    call_result = mobillm_config_tuning_agent.invoke({"messages": [("user", f"Action plan:\n{action_plan}")]})
     raw_response = call_result["messages"][-1].content
 
-    print("raw_response", raw_response)
+    print("\nconfig tuning raw_response", raw_response)
+
+    # ensure the response is json formatted string
+    try:
+        response = raw_response.strip().replace("\n", "")
+        response = json.loads(response)  # Try direct parse first
+    except json.JSONDecodeError:
+        # Fallback: Extract with regex and try to parse
+        json_match = re.search(r'{[\s\S]*}', response)
+        if json_match:
+            try:
+                response = json.loads(json_match.group())
+            except json.JSONDecodeError:
+                print("Error: Unable to parse the response as JSON.")
+                response = ""
+    
+    if response != "":
+        state["actionable"] = response["actionable"] # should be "yes" or "no"
+        state["outcome"] = response["outcome"]
+        state["updated_config"] = response["updated_config"]
+
+    state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
 
     return state
 
@@ -248,7 +281,7 @@ builder.add_conditional_edges(
 )
 
 def route_after_response_agent(state):
-    if state["actionable"] == "yes" and state["action_strategy"] == "config tuning":
+    if state["actionable"].strip() == "yes" and state["action_strategy"].strip() == "config tuning":
         return "config_tuning"
     else:
         return "end"
@@ -262,7 +295,10 @@ builder.add_conditional_edges(
     }
 )
 
-graph = builder.compile()
+checkpointer = InMemorySaver()
+
+config = {"configurable": {"thread_id": "1"}}
+graph = builder.compile(checkpointer=checkpointer)
 
 image_data = graph.get_graph().draw_mermaid_png()
 
@@ -273,8 +309,27 @@ with open("mobillm_langgraph.png", "wb") as f:
 # input_state = {"query": "[chat] How many services are currently in Running state and how long they have been running?", "tools_called": []}
 # input_state = {"query": "[chat] How many cells are currently deployed in the network?", "tools_called": []}
 input_state = {"query": "[security analysis] Conduct a thorough security analysis for event ID 1", "tools_called": []}
-result = graph.invoke(input_state)
+result = graph.invoke(input_state, config=config)
 # print(result)
+
+# resume after interruption for update_ran_cu_config_tool
+user_input = input(f'Approve the tool call?\n{result["__interrupt__"][0].value}\nYour option (yes/edit/no):')
+resume_command = {"type": "accept"}
+if user_input == "yes":
+    resume_command = {"type": "accept"}
+elif user_input == "no":
+    resume_command = {"type": "deny"}
+result = graph.invoke(Command(resume=resume_command), config=config)
+
+# resume after interruption for reboot CU
+user_input = input(f'Approve the tool call?\n{result["__interrupt__"][0].value}\nYour option (yes/edit/no):')
+resume_command = {"type": "accept"}
+if user_input == "yes":
+    resume_command = {"type": "accept"}
+elif user_input == "no":
+    resume_command = {"type": "deny"}
+result = graph.invoke(Command(resume=resume_command), config=config)
+
 
 if "chat_response" in result:
     print("Chat Response:", result["chat_response"])
@@ -287,6 +342,9 @@ if "mitre_technique" in result:
     print("\n\n")
 if "countermeasures" in result:
     print("Countermeasures:", result["countermeasures"])
+    print("\n\n")
+if "outcome" in result:
+    print("Outcome:", result["outcome"])
     print("\n\n")
 if "tools_called" in result:
     print("Tools Called:")

@@ -9,6 +9,8 @@ from sentence_transformers import SentenceTransformer # sentence_transformers
 def get_all_mitre_fight_techniques(fight_json_path: str="mitre_fight_techniques.json") -> dict:
     ''' 
     This function will read all the MiTRE Fight techniques from a local json file that is created from the official MiTRE Fight Git Repo (https://github.com/mitre/FiGHT/)
+    Input:
+    - fight_json_path (str) - the path to the MiTRE Fight techniques JSON file. If you don't know the file path, use default value: "mitre_fight_techniques.json").
     Returns:
         dict: A dictionary containing all the MiTRE Fight techniques. Each dict object is a specific technique encoded as (key, value) pairs. Each technique will contain fields like Name, Descriptions, and Mitigations.
     '''
@@ -22,7 +24,9 @@ def get_all_mitre_fight_techniques(fight_json_path: str="mitre_fight_techniques.
 def get_mitre_fight_technique_by_id(tech_id: str, fight_json_path: str="mitre_fight_techniques.json") -> dict:
     '''
     This function will read a specific MiTRE Fight technique's descriptions. A speficied technique ID needs to be provided.
-    Input: tech_id (str) - the ID of a MiTRE Fight technique (e.g., "FGT1199.501")
+    Input: 
+    - tech_id (str) - the ID of a MiTRE Fight technique (e.g., "FGT1199.501")
+    - fight_json_path (str) - the path to the MiTRE Fight techniques JSON file. If you don't know the file path, use default value: "mitre_fight_techniques.json").
     Returns:
         dict: A dictionary containing the specified MiTRE Fight technique. Each dict object is a specific technique encoded as (key, value) pairs. Each technique will contain fields like Name, Descriptions, and Mitigations. If the technique ID is not found, an empty dict will be returned.
     '''
@@ -42,10 +46,10 @@ def search_mitre_fight_techniques(threat_summary: str, top_k: int=5, fight_json_
     '''
     This function will perform a similarity search through the MiTRE FiGHT technique descriptions to find the top most relevant MiTRE FiGHT technique associated with the given event. The search is performed via FAISS (Facebook AI Similarity Search) using sentence embeddings.
     Input:
-        threat summary (str): A summary report of the threat event
-        top_k (int): Top K most relevant MiTRE FiGHT technique to retrieve (default value: 5)
-        fight_json_path (str): The path to the MiTRE FiGHT techniques JSON file (default value: "mitre_fight_techniques.json")
-        embedding_model_name (str): The name of the sentence embedding model to use (default value: "all-MiniLM-L6-v2")
+    - threat summary (str): A summary report of the threat event
+    - top_k (int): Top K most relevant MiTRE FiGHT technique to retrieve (default value: 5)
+    - fight_json_path (str) - the path to the MiTRE Fight techniques JSON file. If you don't know the file path, use default value: "mitre_fight_techniques.json").
+    - embedding_model_name (str): The name of the sentence embedding model to use (default value: "all-MiniLM-L6-v2")
     Returns:
         list: A list of most relevant MiTRE Fight technique IDs based on the top_k argument
     '''
