@@ -42,7 +42,7 @@ def update_ran_cu_config_tool(config_data: str) -> str:
         config_data (str): The new configuration data to be written to the CU.
     '''
     response = interrupt(  
-        f"Trying to call `update_ran_cu_config_tool` with args {{'config_data': {config_data}}}. Please approve or deny this action."
+        f"Trying to call `update_ran_cu_config_tool` with the following config \n\n```{{'config_data': {config_data}}}```\n\n Please approve or deny this action."
     )
     if response["type"] == "accept":
         pass

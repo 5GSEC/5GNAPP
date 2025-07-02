@@ -338,6 +338,8 @@ function IssuesPage() {
           background: "rgba(255,255,255,0.95)",
           backdropFilter: "blur(8px)",
           border: "1px solid rgba(200,200,200,0.3)",
+          resize: "both",           // <-- add this
+          overflow: "auto",         // <-- and this
         }}
       >
         <Box

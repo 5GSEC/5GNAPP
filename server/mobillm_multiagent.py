@@ -312,16 +312,28 @@ class MobiLLM_Multiagent:
 
         if "threat_summary" in result:
             response_message = response_message + f"{result['threat_summary']}"
-        if "mitre_technique" in result:
-            print("MITRE Technique:", result["mitre_technique"])
-            response_message = response_message + f"\n\n**Related MITRE Technique**:\n\n{result['mitre_technique']}\n\n"
-        if "countermeasures" in result:
-            response_message = response_message + f"""\n\n**Suggested Response**:\n\n{result['countermeasures']['action_plan']}\n\n"""
+        # if "mitre_technique" in result:
+        #     print("MITRE Technique:", result["mitre_technique"])
+        #     response_message = response_message + f"\n\n**Related MITRE Technique**:\n\n{result['mitre_technique']}\n\n"
+        if "countermeasures" in result and result["countermeasures"] != "":
+            actionable = result['countermeasures']['actionable']
+            actionable_strategy = result['countermeasures']["action_strategy"]
+            action_plan = result['countermeasures']['action_plan']
+
+            if actionable.lower() == "yes":
+                # if actionable, provide the LLM's action plan to user to review
+                if actionable_strategy == "config tuning":
+                    # if an interrupt has triggered, show the interrupt message to human for review
+                    if "__interrupt__" in result.keys():
+                        interrupt_value = result["__interrupt__"][0].value
+                        response_message = response_message + f"\n\n**Proposed Response**:\n\nMobiLLM has identified an actionable response to mitigate the event through RAN configuration tuning. Please read following action plan:\n\n{action_plan}\n\nMobiLLM can execute this response. Please review and choose whether to approve the action:\n\n{interrupt_value}\n\n"
+            else:
+                # if not actionable, output the suggested response
+                response_message = response_message + f"""\n\n**Suggested Response**:\n\n{action_plan}\n\n"""
+
         # if "outcome" in result:
         #     print("Outcome:", result["outcome"])
         #     print("\n\n")
-
-        print(response_message)
 
         return {"output": response_message}
 
