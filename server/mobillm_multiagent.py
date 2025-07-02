@@ -298,7 +298,32 @@ class MobiLLM_Multiagent:
         with open(path, "wb") as f:
             f.write(image_data)
 
+    def chat(self, query: str) -> str:
+        result = self.invoke(f"[chat] {query}")
+        if "chat_response" in result:
+            return {"output": result["chat_response"]}
+        else:
+            return  {"output": "No chat response available."}
 
+    def security_analysis(self, query: str) -> str:
+        result = self.invoke(f"[security analysis] {query}")
+
+        response_message = ""
+
+        if "threat_summary" in result:
+            response_message = response_message + f"{result['threat_summary']}"
+        if "mitre_technique" in result:
+            print("MITRE Technique:", result["mitre_technique"])
+            response_message = response_message + f"\n\n**Related MITRE Technique**:\n\n{result['mitre_technique']}\n\n"
+        if "countermeasures" in result:
+            response_message = response_message + f"""\n\n**Suggested Response**:\n\n{result['countermeasures']['action_plan']}\n\n"""
+        # if "outcome" in result:
+        #     print("Outcome:", result["outcome"])
+        #     print("\n\n")
+
+        print(response_message)
+
+        return {"output": response_message}
 
 # --- Test Running the Agent ---
 if __name__ == "__main__":
