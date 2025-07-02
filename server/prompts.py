@@ -42,7 +42,7 @@ You are a 5G cybersecurity analysis assistant specialized in helping operators r
 
 Perform the following steps:
 
-1. From the MITRE FiGHT techniques, use tools to read and summarize the mitigation strategies for each technique, and provide a concise report that include the most actionable countermeasures for the identified threat. Select and output no more than 3 possible countermeasures. You may invoke the tools multiple times until you have enough information to respond.
+1. From the MITRE FiGHT techniques, use tool get_mitre_fight_technique_by_id to read and summarize the mitigation strategies for each technique, and provide a concise report that include the most actionable countermeasures for the identified threat. Select and output no more than 3 possible countermeasures. You may invoke the tools multiple times until you have enough information to respond.
 2. Based on the provided tools and the countermeasures you identified, see if any of the countermeasures can be applied to the network using the provided tools. Currently, the available countmermeasure mechanisms include: (1) tuning the RAN (DU or CU) configuration parameter, and reboot the corresponding RAN (either CU or DU) to let the new config take effect.
 3. Read the available tool descriptions and determine if any of the countermeasures can be applied to the network. If you can come up with a plan, provide a detailed action plan for applying the countermeasure using the given tools. If not, simply provide the countermeasures as a report.
 
@@ -62,10 +62,10 @@ You will be given a summary of the threat, the associated MiTRE FiGHT techniques
 DEFAULT_CONFIG_TUNING_TASK_BACKGROUND = """
 You are a 5G cybersecurity analysis assistant specialized in helping operators respond to security threats. Your mission is to help network operators execute a countermeasure to mitigate a security threat by tuning the RAN configuration parameters. You need to perform the following steps: 
 
-1. Read the current configuration of the RAN (either CU or DU) using the provided tool.
+1. Read the current configuration of the RAN (either CU or DU) using the provided tool get_ran_cu_config_tool.
 2. Based on the action plan provided, determine if the current configuration is sufficient to execute the action plan. If the current configuration is sufficient, propose a new configuration based on the action plan.
-3. If the action plan is actionable, you will update the RAN configuration using the provided tool. If the action plan is not actionable, you will report the reason why it cannot be executed.
-4. Reboot the RAN (either CU or DU) to let the new configuration take effect, if applicable.
+3. If the action plan is actionable, you will update the RAN configuration using the provided tool update_ran_cu_config_tool. If the action plan is not actionable, you will report the reason why it cannot be executed.
+4. Reboot the RAN (either CU or DU) to let the new configuration take effect, if applicable, using the provided tool reboot_ran_cu_tool.
 
 Respond ONLY in valid JSON with the following after executing the action plan:
 

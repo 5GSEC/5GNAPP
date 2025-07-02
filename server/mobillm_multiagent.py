@@ -1,15 +1,9 @@
 import os
 import operator
-import re
 import json
+from uuid import uuid4
 from typing import TypedDict, Annotated, List, Literal
-from langchain_core.messages import BaseMessage
-from langchain_core.prompts import PromptTemplate
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import tool, AgentExecutor
-from langchain.memory import ConversationBufferWindowMemory
 from pydantic import BaseModel, Field
 from IPython.display import display, Image
 
@@ -24,17 +18,6 @@ from mitre_apis import *
 from control_apis import *
 from prompts import *
 from utils import *
-
-from langchain_core.messages import convert_to_messages
-
-# Init LLM settings
-if not os.getenv("GOOGLE_API_KEY"):
-    print("Warning: GOOGLE_API_KEY not found in environment variables.")
-    print("Please set it for the LangChain Gemini LLM to work.")
-
-gemini_llm_model = "gemini-2.5-flash" # "gemini-2.5-flash-preview-04-17"
-llm = ChatGoogleGenerativeAI(model=gemini_llm_model, temperature=0.3)
-
 
 # Define the Langgraph state
 class MobiLLMState(TypedDict):
@@ -63,310 +46,326 @@ class MobiLLMState(TypedDict):
     outcome: str
     tools_called: List[str]
 
-def supervisor(state: MobiLLMState) -> MobiLLMState:
-    query = state["query"]
-    if "[chat]" in query:
-        state["task"] = "chat"
-    elif "[security analysis]" in query:
-        state["task"] = "security_analysis"
-    else:
-        raise ValueError("Router received empty input.")
-    return state
+class MobiLLM_Multiagent:
+    def __init__(self, google_api_key: str=None, gemini_llm_model: str="gemini-2.5-flash", config=None):
+        self.init_completed = False
+        self.gemini_llm_model = gemini_llm_model
+        # --- Configuration ---
+        # IMPORTANT: Set your GOOGLE_API_KEY as an environment variable.
+        # LangChain's Google Generative AI integration will automatically pick it up.
+        # If you don't use dotenv, ensure the environment variable is set in your system.
+        # Alternatively, you can pass api_key directly to ChatGoogleGenerativeAI, but env var is preferred.
+        if not os.getenv("GOOGLE_API_KEY") and google_api_key == None:
+            print("Warning: GOOGLE_API_KEY not found in environment variables.")
+            print("Please set it for the LangChain Gemini LLM to work.")
+            return
+        elif google_api_key is not None:
+            os.environ["GOOGLE_API_KEY"] = google_api_key
+            # You could set it here as a fallback, but it's not recommended for production:
+            # os.environ["GOOGLE_API_KEY"] = "YOUR_ACTUAL_API_KEY"
 
-###################### MobiLLM Chat Agent ######################
+        # --- LLM Initialization ---
+        # Initialize the Gemini LLM through LangChain
+        try:
+            self.llm = ChatGoogleGenerativeAI(model=self.gemini_llm_model, temperature=0.3)
+            # You can adjust temperature and other parameters as needed.
+            # temperature=0 makes the model more deterministic, higher values make it more creative.
+        except Exception as e:
+            print(f"Error initializing Gemini LLM: {e}")
+            print("Ensure your GOOGLE_API_KEY is set correctly and you have internet access.")
+            return
 
-# tools that can be used by the chat agent
-mobillm_chat_tools = [
-    get_ue_mobiflow_data_all_tool,
-    get_ue_mobiflow_data_by_index_tool,
-    get_ue_mobiflow_description_tool,
-    get_bs_mobiflow_data_all_tool,
-    get_bs_mobiflow_data_by_index_tool,
-    get_bs_mobiflow_description_tool,
-    fetch_sdl_event_data_all_tool,
-    fetch_sdl_event_data_by_ue_id_tool,
-    fetch_sdl_event_data_by_cell_id_tool,
-    get_event_description_tool,
-    fetch_service_status_tool,
-    build_xapp_tool,
-    deploy_xapp_tool,
-    unDeploy_xapp_tool,
-]
-
-# --- MobiLLM Chat Agent Setup ---
-chat_prompt_str = BASE_REACT_PROMPT_TEMPLATE_STR.format(TASK_BACKGROUND=DEFAULT_CHAT_TASK_BACKGROUND)
-mobillm_chat_agent = create_react_agent(model=llm, tools=mobillm_chat_tools, prompt=DEFAULT_CHAT_TASK_BACKGROUND, name="mobillm_chat_agent")
-
-def mobillm_chat_agent_node(state: MobiLLMState) -> MobiLLMState:
-    query = state["query"]
-    if query is None or query.strip() == "":
-        return state
-    call_result = mobillm_chat_agent.invoke({"messages": [("user", query)]})
-    response = call_result["messages"][-1].content
-    state["chat_response"] = response
-    state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
-    return state
-
-###################### MobiLLM Security analysis agent ######################
-
-mobillm_security_analysis_tools = [
-    get_ue_mobiflow_data_all_tool,
-    get_ue_mobiflow_data_by_index_tool,
-    get_ue_mobiflow_description_tool,
-    get_bs_mobiflow_data_all_tool,
-    get_bs_mobiflow_data_by_index_tool,
-    get_bs_mobiflow_description_tool,
-    fetch_sdl_event_data_all_tool,
-    fetch_sdl_event_data_by_ue_id_tool,
-    fetch_sdl_event_data_by_cell_id_tool,
-    get_event_description_tool,
-]
-
-mobillm_security_analysis_agent = create_react_agent(model=llm, tools=mobillm_security_analysis_tools, prompt=DEFAULT_SECURITY_ANLYSIS_TASK_BACKGROUND, name="mobillm_security_analysis_agent")
-
-def mobillm_security_analysis_agent_node(state: MobiLLMState) -> MobiLLMState:
-    query = state["query"]
-    if query is None or query.strip() == "":
-        return state
-    call_result = mobillm_security_analysis_agent.invoke({"messages": [("user", query)]})
-    response = call_result["messages"][-1].content
-    state["threat_summary"] = response
-    state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
-    return state
-
-###################### MobiLLM Security Classification agent ######################
-
-mobillm_security_classification_tools = [
-    get_all_mitre_fight_techniques,
-    get_mitre_fight_technique_by_id,
-    search_mitre_fight_techniques,
-]
-
-mobillm_security_classification_agent = create_react_agent(model=llm, tools=mobillm_security_classification_tools, prompt=DEFAULT_SECURITY_CLASSIFICATION_TASK_BACKGROUND, name="mobillm_security_classification_agent")
-
-def mobillm_security_classification_agent_node(state: MobiLLMState) -> MobiLLMState:
-    threat_summary = state["threat_summary"]
-    if threat_summary is None or threat_summary.strip() == "":
-        return state
-    call_result = mobillm_security_classification_agent.invoke({"messages": [("user", threat_summary)]})
-    response = call_result["messages"][-1].content
-    state["mitre_technique"] = response
-    state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
-    return state
-
-###################### MobiLLM Security Response agent ######################
-
-mobillm_security_response_tools = [
-    get_all_mitre_fight_techniques,
-    get_mitre_fight_technique_by_id,
-    get_ran_cu_config_tool,
-    update_ran_cu_config_tool,
-    reboot_ran_cu_tool,
-]
-
-mobillm_security_response_agent = create_react_agent(model=llm, tools=mobillm_security_response_tools, prompt=DEFAULT_SECURITY_RESPONSE_TASK_BACKGROUND, name="mobillm_security_response_agent")
-
-def mobillm_security_response_agent_node(state: MobiLLMState) -> MobiLLMState:
-    threat_summary = state["threat_summary"]
-    mitre_technique = state["mitre_technique"]
-    if threat_summary is None or threat_summary.strip() == "":
-        return state
-    if mitre_technique is None or mitre_technique.strip() == "":
-        return state
-
-    call_result = mobillm_security_response_agent.invoke({"messages": [("user", f"Threat summary:\n{threat_summary}\nRelevant MiTRE FiGHT Techniques:\n{mitre_technique}")]})
+        self.thread_id = uuid4()
+        self.config = config or {"configurable": {"thread_id": self.thread_id}}
+        self.checkpointer = InMemorySaver()
+        self._build_agents()
+        self.graph = self._build_graph()
     
-    print(call_result)
-    
-    raw_response = call_result["messages"][-1].content
+    def _build_agents(self):
+        # MobiLLM Chat Agent
+        mobillm_chat_tools = [
+            get_ue_mobiflow_data_all_tool,
+            get_ue_mobiflow_data_by_index_tool,
+            get_ue_mobiflow_description_tool,
+            get_bs_mobiflow_data_all_tool,
+            get_bs_mobiflow_data_by_index_tool,
+            get_bs_mobiflow_description_tool,
+            fetch_sdl_event_data_all_tool,
+            fetch_sdl_event_data_by_ue_id_tool,
+            fetch_sdl_event_data_by_cell_id_tool,
+            get_event_description_tool,
+            fetch_service_status_tool,
+            build_xapp_tool,
+            deploy_xapp_tool,
+            unDeploy_xapp_tool,
+        ]
+        self.chat_agent = create_react_agent(model=self.llm, tools=mobillm_chat_tools, prompt=DEFAULT_CHAT_TASK_BACKGROUND, name="mobillm_chat_agent")
 
-    # ensure the response is json formatted string
-    try:
-        response = raw_response.strip().replace("\n", "")
-        response = json.loads(response)  # Try direct parse first
-    except json.JSONDecodeError:
-        # Fallback: Extract with regex and try to parse
-        json_match = re.search(r'{[\s\S]*}', response)
-        if json_match:
-            try:
-                response = json.loads(json_match.group())
-            except json.JSONDecodeError:
-                print("Error: Unable to parse the response as JSON.")
-                response = ""
-    
-    if response != "":
-        state["actionable"] = response["actionable"] # should be "yes" or "no"
-        state["action_plan"] = response["action_plan"]
-        state["action_strategy"] = response["action_strategy"]
-    else:
-        state["actionable"] = "no"
-        state["action_plan"] = ""
-        state["action_strategy"] = "none"
+        # MobiLLM Security Analysis Agent
+        mobillm_security_analysis_tools = [
+            get_ue_mobiflow_data_all_tool,
+            get_ue_mobiflow_data_by_index_tool,
+            get_ue_mobiflow_description_tool,
+            get_bs_mobiflow_data_all_tool,
+            get_bs_mobiflow_data_by_index_tool,
+            get_bs_mobiflow_description_tool,
+            fetch_sdl_event_data_all_tool,
+            fetch_sdl_event_data_by_ue_id_tool,
+            fetch_sdl_event_data_by_cell_id_tool,
+            get_event_description_tool,
+        ]
+        self.security_analysis_agent = create_react_agent(model=self.llm, tools=mobillm_security_analysis_tools, prompt=DEFAULT_SECURITY_ANLYSIS_TASK_BACKGROUND, name="mobillm_security_analysis_agent")
+        
+        # MobiLLM Security Classification Agent
+        mobillm_security_classification_tools = [
+            get_all_mitre_fight_techniques,
+            get_mitre_fight_technique_by_id,
+            search_mitre_fight_techniques,
+        ]
+        self.classification_agent = create_react_agent(model=self.llm, tools=mobillm_security_classification_tools, prompt=DEFAULT_SECURITY_CLASSIFICATION_TASK_BACKGROUND, name="mobillm_security_classification_agent")
+        
+        # MobiLLM Security Response Agent
+        mobillm_security_response_tools = [
+            get_all_mitre_fight_techniques,
+            get_mitre_fight_technique_by_id,
+            get_ran_cu_config_tool,
+            update_ran_cu_config_tool,
+            reboot_ran_cu_tool,
+        ]
+        self.response_agent = create_react_agent(model=self.llm, tools=mobillm_security_response_tools, prompt=DEFAULT_SECURITY_RESPONSE_TASK_BACKGROUND, name="mobillm_security_response_agent")
+        
+        # MobiLLM Config Tuning Agent
+        mobillm_config_tuning_tools = [
+            get_all_mitre_fight_techniques,
+            get_mitre_fight_technique_by_id,
+            get_ran_cu_config_tool,
+            update_ran_cu_config_tool,
+            reboot_ran_cu_tool,
+        ]
+        self.config_tuning_agent = create_react_agent(model=self.llm, tools=mobillm_config_tuning_tools, prompt=DEFAULT_CONFIG_TUNING_TASK_BACKGROUND, name="mobillm_config_tuning_agent")
 
-    state["countermeasures"] = response
-    state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
-    return state
+    def _build_graph(self):
+        builder = StateGraph(MobiLLMState)
 
-###################### MobiLLM Config tuning agent ######################
+        builder.add_node("supervisor", self.supervisor)
+        builder.add_node("mobillm_chat_agent", self.mobillm_chat_agent_node)
+        builder.add_node("mobillm_security_analysis_agent", self.mobillm_security_analysis_agent_node)
+        builder.add_node("mobillm_security_classification_agent", self.mobillm_security_classification_agent_node)
+        builder.add_node("mobillm_security_response_agent", self.mobillm_security_response_agent_node)
+        builder.add_node("mobillm_config_tuning_agent", self.mobillm_config_tuning_agent_node)
 
-mobillm_config_tuning_tools = [
-    get_all_mitre_fight_techniques,
-    get_mitre_fight_technique_by_id,
-    get_ran_cu_config_tool,
-    update_ran_cu_config_tool,
-    reboot_ran_cu_tool,
-]
+        builder.add_edge(START, "supervisor")
+        builder.add_edge("mobillm_security_analysis_agent", "mobillm_security_classification_agent")
+        builder.add_edge("mobillm_security_classification_agent", "mobillm_security_response_agent")
 
-mobillm_config_tuning_agent = create_react_agent(model=llm, tools=mobillm_config_tuning_tools, prompt=DEFAULT_CONFIG_TUNING_TASK_BACKGROUND, name="mobillm_config_tuning_agent")
+        builder.add_conditional_edges(
+            "supervisor",
+            lambda state: state["task"],
+            {
+                "chat": "mobillm_chat_agent",
+                "security_analysis": "mobillm_security_analysis_agent"
+            }
+        )
 
-def mobillm_config_tuning_agent_node(state: MobiLLMState) -> MobiLLMState:
-    actionable = state["actionable"] # should be "yes" or "no"
-    action_plan = state["action_plan"]
-    action_strategy = state["action_strategy"]
+        builder.add_conditional_edges(
+            "mobillm_security_response_agent",
+            self.route_after_response_agent,
+            {
+                "config_tuning": "mobillm_config_tuning_agent",
+                "end": END
+            }
+        )
 
-    if actionable.lower() != "yes" or action_strategy != "config tuning" or action_plan == "": 
-        # ensure the action plan and action strategy are matched
-        print("No actionable plan provided.")
+        return builder.compile(checkpointer=self.checkpointer)
+
+    # ---------------- Node Functions ----------------
+
+    def supervisor(self, state: MobiLLMState) -> MobiLLMState:
+        query = state["query"]
+        if "[chat]" in query:
+            state["task"] = "chat"
+        elif "[security analysis]" in query:
+            state["task"] = "security_analysis"
+        else:
+            raise ValueError("Router received empty input.")
         return state
-    
-    call_result = mobillm_config_tuning_agent.invoke({"messages": [("user", f"Action plan:\n{action_plan}")]})
-    raw_response = call_result["messages"][-1].content
 
-    print("\nconfig tuning raw_response", raw_response)
+    def mobillm_chat_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        query = state["query"]
+        if not query or query.strip() == "":
+            return state
+        call_result = self.chat_agent.invoke({"messages": [("user", query)]})
+        response = call_result["messages"][-1].content
+        state["chat_response"] = response
+        state["tools_called"] += call_result["messages"][1].tool_calls
+        return state
 
-    # ensure the response is json formatted string
-    try:
-        response = raw_response.strip().replace("\n", "")
-        response = json.loads(response)  # Try direct parse first
-    except json.JSONDecodeError:
-        # Fallback: Extract with regex and try to parse
-        json_match = re.search(r'{[\s\S]*}', response)
-        if json_match:
-            try:
-                response = json.loads(json_match.group())
-            except json.JSONDecodeError:
-                print("Error: Unable to parse the response as JSON.")
-                response = ""
-    
-    if response != "":
-        state["actionable"] = response["actionable"] # should be "yes" or "no"
-        state["outcome"] = response["outcome"]
-        state["updated_config"] = response["updated_config"]
+    def mobillm_security_analysis_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        query = state["query"]
+        if not query or query.strip() == "":
+            return state
+        call_result = self.security_analysis_agent.invoke({"messages": [("user", query)]})
+        response = call_result["messages"][-1].content
+        state["threat_summary"] = response
+        state["tools_called"] += call_result["messages"][1].tool_calls
+        return state
 
-    state["tools_called"] = state["tools_called"] + call_result["messages"][1].tool_calls
+    def mobillm_security_classification_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        threat_summary = state["threat_summary"]
+        if not threat_summary or threat_summary.strip() == "":
+            return state
+        call_result = self.classification_agent.invoke({"messages": [("user", threat_summary)]})
+        response = call_result["messages"][-1].content
+        state["mitre_technique"] = response
+        state["tools_called"] += call_result["messages"][1].tool_calls
+        return state
 
-    return state
+    def mobillm_security_response_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        threat_summary = state["threat_summary"]
+        mitre_technique = state["mitre_technique"]
+        if not threat_summary or not mitre_technique:
+            return state
 
-###################### Building Graph ######################
+        prompt = f"Threat summary:\n{threat_summary}\nRelevant MiTRE FiGHT Techniques:\n{mitre_technique}"
+        call_result = self.response_agent.invoke({"messages": [("user", prompt)]})
+        raw_response = call_result["messages"][-1].content
 
-builder = StateGraph(MobiLLMState)
-builder.add_node("supervisor", supervisor)
-builder.add_node("mobillm_chat_agent", mobillm_chat_agent_node)
-builder.add_node("mobillm_security_analysis_agent", mobillm_security_analysis_agent_node)
-builder.add_node("mobillm_security_classification_agent", mobillm_security_classification_agent_node)
-builder.add_node("mobillm_security_response_agent", mobillm_security_response_agent_node)
-builder.add_node("mobillm_config_tuning_agent", mobillm_config_tuning_agent_node)
+        if raw_response.strip() == "" and call_result["messages"][-1].response_metadata.get("finish_reason") == "MALFORMED_FUNCTION_CALL":
+            print("MALFORMED_FUNCTION_CALL detected, retrying...")
+            call_result = self.response_agent.invoke({"messages": [("user", prompt)]})
+            raw_response = call_result["messages"][-1].content
 
-builder.add_edge(START, "supervisor")
-builder.add_edge("mobillm_security_analysis_agent", "mobillm_security_classification_agent")
-builder.add_edge("mobillm_security_classification_agent", "mobillm_security_response_agent")
+        response = extract_json_from_string(raw_response.strip().replace("\n", ""))
 
-builder.add_conditional_edges(
-    "supervisor",
-    lambda state: state["task"],
-    {
-        "chat": "mobillm_chat_agent",
-        "security_analysis": "mobillm_security_analysis_agent"
-    }
-)
+        if response:
+            state["actionable"] = response["actionable"]
+            state["action_plan"] = response["action_plan"]
+            state["action_strategy"] = response["action_strategy"]
+        else:
+            state["actionable"] = "no"
+            state["action_plan"] = ""
+            state["action_strategy"] = "none"
 
-def route_after_response_agent(state):
-    if state["actionable"].strip() == "yes" and state["action_strategy"].strip() == "config tuning":
-        return "config_tuning"
-    else:
+        state["countermeasures"] = response
+        state["tools_called"] += call_result["messages"][1].tool_calls
+        return state
+
+    def mobillm_config_tuning_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        actionable = state["actionable"]
+        action_plan = state["action_plan"]
+        action_strategy = state["action_strategy"]
+
+        if actionable.lower() != "yes" or action_strategy != "config tuning" or not action_plan:
+            print("No actionable plan provided.")
+            return state
+
+        call_result = self.config_tuning_agent.invoke({"messages": [("user", f"Action plan:\n{action_plan}")]})
+        raw_response = call_result["messages"][-1].content
+
+        response = extract_json_from_string(raw_response.strip().replace("\n", ""))
+
+        if response:
+            state["actionable"] = response["actionable"]
+            state["outcome"] = response["outcome"]
+            state["updated_config"] = response["updated_config"]
+
+        state["tools_called"] += call_result["messages"][1].tool_calls
+        return state
+
+    def route_after_response_agent(self, state: MobiLLMState) -> str:
+        if state["actionable"].strip() == "yes" and state["action_strategy"].strip() == "config tuning":
+            return "config_tuning"
         return "end"
 
-builder.add_conditional_edges(
-    "mobillm_security_response_agent",
-    route_after_response_agent,
-    {
-        "config_tuning": "mobillm_config_tuning_agent",
-        "end": END
-    }
-)
+    # ---------------- Public Interface ----------------
 
-checkpointer = InMemorySaver()
+    def invoke(self, query: str) -> MobiLLMState:
+        """
+        Start graph execution.
+        """
+        input_state = {"query": query, "tools_called": []}
+        return self.graph.invoke(input_state, config=self.config)
 
-config = {"configurable": {"thread_id": "1"}}
-graph = builder.compile(checkpointer=checkpointer)
+    def resume(self, command: dict) -> MobiLLMState:
+        """
+        Resume graph execution from interrupt.
+        """
+        resume_cmd = Command(resume=command)
+        return self.graph.invoke(resume_cmd, config=self.config)
 
-image_data = graph.get_graph().draw_mermaid_png()
+    def draw_graph(self, path="mobillm_langgraph.png"):
+        image_data = self.graph.get_graph().draw_mermaid_png()
+        with open(path, "wb") as f:
+            f.write(image_data)
 
-# Write to a local file
-with open("mobillm_langgraph.png", "wb") as f:
-    f.write(image_data)
 
-# input_state = {"query": "[chat] How many services are currently in Running state and how long they have been running?", "tools_called": []}
-# input_state = {"query": "[chat] How many cells are currently deployed in the network?", "tools_called": []}
-# input_state = {"query": "[security analysis] Conduct a thorough security analysis for event ID 1", "tools_called": []}
-input_state = {"query": """[security analysis] Conduct a thorough security analysis for the following event detected in the network: 
-Event Details:
-- Source: MobieXpert
-- Name: RRC Null Cipher
-- Cell ID: 20000
-- UE ID: 54649
-- Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
-- Severity: Critical
-- Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
-""", "tools_called": []}
 
-result = graph.invoke(input_state, config=config)
-print(result.keys())
+# --- Test Running the Agent ---
+if __name__ == "__main__":
 
-while True:
-    # Check if an interrupt occurred in the result
-    if "__interrupt__" in result.keys():
-        interrupt_value = result["__interrupt__"][0].value
-        # Ask the user for input to handle the interrupt
-        user_input = input(f'Approve the tool call?\n{interrupt_value}\nYour option (yes/edit/no): ')
+    agent = MobiLLM_Multiagent()
+    # result = agent.invoke("[chat] How many services are currently in Running state and how long they have been running?")
+    # result = agent.invoke("[chat] How many cells are currently deployed in the network?")
+    # result = agent.invoke("[chat] What are the IMSIs of the UEs connected to the network?")
+    # result = agent.invoke("[security analysis] Conduct a thorough security analysis for event ID 4")
+    result = agent.invoke("""[security analysis] Conduct a thorough security analysis for the following event detected in the network: 
+    # Event Details:
+    # - Source: MobieXpert
+    # - Name: RRC Null Cipher
+    # - Cell ID: 20000
+    # - UE ID: 54649
+    # - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
+    # - Severity: Critical
+    # - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
+    # """)
 
-        if user_input.lower() == "yes":
-            resume_command = {"type": "accept"}
-        elif user_input.lower() == "no":
-            resume_command = {"type": "deny"}
-        elif user_input.lower() == "edit":
-            new_value = input("Enter your edited value: ")
-            resume_command = {
-                "type": "edit",
-                "config_data": new_value
-            }
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Ask the user for input to handle the interrupt
+            user_input = input(f'Approve the tool call?\n{interrupt_value}\nYour option (yes/edit/no): ')
+
+            if user_input.lower() == "yes":
+                resume_command = {"type": "accept"}
+            elif user_input.lower() == "no":
+                resume_command = {"type": "deny"}
+            elif user_input.lower() == "edit":
+                new_value = input("Enter your edited value: ")
+                resume_command = {
+                    "type": "edit",
+                    "config_data": new_value
+                }
+            else:
+                print("Invalid input. Please enter 'yes', 'no', or 'edit'.")
+                continue  # re-prompt
+
+            # Resume the graph with the chosen command
+            result = agent.resume(resume_command)
+            
         else:
-            print("Invalid input. Please enter 'yes', 'no', or 'edit'.")
-            continue  # re-prompt
-
-        # Resume the graph with the chosen command
-        result = graph.invoke(Command(resume=resume_command), config=config)
-    else:
-        break  # No interrupt means the flow is complete; exit the loop
+            break  # No interrupt means the flow is complete; exit the loop
 
 
-if "chat_response" in result:
-    print("Chat Response:", result["chat_response"])
-    print("\n\n")
-if "threat_summary" in result:
-    print("Threat Summary:", result["threat_summary"])
-    print("\n\n")
-if "mitre_technique" in result:
-    print("MITRE Technique:", result["mitre_technique"])
-    print("\n\n")
-if "countermeasures" in result:
-    print("Countermeasures:", result["countermeasures"])
-    print("\n\n")
-if "outcome" in result:
-    print("Outcome:", result["outcome"])
-    print("\n\n")
-if "tools_called" in result:
-    print("Tools Called:")
-    for tool in result["tools_called"]:
-        print(tool)
-    print("\n\n")
+    if "chat_response" in result:
+        print("Chat Response:", result["chat_response"])
+        print("\n\n")
+    if "threat_summary" in result:
+        print("Threat Summary:", result["threat_summary"])
+        print("\n\n")
+    if "mitre_technique" in result:
+        print("MITRE Technique:", result["mitre_technique"])
+        print("\n\n")
+    if "countermeasures" in result:
+        print("Countermeasures:", result["countermeasures"])
+        print("\n\n")
+    if "outcome" in result:
+        print("Outcome:", result["outcome"])
+        print("\n\n")
+    if "tools_called" in result:
+        print("Tools Called:")
+        for tool in result["tools_called"]:
+            print(tool)
+        print("\n\n")
+
+

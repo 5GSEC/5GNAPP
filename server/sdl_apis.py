@@ -438,7 +438,7 @@ def fetch_sdl_event_data_osc() -> dict:
                     "cellID": event_item[2],
                     "ueID": event_item[3],
                     "timestamp": event_item[4],
-                    "severity": "Medium",
+                    "severity": "Warning", # TODO: this should be populated from the xApp data
                     "mobiflow_index": event_item[5],
                     "description": event_item[6],
                 }
@@ -452,7 +452,7 @@ def fetch_sdl_event_data_osc() -> dict:
                     "cellID": event_item[2],
                     "ueID": event_item[3],
                     "timestamp": event_item[4],
-                    "severity": "Medium",
+                    "severity": "Warning", # TODO: this should be populated from the xApp data
                     "mobiflow_index": event_item[5],
                     "description": event_item[6],
                 }

@@ -1,5 +1,7 @@
 import subprocess
 import os
+import json
+import re
 
 def execute_command(command):
     ''' Execute a shell command and return the output '''
@@ -14,6 +16,14 @@ def execute_command(command):
     except Exception as e:
         return None, str(e), -1  # Return -1 as exit code for exceptions
 
+def extract_json_from_string(input_str: str):
+    try:
+        response = json.loads(input_str.strip().replace("\n", ""))
+        return response
+    except json.JSONDecodeError:
+        json_match = re.search(r'{[\s\S]*}', input_str)
+        response = json.loads(json_match.group()) if json_match else ""
+        return response
 
 def pretty_print_message(message, indent=False):
     pretty_message = message.pretty_repr(html=True)
