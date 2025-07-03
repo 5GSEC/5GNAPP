@@ -101,9 +101,10 @@ function IssuesPage() {
             body: JSON.stringify({ message: prompt }),
           });
           const data = await res.json();
+          console.log(data);
           if (!res.ok) throw new Error(data.error || "Chat error");
-          setGenaiResponse(data.reply);
-          genaiCache.current[cacheKey] = data.reply; // Store in cache
+          setGenaiResponse(data.output);
+          genaiCache.current[cacheKey] = data.output; // Store in cache
         } catch (e) {
           setGenaiError(e.message || "Unknown error");
         } finally {

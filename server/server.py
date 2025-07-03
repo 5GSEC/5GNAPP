@@ -137,11 +137,11 @@ def mobillm_chat():
 
     global mobillm_agent
     if mobillm_agent is None:
-        return jsonify({"reply": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
+        return jsonify({"output": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
 
     try:
         response = mobillm_agent.chat(user_msg)
-        return jsonify({"reply": response['output']}), 200
+        return jsonify({"output": response['output']}), 200
 
     except Exception as e:
         traceback.print_exc()
@@ -159,11 +159,11 @@ def mobillm_security_analysis():
 
     global mobillm_agent
     if mobillm_agent is None:
-        return jsonify({"reply": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
+        return jsonify({"output": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
 
     try:
         response = mobillm_agent.security_analysis(user_msg)
-        return jsonify({"reply": response['output']}), 200
+        return jsonify(response), 200
 
     except Exception as e:
         traceback.print_exc()
@@ -188,55 +188,55 @@ def llm_config_route():
 
     return jsonify({"status": "ok"}), 200
 
-@app.route('/llm/chat', methods=['POST'])
-def llm_chat():
-    """
-    Receive user message and dispatch to the selected LLM.
-    Supports Gemini via google-genai, and GPT via OpenAI.
-    """
-    body = request.get_json() or {}
-    user_msg = body.get('message', '').strip()
-    if not user_msg:
-        return jsonify({"error": "No message provided"}), 400
+# @app.route('/llm/chat', methods=['POST'])
+# def llm_chat():
+#     """
+#     Receive user message and dispatch to the selected LLM.
+#     Supports Gemini via google-genai, and GPT via OpenAI.
+#     """
+#     body = request.get_json() or {}
+#     user_msg = body.get('message', '').strip()
+#     if not user_msg:
+#         return jsonify({"error": "No message provided"}), 400
 
-    api_key = llm_config.get('api_key')
-    model   = llm_config.get('model')
-    if not api_key or not model:
-        return jsonify({"error": "LLM config not set"}), 400
+#     api_key = llm_config.get('api_key')
+#     model   = llm_config.get('model')
+#     if not api_key or not model:
+#         return jsonify({"error": "LLM config not set"}), 400
 
-    # --- NEW: removing "models/"  ------------------------
-    if model.startswith("models/"):
-        model = model.split("/", 1)[1]          # -> "gemini-1.5-flash-latest"
-    # --------------------------------------------------------
+#     # --- NEW: removing "models/"  ------------------------
+#     if model.startswith("models/"):
+#         model = model.split("/", 1)[1]          # -> "gemini-1.5-flash-latest"
+#     # --------------------------------------------------------
 
-    try:
-        # Gemini path
-        if model.lower().startswith('gemini'):
-            client = genai.Client(api_key=api_key)
-            resp = client.models.generate_content(
-                model=model,
-                contents=user_msg
-            )
-            reply = resp.text
+#     try:
+#         # Gemini path
+#         if model.lower().startswith('gemini'):
+#             client = genai.Client(api_key=api_key)
+#             resp = client.models.generate_content(
+#                 model=model,
+#                 contents=user_msg
+#             )
+#             reply = resp.text
 
-        # GPT path
-        elif model.lower().startswith('gpt'):
-            openai.api_key = api_key
-            # Use chat completion for GPT-4
-            chat_resp = openai.ChatCompletion.create(
-                model=model,
-                messages=[{"role":"user","content":user_msg}]
-            )
-            reply = chat_resp.choices[0].message.content.strip()
+#         # GPT path
+#         elif model.lower().startswith('gpt'):
+#             openai.api_key = api_key
+#             # Use chat completion for GPT-4
+#             chat_resp = openai.ChatCompletion.create(
+#                 model=model,
+#                 messages=[{"role":"user","content":user_msg}]
+#             )
+#             reply = chat_resp.choices[0].message.content.strip()
 
-        else:
-            return jsonify({"error": f"Unsupported model: {model}"}), 400
+#         else:
+#             return jsonify({"error": f"Unsupported model: {model}"}), 400
 
-        return jsonify({"reply": reply}), 200
+#         return jsonify({"reply": reply}), 200
 
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+#     except Exception as e:
+#         traceback.print_exc()
+#         return jsonify({"error": str(e)}), 500
 
 
 @app.route('/llm/models', methods=['GET'])

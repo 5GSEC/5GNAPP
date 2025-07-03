@@ -41,24 +41,24 @@ export default function MobiLLMPage() {
       return;
     }
 
-    fetch("http://localhost:8080/llm/models")
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        // If config not set, backend returns { error: "..."}; ignore that
-        if (Array.isArray(data.models)) {
-          setModelList(data.models);
-        } else {
-          console.warn("Model list error:", data.error);
-          setModelList([]);
-        }
-      })
-      .catch(err => {
-        console.error("Model list load failed:", err);
-        setModelList([]);
-      });
+    // fetch("http://localhost:8080/llm/models")
+    //   .then(res => {
+    //     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    //     return res.json();
+    //   })
+    //   .then(data => {
+    //     // If config not set, backend returns { error: "..."}; ignore that
+    //     if (Array.isArray(data.models)) {
+    //       setModelList(data.models);
+    //     } else {
+    //       console.warn("Model list error:", data.error);
+    //       setModelList([]);
+    //     }
+    //   })
+    //   .catch(err => {
+    //     console.error("Model list load failed:", err);
+    //     setModelList([]);
+    //   });
   }, [apiKey]);
 
   // 3) Save settings (POST config) and re-fetch models

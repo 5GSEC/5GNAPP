@@ -309,6 +309,7 @@ class MobiLLM_Multiagent:
         result = self.invoke(f"[security analysis] {query}")
 
         response_message = ""
+        response_payload = {}
 
         if "threat_summary" in result:
             response_message = response_message + f"{result['threat_summary']}"
@@ -326,6 +327,10 @@ class MobiLLM_Multiagent:
                     # if an interrupt has triggered, show the interrupt message to human for review
                     if "__interrupt__" in result.keys():
                         interrupt_value = result["__interrupt__"][0].value
+                        # extract modified config data
+                        updated_config = interrupt_value.split("\n\n")[1].replace("```", "").strip()
+                        response_payload["interrupted"] = True  
+                        response_payload["updated_config"] = updated_config
                         response_message = response_message + f"\n\n**Proposed Response**:\n\nMobiLLM has identified an actionable response to mitigate the event through RAN configuration tuning. Please read following action plan:\n\n{action_plan}\n\nMobiLLM can execute this response. Please review and choose whether to approve the action:\n\n{interrupt_value}\n\n"
             else:
                 # if not actionable, output the suggested response
@@ -335,7 +340,9 @@ class MobiLLM_Multiagent:
         #     print("Outcome:", result["outcome"])
         #     print("\n\n")
 
-        return {"output": response_message}
+        response_payload["output"] = response_message
+
+        return response_payload
 
 # --- Test Running the Agent ---
 if __name__ == "__main__":

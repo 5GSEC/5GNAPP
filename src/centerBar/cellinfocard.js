@@ -182,7 +182,7 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                       xAxis={[{
                         scaleType: 'time',
                         data: timestamps,
-                        position: 'none',
+                        // position: 'none',
                         ...(key === 'activeCells'
                           ? { min: minTs - 5, max: maxTs + 5 }
                           : key === 'totalUEs'

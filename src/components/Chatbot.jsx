@@ -71,7 +71,7 @@ export default function Chatbot() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Chat error');
-      setMessages(prev => [...prev, { sender: 'bot', text: data.reply }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: data.output }]);
     } catch (e) {
       setMessages(prev => [...prev, { sender: 'bot', text: 'Error: could not get reply' }]);
     }
