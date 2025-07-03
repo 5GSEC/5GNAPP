@@ -170,6 +170,36 @@ def mobillm_security_analysis():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/mobillm/sendLLMResumeCommand', methods=['POST'])
+def mobillm_resume_command():
+    """
+    Receive user message and dispatch to MobiLLM to resume action
+    """
+    body = request.get_json() or {}
+    type_msg = body.get('type', '').strip()
+    if not type_msg:
+        return jsonify({"error": "No type message provided"}), 400
+
+    config_data = body.get('config_data', '').strip()
+
+    resume_command = {}
+    resume_command['type'] = type_msg
+    if config_data:
+        resume_command['config_data'] = config_data
+
+    global mobillm_agent
+    if mobillm_agent is None:
+        return jsonify({"output": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
+
+    try:
+        response = mobillm_agent.resume(resume_command)
+        return jsonify(response), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/llm/config', methods=['GET', 'POST'])
 def llm_config_route():
     if request.method == 'GET':

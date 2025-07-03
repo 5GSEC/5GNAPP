@@ -7,7 +7,7 @@ import {
 import { Paper, Slide, IconButton, Box } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { Warning, Error, Info, SearchRounded as SearchRoundedIcon } from "@mui/icons-material";
-import { fetchSdlEventData } from "../backend/fetchUserData";
+import { fetchSdlEventData, sendLLMResumeCommand } from "../backend/fetchUserData";
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ReactMarkdown from 'react-markdown';
@@ -67,6 +67,8 @@ function IssuesPage() {
   const [genaiResponse, setGenaiResponse] = useState("");
   const [genaiLoading, setGenaiLoading] = useState(false);
   const [genaiError, setGenaiError] = useState(null);
+  const [genaiInterrupted, setgenaiInterrupted] = useState(null);
+  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState(null);
 
   // Cache for GenAI responses
   const genaiCache = useRef({});
@@ -104,6 +106,8 @@ function IssuesPage() {
           console.log(data);
           if (!res.ok) throw new Error(data.error || "Chat error");
           setGenaiResponse(data.output);
+          setgenaiInterrupted(data.interrupted || false);
+          setgenaiUpdatedConfig(data.updated_config || null);
           genaiCache.current[cacheKey] = data.output; // Store in cache
         } catch (e) {
           setGenaiError(e.message || "Unknown error");
@@ -383,6 +387,50 @@ function IssuesPage() {
                   {genaiResponse}
                 </ReactMarkdown>
               </Box>
+            )}
+            {/* Show Approve/Deny/Edit buttons if interrupted is true */}
+            {insightRow && genaiInterrupted === true && (
+              <>
+                <Button
+                  sx={{
+                    ml: 2,
+                    backgroundColor: '#388e3c',
+                    color: '#fff',
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#2e7031' },
+                  }}
+                  variant="contained"
+                  onClick={() => {sendLLMResumeCommand({"type": "accept"})}}
+                >
+                  Approve
+                </Button>
+                <Button
+                  sx={{
+                    ml: 2,
+                    backgroundColor: '#d32f2f',
+                    color: '#fff',
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#a31515' },
+                  }}
+                  variant="contained"
+                  onClick={() => {sendLLMResumeCommand({"type": "deny"})}}
+                >
+                  Deny
+                </Button>
+                <Button
+                  sx={{
+                    ml: 2,
+                    backgroundColor: '#1976d2',
+                    color: '#fff',
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#115293' },
+                  }}
+                  variant="contained"
+                  onClick={() => {/* Edit and Approve logic here */}}
+                >
+                  Edit and Approve
+                </Button>
+              </>
             )}
         </Box>
         <Box sx={{ p: 1, borderTop: "1px solid #eee", textAlign: "right" }}>

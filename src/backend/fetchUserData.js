@@ -198,6 +198,33 @@ function setSimulationMode() {
     });
 }
 
+function sendLLMResumeCommand(payload) {
+  return fetch("http://localhost:8080/mobillm/sendLLMResumeCommand", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+    .then(response => {
+      if (!response.ok) {
+        // If not 2xx, read error JSON and throw
+        return response.json().then(data => {
+          throw new Error(`HTTP ${response.status} - ${data.error}\nLogs: ${JSON.stringify(data.logs)}`);
+        });
+      }
+      // If 2xx, parse JSON
+      return response.json();
+    })
+    .then(data => {
+      // Return data to the caller
+      return data;
+    })
+    .catch(error => {
+      console.error("Send Resume command error:", error);
+      // Rethrow so the caller can catch in try/catch
+      throw error;
+    });
+}
+
 /* -------------------------------------------
    NEW: MobieXpert rules.pbest helpers
 ------------------------------------------- */
@@ -268,3 +295,4 @@ export { fetchChatSummary };
 export { fetchSdlEventData };
 export { mobiLLMChat };
 export { setSimulationMode };
+export { sendLLMResumeCommand };
