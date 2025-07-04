@@ -99,6 +99,9 @@ class MobiLLMAgent:
                 get_ue_mobiflow_data_all_tool,
                 get_ue_mobiflow_data_by_index_tool,
                 get_ue_mobiflow_description_tool,
+                get_bs_mobiflow_data_all_tool,
+                get_bs_mobiflow_data_by_index_tool,
+                get_bs_mobiflow_description_tool,
                 fetch_sdl_event_data_all_tool,
                 fetch_sdl_event_data_by_ue_id_tool,
                 fetch_sdl_event_data_by_cell_id_tool,
@@ -122,7 +125,7 @@ class MobiLLMAgent:
                 get_mitre_fight_technique_by_id,
                 get_ran_cu_config_tool,
                 update_ran_cu_config_tool,
-                reboot_ran_cu_tool
+                # reboot_ran_cu_tool
             ]
         except AttributeError as e:
             print(f"Error creating Tools: {e}. This often means a function is missing a docstring or is not correctly imported.")
@@ -231,6 +234,10 @@ if __name__ == "__main__":
     queries = [
         # "How many UEs are currently connected to cell ID 12345678?"
 
+        # "How many Base stations are currently connected to the network?"
+
+        "How many UEs are currently connected to base station ID 10000?"
+
         # "Explain the anomaly events detected on UE ID 38940, analyze the UE traffic data and provide a more in-depth analysis beyond the provided descriptions in the event data, but keep the response as concise as possible and up to the point."
 
         # "Explain the Blind DoS attack detected and propose mitigation of this attack"
@@ -255,12 +262,12 @@ if __name__ == "__main__":
         # 2. Recommended effective countermeasures to address this problem.
         # '''
 
-        '''
-        Provide an in-depth analysis on the events detected on UE 38940, including:
-        1. An explanation of the threat or anomaly beyond the given description, combine the analysis using the event data and associated MobiFlow data of the UE.
-        2. Based on the analysis report, try to classify the identified threats using the MiTRE fight techniques. For the output, please provide the MiTRE Fight technique ID (such as "FGT1588") that you believe the threat or anomaly belongs to.
-        3. If you have classified the threat or anomaly into a specific MiTRE Fight technique, report the corresponding mitigations in that MiTRE Fight technique.
-        '''
+        # '''
+        # Provide an in-depth analysis on the events detected on UE 38940, including:
+        # 1. An explanation of the threat or anomaly beyond the given description, combine the analysis using the event data and associated MobiFlow data of the UE.
+        # 2. Based on the analysis report, try to classify the identified threats using the MiTRE fight techniques. For the output, please provide the MiTRE Fight technique ID (such as "FGT1588") that you believe the threat or anomaly belongs to.
+        # 3. If you have classified the threat or anomaly into a specific MiTRE Fight technique, report the corresponding mitigations in that MiTRE Fight technique.
+        # '''
     ]
 
     for user_query in queries:
@@ -268,8 +275,8 @@ if __name__ == "__main__":
         print("================================================")
         mobillm_agent = MobiLLMAgent()
         if mobillm_agent.init_successful() is True:
-            # response = mobillm_agent.chat(user_query)
-            response = mobillm_agent.security_analysis(user_query)
+            response = mobillm_agent.chat(user_query)
+            # response = mobillm_agent.security_analysis(user_query)
             print("------------------------------------------------")
             print(f"Final Answer from Agent: {response['output']}")
             print("================================================")

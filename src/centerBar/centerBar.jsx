@@ -5,9 +5,10 @@ import { deployXapp, undeployXapp, buildXapp } from '../backend/fetchUserData';
 import refreshIcond from '../assets/refresh.png';
 import './centerBar.css'; // Import the external CSS file for the banner, animations, etc.
 import { FaArrowRight } from 'react-icons/fa'; // Import an icon from react-icons
-import { Box } from "@mui/material";
+import { Box } from "@mui/material/index.js"; // added .js 
 import ServiceGrid from './servicegrid'; // Adjust the path based on the file location
 import ActiveCellInfo from './cellinfocard'; // Adjust the path based on the file location
+
 
 /**
  * Wrapper: main layout container.
@@ -44,7 +45,7 @@ const StatusIndicator = styled.span`
   margin-right: 8px;
 `;
 
-function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
+function CenterBar({ setNetwork, setService, setEvent, network, events, services, bsId, ueId }) {
   // Banner message and visibility
   const [bannerMessage, setBannerMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -91,7 +92,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
     } catch (e) {
       showNotification(`Deploy of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setEvent, setService);
+      updateData(setNetwork, setEvent, setService);
     }
   };
 
@@ -106,7 +107,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
     } catch (e) {
       showNotification(`Undeploy of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setEvent, setService);
+      updateData(setNetwork, setEvent, setService);
     }
   };
 
@@ -121,43 +122,8 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
     } catch (e) {
       showNotification(`Build of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setEvent, setService);
+      updateData(setNetwork, setEvent, setService);
     }
-  };
-
-  // Below are your event-counting helper functions, unchanged
-  const getTotalEventsGlobal = () => {
-    return Object.values(bsevent).reduce((total, bs) => {
-      if (!bs.ue) return total;
-      return total + Object.values(bs.ue).reduce(
-        (ueTotal, ue) => ueTotal + Object.keys(ue.event).length,
-        0
-      );
-    }, 0);
-  };
-
-  const getCriticalEventsGlobal = () => {
-    return Object.values(bsevent).reduce((total, bs) => {
-      if (!bs.ue) return total;
-      return total + Object.values(bs.ue).reduce((ueTotal, ue) => {
-        return ueTotal + Object.values(ue.event).filter(ev => ev.Level === 'Critical').length;
-      }, 0);
-    }, 0);
-  };
-
-  const getTotalEvents = (cellId) => {
-    if (!bsevent[cellId] || !bsevent[cellId].ue) return 0;
-    return Object.values(bsevent[cellId].ue).reduce(
-      (sum, ueObj) => sum + Object.keys(ueObj.event).length,
-      0
-    );
-  };
-
-  const getCriticalEvents = (cellId) => {
-    if (!bsevent[cellId] || !bsevent[cellId].ue) return 0;
-    return Object.values(bsevent[cellId].ue).reduce((sum, ueObj) => {
-      return sum + Object.values(ueObj.event).filter(ev => ev.Level === 'Critical').length;
-    }, 0);
   };
 
   return (
@@ -173,7 +139,7 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
 
       <Box sx={{ display: "flex", gap: 2, padding: 0, width: "100%" }}>
         {/* First container: RIC Services */}
-        <Box sx={{ flex: 1, width: "55%" }}>
+        <Box sx={{ flex: 1, width: "50%" }}>
           <ServiceGrid
             services={services}
             handleBuild={handleBuild}
@@ -183,133 +149,18 @@ function CenterBar({ setEvent, setService, bsevent, services, bsId, ueId }) {
         </Box>
 
         {/* Second container: Active Cell & UE Information */}
-        <Box sx={{ flex: 1, maxWidth: "45%" }}>
+        <Box sx={{ display: "flex", maxWidth: "70%", width: "45%" }}>
           <ActiveCellInfo
-            bsevent={bsevent}
+            network={network}
+            events={events}
             bsId={bsId}
+            setNetwork={setNetwork}
             setEvent={setEvent}
             setService={setService}
             updateData={updateData}
           />
         </Box>
       </Box>
-
-      {/* <Wrapper> */}
-        {/* First container: RIC Services */}
-        {/* <Container style={{ width: '50%' }}>
-          <h2 style={{ marginTop: '0em' }}>SE-RAN AISecOps Services</h2>
-          <div>
-            {Object.keys(services).map((svcName, idx) => {
-              const rawData = services[svcName] || "";
-              const parts = rawData.split(';');
-              const status = parts[2] || 'Inactive';
-              const uptime = parts[4] || '';
-              const displayStatus = (status !== 'Inactive')
-                ? `${status} (${uptime})`
-                : status;
-
-              return (
-                <div key={idx} style={{ marginBottom: '1em' }}>
-                  <p style={{ margin: 0 }}>
-                    <StatusIndicator status={status} />
-                    <strong>Service:</strong> {svcName} &nbsp;&nbsp;
-                    <strong>Status:</strong> {displayStatus}
-                  </p>
-                  <button onClick={() => handleBuild(svcName)}>Build</button>
-                  <button onClick={() => handleDeploy(svcName)} style={{ marginLeft: '8px' }}>Deploy</button>
-                  <button onClick={() => handleUndeploy(svcName)} style={{ marginLeft: '8px' }}>Undeploy</button>
-                </div>
-              );
-            })}
-          </div>
-        </Container> */}
-
-        {/* Second container: Active Cell & UE Information */}
-        {/* <Container style={{ width: '50%' }}>
-          <div style={{ display: 'flex' }}>
-            <h2 style={{ margin: '0em' }}>Active Cell and UE Information</h2>
-            <button
-              style={{
-                background: 'transparent',
-                border: 'transparent',
-                cursor: 'pointer',
-                marginTop: '3px',
-                height: '100%',
-              }}
-              onClick={() => updateData(setEvent, setService)}
-              className='CenterBarTitle'
-            >
-              <img src={refreshIcond} alt="sync icon" style={{ width: '20px', height: '20px' }} />
-            </button>
-          </div>
-          <div>
-            {Object.keys(bsevent).map((cellId, index) => {
-              const ueCount = bsevent[cellId]?.ue
-                ? Object.keys(bsevent[cellId].ue).length
-                : 0;
-              const repPeriod = bsevent[cellId].report_period || 0;
-              return (
-                <div key={index}>
-                  <p>
-                    <strong>Total Events</strong>: {getTotalEvents(bsId)} &nbsp;&nbsp;
-                    <strong>Critical Events</strong>: {getCriticalEvents(bsId)}
-                  </p>
-                  <p>
-                    <strong>Cell ID:</strong> {cellId} &nbsp;&nbsp;
-                    <strong>Active UEs:</strong> {ueCount} &nbsp;&nbsp;
-                    <strong>Report interval:</strong> {repPeriod / 1000}s
-                  </p>
-                  {bsevent[cellId]?.ue &&
-                    Object.keys(bsevent[cellId].ue).map((ueId) => (
-                      <p key={ueId} style={{ display: 'flex', alignItems: 'center' }}>
-                        <FaArrowRight style={{ marginRight: '8px', color: '#11182E' }} />
-                        <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
-                        <strong>S-TMSI:</strong> {bsevent[cellId].ue[ueId]?.s_tmsi || 'N/A'}
-                      </p>
-                    ))}
-                </div>
-              );
-            })}
-          </div>
-        </Container> */}
-
-        {/* Third container: Network Events
-        <Container style={{ width: '20%' }}>
-          <div style={{ display: 'flex' }}>
-            <h2 style={{ marginTop: '0em' }}>Network Events</h2>
-          </div>
-          <strong>Current Cell:</strong> {bsId}
-          <p><strong>Current UE:</strong> {ueId}</p>
-          <div>
-            {bsevent[bsId] && bsevent[bsId].ue && bsevent[bsId].ue[ueId] ? (
-              <div>
-                {bsId && ueId && (
-                  <>
-                    <strong>Total Events</strong>: {Object.keys(bsevent[bsId].ue[ueId].event).length}
-                    <p>
-                      <strong>Critical Events</strong>: {Object.values(bsevent[bsId].ue[ueId].event).filter(ev => ev.Level === 'Critical').length}
-                    </p>
-                  </>
-                )}
-              </div>
-            ) : bsId && !ueId ? (
-              <div>
-                <strong>Total Events</strong>: {getTotalEvents(bsId)}
-                <p>
-                  <strong>Critical Events</strong>: {getCriticalEvents(bsId)}
-                </p>
-              </div>
-            ) : (
-              <div>
-                <strong>Total Events</strong>: {getTotalEventsGlobal()}
-                <p>
-                  <strong>Critical Events</strong>: {getCriticalEventsGlobal()}
-                </p>
-              </div>
-            )}
-          </div>
-        </Container> */}
-      {/* </Wrapper> */}
     </>
   );
 }

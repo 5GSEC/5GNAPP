@@ -7,7 +7,7 @@ import {
 import { Paper, Slide, IconButton, Box } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { Warning, Error, Info, SearchRounded as SearchRoundedIcon } from "@mui/icons-material";
-import { fetchSdlEventData } from "../backend/fetchUserData";
+import { fetchSdlEventData, sendLLMResumeCommand } from "../backend/fetchUserData";
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ReactMarkdown from 'react-markdown';
@@ -26,15 +26,26 @@ function parseTimestamp(raw) {
 }
 
 // Function to build prompt template for genAI threat analysis
+// const buildGenAIPrompt = (row) => `
+// You are a cybersecurity expert focused on 5G network security. 
+// Analyze the following event which is either an abnormal event or an attack event. 
+// Provide the following information.
+// 1. An explanation of the threat or anomaly beyond the given description, combine the analysis using the event data and associated MobiFlow data of the UE.
+// 2. Based on the analysis report, try to classify the identified threats using the MiTRE fight techniques. For the output, please provide the MiTRE Fight technique ID (such as "FGT1588") that you believe the threat or anomaly belongs to.
+// 3. If you have classified the threat or anomaly into a specific MiTRE Fight technique, report the corresponding mitigations in that MiTRE Fight technique.
+
+
+// Event Details:
+// - Source: ${row.source}
+// - Name: ${row.name}
+// - Cell ID: ${row.cellID}
+// - UE ID: ${row.ueID}
+// - Time: ${row.time}
+// - Severity: ${row.severity}
+// - Description: ${row.description}
+// `;
+
 const buildGenAIPrompt = (row) => `
-You are a cybersecurity expert focused on 5G network security. 
-Analyze the following event which is either an abnormal event or an attack event. 
-Provide the following information.
-1. An explanation of the threat or anomaly beyond the given description, combine the analysis using the event data and associated MobiFlow data of the UE.
-2. Based on the analysis report, try to classify the identified threats using the MiTRE fight techniques. For the output, please provide the MiTRE Fight technique ID (such as "FGT1588") that you believe the threat or anomaly belongs to.
-3. If you have classified the threat or anomaly into a specific MiTRE Fight technique, report the corresponding mitigations in that MiTRE Fight technique.
-
-
 Event Details:
 - Source: ${row.source}
 - Name: ${row.name}
@@ -56,6 +67,9 @@ function IssuesPage() {
   const [genaiResponse, setGenaiResponse] = useState("");
   const [genaiLoading, setGenaiLoading] = useState(false);
   const [genaiError, setGenaiError] = useState(null);
+  const [genaiInterrupted, setgenaiInterrupted] = useState(null);
+  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState(null);
+  const [genaiActionResponse, setgenaiActionResponse] = useState(null);
 
   // Cache for GenAI responses
   const genaiCache = useRef({});
@@ -90,9 +104,12 @@ function IssuesPage() {
             body: JSON.stringify({ message: prompt }),
           });
           const data = await res.json();
+          console.log(data);
           if (!res.ok) throw new Error(data.error || "Chat error");
-          setGenaiResponse(data.reply);
-          genaiCache.current[cacheKey] = data.reply; // Store in cache
+          setGenaiResponse(data.output);
+          setgenaiInterrupted(data.interrupted || false);
+          setgenaiUpdatedConfig(data.updated_config || null);
+          genaiCache.current[cacheKey] = data.output; // Store in cache
         } catch (e) {
           setGenaiError(e.message || "Unknown error");
         } finally {
@@ -148,13 +165,13 @@ function IssuesPage() {
                 <Error color="error" /> {params.value}
               </>
             );
-          case "High":
+          case "Warning":
             return (
               <>
                 <Warning color="warning" /> {params.value}
               </>
             );
-          case "Medium":
+          case "Info":
             return (
               <>
                 <Info color="info" /> {params.value}
@@ -316,9 +333,9 @@ function IssuesPage() {
           position: "fixed",
           top: 80,
           right: 32,
-          width: 500,
+          width: 800,
           maxWidth: "90vw",
-          height: 500,
+          height: 600,
           zIndex: 1400,
           display: "flex",
           flexDirection: "column",
@@ -327,6 +344,8 @@ function IssuesPage() {
           background: "rgba(255,255,255,0.95)",
           backdropFilter: "blur(8px)",
           border: "1px solid rgba(200,200,200,0.3)",
+          resize: "both",           // <-- add this
+          overflow: "auto",         // <-- and this
         }}
       >
         <Box
@@ -369,6 +388,73 @@ function IssuesPage() {
                   {genaiResponse}
                 </ReactMarkdown>
               </Box>
+            )}
+            {/* Show Approve/Deny/Edit buttons if interrupted is true */}
+            {insightRow && genaiInterrupted === true && (
+              <>
+                <Button
+                  sx={{
+                    ml: 2,
+                    backgroundColor: '#388e3c',
+                    color: '#fff',
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#2e7031' },
+                  }}
+                  variant="contained"
+                  onClick={async () => {
+                    setgenaiInterrupted(false);
+                    try {
+                      const resp = await sendLLMResumeCommand({ type: "accept" });
+                      setgenaiActionResponse(resp.outcome);
+                      console.log(resp.outcome);
+                    } catch (e) {
+                      console.error("Approve action failed:", e);
+                    }
+                  }}
+                >
+                  Approve
+                </Button>
+                <Button
+                  sx={{
+                    ml: 2,
+                    backgroundColor: '#d32f2f',
+                    color: '#fff',
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#a31515' },
+                  }}
+                  variant="contained"
+                  onClick={async () => {
+                    setgenaiInterrupted(false);
+                    try {
+                      const resp = await sendLLMResumeCommand({ type: "deny" });
+                      setgenaiActionResponse(resp.outcome);
+                      console.log(resp.outcome);
+                    } catch (e) {
+                      console.error("Approve action failed:", e);
+                    }
+                  }}
+                >
+                  Deny
+                </Button>
+                <Button
+                  sx={{
+                    ml: 2,
+                    backgroundColor: '#1976d2',
+                    color: '#fff',
+                    borderRadius: 2,
+                    '&:hover': { backgroundColor: '#115293' },
+                  }}
+                  variant="contained"
+                  onClick={async () => {
+                    /* Edit and Approve logic here */
+                    let config_data = "test";
+                    sendLLMResumeCommand({"type": "edit", "config_data": config_data});
+                    setgenaiInterrupted(false);
+                  }}
+                >
+                  Edit and Approve
+                </Button>
+              </>
             )}
         </Box>
         <Box sx={{ p: 1, borderTop: "1px solid #eee", textAlign: "right" }}>

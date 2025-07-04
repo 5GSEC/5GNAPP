@@ -19,7 +19,7 @@ function fetchUserData(setEvent) {
     });
 }
 
-function fetchSdlData(setEvent) {
+function fetchSdlData(setNetwork) {
   fetch("http://localhost:8080/fetchSdlData", {
     method: 'GET',
     headers: {
@@ -33,7 +33,7 @@ function fetchSdlData(setEvent) {
       return response.json();
     })
     .then(data => {
-      setEvent(data);
+      setNetwork(data);
     })
     .catch(error => {
       console.error('Error:', error);
@@ -177,9 +177,9 @@ function fetchServiceStatus(setService) {
     });
 }
 
-function fetchCsvData(setEvent) {
-  fetch("http://localhost:8080/fetchCsvData", {
-    method: 'GET',
+function setSimulationMode() {
+  fetch("http://localhost:8080/setSimulationMode", {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     }
@@ -191,13 +191,39 @@ function fetchCsvData(setEvent) {
       return response.json();
     })
     .then(data => {
-      setEvent(data);
+      // console.log('Simulation mode set result:', data);
     })
     .catch(error => {
       console.error('Error:', error);
     });
 }
 
+function sendLLMResumeCommand(payload) {
+  return fetch("http://localhost:8080/mobillm/sendLLMResumeCommand", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+    .then(response => {
+      if (!response.ok) {
+        // If not 2xx, read error JSON and throw
+        return response.json().then(data => {
+          throw new Error(`HTTP ${response.status} - ${data.error}\nLogs: ${JSON.stringify(data.logs)}`);
+        });
+      }
+      // If 2xx, parse JSON
+      return response.json();
+    })
+    .then(data => {
+      // Return data to the caller
+      return data;
+    })
+    .catch(error => {
+      console.error("Send Resume command error:", error);
+      // Rethrow so the caller can catch in try/catch
+      throw error;
+    });
+}
 
 /* -------------------------------------------
    NEW: MobieXpert rules.pbest helpers
@@ -260,7 +286,6 @@ function mobiLLMChat() {
 
 export { fetchUserData };
 export { fetchSdlData };
-export { fetchCsvData };
 export { fetchServiceStatus };
 export { deployXapp };
 export { undeployXapp };
@@ -269,3 +294,5 @@ export { fetchRulesText, saveRulesText };
 export { fetchChatSummary };
 export { fetchSdlEventData };
 export { mobiLLMChat };
+export { setSimulationMode };
+export { sendLLMResumeCommand };

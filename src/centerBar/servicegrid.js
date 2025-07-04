@@ -7,16 +7,16 @@ const StatusIndicator = ({ status }) => {
   let color;
   switch (true) {
     case status.startsWith("Running"):
-      color = "green";
+      color = "#8BA84B";
       break;
     case status.startsWith("ContainerCreating"):
-      color = "orange";
+      color = "#ECD05F";
       break;
     case status.startsWith("Terminating"):
-      color = "orange";
+      color = "#ECD05F";
       break;
     case status.startsWith("Inactive"):
-      color = "red";
+      color = "#641B25";
       break;
     default:
       color = "gray";
@@ -63,7 +63,14 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
           <Button
             variant="contained"
             size="small"
-            sx={{ fontSize: "0.75rem" }}
+            sx={{
+              fontSize: "0.75rem",
+              backgroundColor: "#11182E",
+              color: "#fff",
+              '&:hover': {
+                backgroundColor: "#0E1326",
+              },
+            }}
             onClick={() => handleBuild(params.row.service)}
           >
             Build
@@ -71,8 +78,14 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
           <Button
             variant="contained"
             size="small"
-            color="success"
-            sx={{ fontSize: "0.75rem" }}
+            sx={{
+              fontSize: "0.75rem",
+              backgroundColor: "#4E6A66",
+              color: "#fff",
+              '&:hover': {
+                backgroundColor: "#435A57",
+              },
+            }}
             onClick={() => handleDeploy(params.row.service)}
           >
             Deploy
@@ -80,8 +93,14 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
           <Button
             variant="contained"
             size="small"
-            color="error"
-            sx={{ fontSize: "0.75rem" }}
+            sx={{
+              fontSize: "0.75rem",
+              backgroundColor: "#641B25",
+              color: "#fff",
+              '&:hover': {
+                backgroundColor: "#56161F",
+              },
+            }}
             onClick={() => handleUndeploy(params.row.service)}
           >
             Undeploy

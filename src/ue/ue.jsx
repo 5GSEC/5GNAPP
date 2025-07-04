@@ -16,20 +16,23 @@ import {
   IconButton,
   Button,
   Box,
+  Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-//TODO: add the timestamp to normal UE
-//TODO: change the UE and BS icon
-
 const fieldsToRender = [
-    "Event Name",
-    "Timestamp",
-    // "Affected base station ID",
-    // "Affected UE ID",
-    "Level",
-    "Description"
+    "name",
+    "timestamp",
+    "severity",
+    // "description"
   ];
+
+const fieldRenderNames = {
+  name: "Event Name",
+  timestamp: "Time",
+  severity: "Severity",
+  // Add more mappings as needed
+};
 
   const metadataFields = [
     "msg_id",
@@ -64,7 +67,7 @@ function parseTimestamp(raw) {
     }
   }
 
-const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId}) => {
+const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId, angle}) => {
     const [showInfo, setShowInfo] = useState(false);
     const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
@@ -79,46 +82,37 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
         const ueIcon = document.querySelector(`#_${ueId}`);
         if (!ueIcon) return;
     
-        // if backendEvent["event"] exist，check "Level" === "Critical"
-        let isCritical = false;
-        if (backendEvent && backendEvent.event) {
-          // event is an object, key=eventId
-          for (const eventId of Object.keys(backendEvent.event)) {
-            const singleEvent = backendEvent.event[eventId];
-            if (singleEvent["Level"] === "Critical") {
-              isCritical = true;
+        // Default to transparent
+        let bgColor = 'rgba(0,0,0,0)';
+
+        if (ueData && ueEvent) {
+          let foundLevel = null;
+          for (const eventId of Object.keys(ueEvent)) {
+            const singleEvent = ueEvent[eventId];
+            if (singleEvent["severity"] === "Critical") {
+              foundLevel = "Critical";
               break;
+            } else if (singleEvent["severity"] === "Warning") {
+              foundLevel = "Warning";
+            } else if (singleEvent["severity"] === "Info" && !foundLevel) {
+              foundLevel = "Info";
             }
           }
+          if (foundLevel === "Critical") {
+            bgColor = 'rgba(255, 0, 0, 0.25)'; // Red
+          } else if (foundLevel === "Warning") {
+            bgColor = 'rgba(255, 215, 0, 0.25)'; // Yellow
+          } else if (foundLevel === "Info") {
+            bgColor = 'rgba(0, 255, 0, 0.18)'; // Green
+          }
         }
-    
-        if (isCritical) {
-          ueIcon.style.background = 'rgba(255, 0, 0, 0.25)';
-        } else {
-          ueIcon.style.background = 'rgba(0,0,0,0)';
-        }
-      }, [backendEvent, ueId]);
 
-    useEffect(() => {
-        const handleMouseActions = () => {
-            const interval = setInterval(() => {
-                if (ueIconRef.current && ueIconRef.current.matches(':hover')) {
-                    setShowInfo(true);
-                    setHoveredUeId(ueId);
-                } else if (click) {
-                    setShowInfo(false);
-                }
-            }, 750);
-            return interval;
-        };
-        const interval2 = handleMouseActions();
-
-        return () => { clearInterval(interval2) };
-      }, [click, ueId, setHoveredUeId]
-    );
+        ueIcon.style.background = bgColor;
+      }, [ueData, ueId, ueEvent]);
 
   const handleUeMouseOnEnter = (e) => {
     setHoveredUeId(ueId);
+    setShowInfo(true);
   };
 
   const handleUeMouseOnLeave = (e) => {
@@ -137,6 +131,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
     setClickPos({ x: e.clientX, y: e.clientY });
     setHoveredUeId(ueId);
     setMouseClicked(true);
+    setShowInfo(false);
     setShowDetails((prev) => !prev);
   };
 
@@ -147,20 +142,19 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
     setBsHoverId(null);
   };
 
-
   // If there's no "event" or it's empty,
   // we define a "fallback" singleEvent with some default fields
   // so we still show something.
-  const hasEvent = backendEvent?.event && Object.keys(backendEvent.event).length > 0;
+  const hasEvent = Object.keys(ueEvent).length > 0;
            
   // We'll build an array of "renderable events".
   let eventsArray = [];
-  let eventsCount = Object.keys(backendEvent.event).length;
+  let eventsCount = Object.keys(ueEvent).length;
   if (hasEvent) {
     // Turn the event object into an array of { eventId, singleEvent } for convenience
-    eventsArray = Object.keys(backendEvent.event).map(eventId => ({
+    eventsArray = Object.keys(ueEvent).map(eventId => ({
       eventId,
-      singleEvent: backendEvent.event[eventId]
+      singleEvent: ueEvent[eventId]
     }));
   } else {
     // Provide a fallback "virtual event"
@@ -170,7 +164,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
         // "Event Name": "None",
         // "Level": "normal",
         // "Timestamp": Date.now(), // or some placeholder
-        // "Affected base station ID": backendEvent?.["Affected base station ID"] || "N/A",
+        // "Affected base station ID": ueData?.["Affected base station ID"] || "N/A",
         // "Affected UE ID": ueId,
         // "Description": "No event data"
       }
@@ -181,57 +175,105 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
 
   /**
    * prepare clicking metadata
-   * pretend that backend dats put “mobiflow” in backendEvent.mobiflow (array)
+   * pretend that backend dats put “mobiflow” in ueData.mobiflow (array)
    * for example test, we take mobiflow[0] as metadata
    */
   let metadataObj = [];
-  if (backendEvent && backendEvent.mobiflow && backendEvent.mobiflow.length > 0) {
-    // metadataObj = backendEvent.mobiflow[0]; 
-    backendEvent.mobiflow.forEach((item) => {
+  if (ueData && ueData.mobiflow && ueData.mobiflow.length > 0) {
+    // metadataObj = ueData.mobiflow[0]; 
+    ueData.mobiflow.forEach((item) => {
       metadataObj.push(item);
     });
   }
 
 
-
-    //const formattedTimestamp = backendEvent ? format(new Date(backendEvent.timestamp * 1000), 'PPpp') : '';
-    // const formattedTimestamp = backendEvent ? format(new Date(backendEvent.timestamp), 'PPpp') : '';
-    // let formattedTimestamp = '';
-    // if (backendEvent && backendEvent.timestamp !== undefined) {
-    //   const dateObj = parseTimestamp(backendEvent.timestamp);
-    //   if (dateObj && !isNaN(dateObj.getTime())) {
-    //     formattedTimestamp = format(dateObj, 'PPpp');
-    //   } else {
-    //     formattedTimestamp = '(Invalid timestamp)';
-    //   }
-    // }
-
+    //  Refined bottom label rule: only when angle is between 110 and 250
+    const labelOnBottom = angle >= 50 && angle <= 150;
 
     return (
-        <div className="ue-container">
+        <div className="ue-container"
+          onMouseEnter={handleUeMouseOnEnter}
+          onMouseLeave={handleUeMouseOnLeave}
+        >
+
+      {/* Show the UE ID label above or below the icon based on labelOnBottom prop */}
+      {!labelOnBottom && <div className="ue-label ue-label-top">{ueId}</div>}
+      <div
+        className="ue-icon"
+        style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }}
+        ref={ueIconRef}
+        onClick={handleUeClick}
+      >
+        <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
+      </div>
+      {labelOnBottom && <div className="ue-label ue-label-bottom">{ueId}</div>}
+
+
+            {/* NEW: permanent UE ID label above the icon */}
+            {/* <div className="ue-label">{ueId}</div>
 
             <div
                 className="ue-icon"
                 style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }} // Adjusted size for unhovered state
                 ref={ueIconRef}
-                onMouseEnter={handleUeMouseOnEnter}
-                onMouseLeave={handleUeMouseOnLeave}
                 onClick={handleUeClick}  // clicking event
             >
                 <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
-            </div>
+            </div> */}
 
             {showInfo && (
-                <div className="floating-window">
-                    <p>
-                      <strong>UE ID:</strong> {ueId} &nbsp;&nbsp;
-                      <strong>Events:</strong> {eventsCount}
-                    </p>
+                <Box className="floating-window" 
+                  sx={{
+                    background: "#f8fafd",
+                    transform: 'translate(50%, 15%)', 
+                    maxHeight: 320,
+                    overflowY: "auto",
+                    borderRadius: 2,
+                    p: 2,
+                  }}
+                >
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        UE ID:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {ueId}
+                      </Typography>
+                      &nbsp;&nbsp;
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        IMSI:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {ueData?.mobile_id || "N/A"}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        Last Update Time:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {(() => {
+                          const dateObj = parseTimestamp(ueData?.Timestamp);
+                          return dateObj && !isNaN(dateObj.getTime())
+                            ? format(dateObj, 'PPpp')
+                            : "N/A";
+                        })()}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        UE Events:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {eventsCount}
+                      </Typography>
+                    </Box>
 
                     {/* Render each event or fallback event */}
-                    {eventsArray.map(({ eventId, singleEvent }) => (
-                      <div key={eventId} style={{ marginBottom: '0.5em' }}>
+                    {eventsArray.map(({ eventId, singleEvent }, eventIdx) => (
+                        <Box key={eventId} sx={{ mb: 1 }}>
 
+                        {eventsCount > 0 && <Divider sx={{my: 1}}></Divider>}
 
                         {/* <p><em>Event ID: {eventId}</em></p> */}
 
@@ -240,20 +282,22 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                             return null;
                           }
 
-                          if (fieldName === "Timestamp") {
-
-
-                            const rawTime = singleEvent["Timestamp"];
+                          if (fieldName === "timestamp") {
+                            const rawTime = singleEvent["timestamp"];
                             const dateObj = parseTimestamp(rawTime);
                             let displayTime = "(Invalid timestamp)";
                             if (dateObj && !isNaN(dateObj.getTime())) {
                               displayTime = format(dateObj, 'PPpp');
                             }
                             return (
-                              <div key={fieldName} className="info-row">
-                                <span className="info-label">{fieldName}:</span>
-                                <span className="info-value">{displayTime}</span>
-                              </div>
+                              <Box key={fieldName} sx={{ display: 'flex', alignItems: 'top', textAlign: 'left', mb: 0 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 110, textAlign: 'left' }}>
+                                  {fieldRenderNames[fieldName] || fieldName}:
+                                </Typography>
+                                <Typography variant="body2" sx={{ ml: 0, textAlign: 'left' }}>
+                                  {displayTime}
+                                </Typography>
+                              </Box>
                             );
                           } else {
                             // If it's an object, do JSON.stringify
@@ -261,17 +305,24 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                             if (typeof val === 'object' && val !== null) {
                               val = JSON.stringify(val);
                             }
+                            let renderName = fieldRenderNames[fieldName] || fieldName
+                            if (fieldName === "name")
+                              renderName = "Event " + (eventIdx + 1);
                             return (
-                              <div key={fieldName} className="info-row">
-                                <span className="info-label">{fieldName}:</span>
-                                <span className="info-value">{val}</span>
-                              </div>
+                              <Box key={fieldName} sx={{ display: 'flex', alignItems: 'top', textAlign: 'left', mb: 0 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 110, textAlign: 'left' }}>
+                                  {renderName}:
+                                </Typography>
+                                <Typography variant="body2" sx={{ ml: 0, textAlign: 'left' }}>
+                                  {val}
+                                </Typography>
+                              </Box>
                             );
                           }
                         })}
-                      </div>
+                      </Box>
                     ))}
-                  </div>
+                  </Box>
       )}
 
       {/* showinfo window for clicking */}
@@ -346,7 +397,7 @@ const UeIcon = ({ backendEvent, ueId, isHovered, click, setHoveredUeId, setIsBsH
                       "nas_cipher_alg",
                       "nas_integrity_alg",
                     ].map((label) => (
-                      <TableCell key={label}>{backendEvent?.[label] || "N/A"}</TableCell>
+                      <TableCell key={label}>{ueData?.[label] || "N/A"}</TableCell>
                     ))}
                   </TableRow>
                 </TableBody>

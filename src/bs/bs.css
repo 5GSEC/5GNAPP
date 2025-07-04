@@ -1,18 +1,48 @@
+/* container already has position:relative — keep as-is */
 .icon-container {
-    position: relative;
-    display: inline-block;
-    transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: transform 0.2s ease;
+  min-width: 80px;
 }
 
-.bs-icon {
-    width: 50px;
-    height: 50px;
-    transition: transform 0.3s ease;
+
+/* base-station icon */
+.bs-icon { width: 50px; height: 50px; transition: transform 0.2s ease; }
+
+/* --- BS label (always visible under tower) --- */
+.bs-core {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   
 }
 
-.icon-container.hovered .bs-icon {
-    transform: scale(1.5);
+
+.bs-label {
+  margin-top: 0px;
+  max-width: 70px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  color: #111;
+  font-weight: 500;
 }
+
+.icon-container.hovered .bs-core {
+  transform: scale(1.25);
+}
+
+
+
+.icon-container.hovered .bs-label {
+  transform: translateX(5%) scale(1.25);
+  font-size: 0.9rem;
+}
+
 
 .branches {
     position: absolute;
@@ -59,9 +89,10 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding: 10px;
+    padding: 5px;
     background-color: rgba(255, 255, 255, 1);
     border: 1px solid #ccc;
+    border-radius: 2px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     z-index: 1001;
     width: auto;             
@@ -100,4 +131,11 @@
     white-space: nowrap; /* Prevents text wrapping */
     overflow: hidden;
     text-overflow: ellipsis; /* Adds "..." if too long */
+}
+
+
+
+/* responsive tweak */
+@media (max-width: 600px) {
+  .bs-label { max-width: 40px; font-size: 0.7rem; top: 46px; }
 }
