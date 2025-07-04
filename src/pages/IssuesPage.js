@@ -69,6 +69,7 @@ function IssuesPage() {
   const [genaiError, setGenaiError] = useState(null);
   const [genaiInterrupted, setgenaiInterrupted] = useState(null);
   const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState(null);
+  const [genaiActionResponse, setgenaiActionResponse] = useState(null);
 
   // Cache for GenAI responses
   const genaiCache = useRef({});
@@ -332,9 +333,9 @@ function IssuesPage() {
           position: "fixed",
           top: 80,
           right: 32,
-          width: 500,
+          width: 800,
           maxWidth: "90vw",
-          height: 500,
+          height: 600,
           zIndex: 1400,
           display: "flex",
           flexDirection: "column",
@@ -400,7 +401,16 @@ function IssuesPage() {
                     '&:hover': { backgroundColor: '#2e7031' },
                   }}
                   variant="contained"
-                  onClick={() => {sendLLMResumeCommand({"type": "accept"})}}
+                  onClick={async () => {
+                    setgenaiInterrupted(false);
+                    try {
+                      const resp = await sendLLMResumeCommand({ type: "accept" });
+                      setgenaiActionResponse(resp.outcome);
+                      console.log(resp.outcome);
+                    } catch (e) {
+                      console.error("Approve action failed:", e);
+                    }
+                  }}
                 >
                   Approve
                 </Button>
@@ -413,7 +423,16 @@ function IssuesPage() {
                     '&:hover': { backgroundColor: '#a31515' },
                   }}
                   variant="contained"
-                  onClick={() => {sendLLMResumeCommand({"type": "deny"})}}
+                  onClick={async () => {
+                    setgenaiInterrupted(false);
+                    try {
+                      const resp = await sendLLMResumeCommand({ type: "deny" });
+                      setgenaiActionResponse(resp.outcome);
+                      console.log(resp.outcome);
+                    } catch (e) {
+                      console.error("Approve action failed:", e);
+                    }
+                  }}
                 >
                   Deny
                 </Button>
@@ -426,7 +445,12 @@ function IssuesPage() {
                     '&:hover': { backgroundColor: '#115293' },
                   }}
                   variant="contained"
-                  onClick={() => {/* Edit and Approve logic here */}}
+                  onClick={async () => {
+                    /* Edit and Approve logic here */
+                    let config_data = "test";
+                    sendLLMResumeCommand({"type": "edit", "config_data": config_data});
+                    setgenaiInterrupted(false);
+                  }}
                 >
                   Edit and Approve
                 </Button>
