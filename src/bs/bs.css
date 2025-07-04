@@ -12,10 +12,6 @@
 /* base-station icon */
 .bs-icon { width: 50px; height: 50px; transition: transform 0.2s ease; }
 
-
-.icon-container.hovered .bs-icon  { transform: scale(1.25); }
-.icon-container.hovered .bs-label { transform: translateX(-50%) scale(1.25); font-size: 0.9rem; }
-
 /* --- BS label (always visible under tower) --- */
 .bs-core {
   display: flex;
@@ -25,7 +21,7 @@
 
 
 .bs-label {
-  margin-top: 4px;
+  margin-top: 0px;
   max-width: 70px;
   font-size: 0.75rem;
   white-space: nowrap;
@@ -43,7 +39,7 @@
 
 
 .icon-container.hovered .bs-label {
-  transform: translateX(-50%) scale(1.25);
+  transform: translateX(5%) scale(1.25);
   font-size: 0.9rem;
 }
 

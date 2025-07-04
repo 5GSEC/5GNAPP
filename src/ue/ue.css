@@ -97,7 +97,7 @@
   font-weight: 500;
   max-width: 60px;
   white-space: nowrap;
-  font-family: 'Courier New', Courier, monospace; 
+  /* font-family: 'Courier New', Courier, monospace;  */
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
