@@ -180,7 +180,7 @@ def mobillm_resume_command():
     if not type_msg:
         return jsonify({"error": "No type message provided"}), 400
 
-    config_data = body.get('config_data', '').strip()
+    config_data = body.get('config_data', '')
 
     resume_command = {}
     resume_command['type'] = type_msg
@@ -193,7 +193,12 @@ def mobillm_resume_command():
 
     try:
         response = mobillm_agent.resume(resume_command)
-        return jsonify(response), 200
+        response_payload = dict(response)
+        if "__interrupt__" in response.keys():
+            interrupt_value = response["__interrupt__"][0].value
+            response_payload["interrupted"] = True
+            response_payload["interrupt_prompt"] = interrupt_value.split("```")[0]
+        return jsonify(response_payload), 200
 
     except Exception as e:
         traceback.print_exc()

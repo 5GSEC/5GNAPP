@@ -303,9 +303,10 @@ class MobiLLM_Multiagent:
         if "chat_response" in result:
             return {"output": result["chat_response"]}
         else:
-            return  {"output": "No chat response available."}
+            return {"output": "No chat response available."}
 
     def security_analysis(self, query: str) -> str:
+        # return {"output": 'Threat Analysis Report: RRC Null Cipher Event', "interrupted": True, "updated_config": "Example config"} # for testing
         result = self.invoke(f"[security analysis] {query}")
 
         response_message = ""
@@ -328,17 +329,15 @@ class MobiLLM_Multiagent:
                     if "__interrupt__" in result.keys():
                         interrupt_value = result["__interrupt__"][0].value
                         # extract modified config data
-                        updated_config = interrupt_value.split("\n\n")[1].replace("```", "").strip()
+                        updated_config = interrupt_value.split("```")[1]
                         response_payload["interrupted"] = True  
+                        response_payload["action_strategy"] = actionable_strategy
                         response_payload["updated_config"] = updated_config
-                        response_message = response_message + f"\n\n**Proposed Response**:\n\nMobiLLM has identified an actionable response to mitigate the event through RAN configuration tuning. Please read following action plan:\n\n{action_plan}\n\nMobiLLM can execute this response. Please review and choose whether to approve the action:\n\n{interrupt_value}\n\n"
+                        response_payload["interrupt_prompt"] = interrupt_value.split("```")[0]
+                        response_message = response_message + f"\n\n**Proposed Response**:\n\nMobiLLM has identified an actionable response to mitigate the event through RAN configuration tuning. Please read following action plan:\n\n{action_plan}\n\n**Would you like to review and approve MobiLLM's actions?**"
             else:
                 # if not actionable, output the suggested response
                 response_message = response_message + f"""\n\n**Suggested Response**:\n\n{action_plan}\n\n"""
-
-        # if "outcome" in result:
-        #     print("Outcome:", result["outcome"])
-        #     print("\n\n")
 
         response_payload["output"] = response_message
 

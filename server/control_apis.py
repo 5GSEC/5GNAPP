@@ -11,17 +11,17 @@ def get_ran_cu_config_tool() -> str:
     Return:
         str: The configuration of the currently running CU.
     '''
-    return get_oai_ran_cu_config()
+    # load OAI RAN path from env variable
+    oai_ran_cu_config_path = os.getenv('OAI_RAN_CU_CONFIG_PATH', "")
+    if oai_ran_cu_config_path is None or oai_ran_cu_config_path == "":
+        return "OAI RAN CU configuration path is not set in environment variables."
 
-def get_oai_ran_cu_config() -> str:
+    return get_oai_ran_cu_config(oai_ran_cu_config_path)
+
+def get_oai_ran_cu_config(oai_ran_cu_config_path: str) -> str:
     '''
     Get the OAI RAN CU configuration 
     '''
-    # load OAI RAN path from env variable
-    oai_ran_cu_config_path = os.getenv('OAI_RAN_CU_CONFIG_PATH', '/opt/oai-ran')
-    if oai_ran_cu_config_path is None or oai_ran_cu_config_path == "":
-        return "OAI RAN CU configuration path is not set in environment variables."
-    
     # read the configuration file
     if os.path.exists(oai_ran_cu_config_path):
         try:
@@ -41,28 +41,29 @@ def update_ran_cu_config_tool(config_data: str) -> str:
     Args:
         config_data (str): The new configuration data to be written to the CU.
     '''
+    # load OAI RAN path from env variable
+    oai_ran_cu_config_path = os.getenv('OAI_RAN_CU_CONFIG_PATH', '')
+    if oai_ran_cu_config_path is None or oai_ran_cu_config_path == "":
+        return "OAI RAN CU configuration path is not set in environment variables."
+
     response = interrupt(  
-        f"Trying to call `update_ran_cu_config_tool` with the following config \n\n```{{'config_data': {config_data}}}```\n\n**Please approve or deny this action.**"
+        f"Trying to call `update_ran_cu_config_tool` to update config at {oai_ran_cu_config_path} with the following content \n\n```{config_data}```\n\n**Please approve or deny this action.**"
     )
     if response["type"] == "accept":
         pass
     elif response["type"] == "edit":
-        config_data = response["args"]["config_data"]
+        config_data = response["config_data"]
     elif response["type"] == "deny":
         return "update_ran_cu_config_tool operation denied by the user."
     else:
         raise ValueError(f"Unknown response type: {response['type']}")
 
-    return update_oai_ran_cu_config(config_data)
+    return update_oai_ran_cu_config(config_data, oai_ran_cu_config_path)
 
-def update_oai_ran_cu_config(config_data: str) -> str:
+def update_oai_ran_cu_config(config_data: str, oai_ran_cu_config_path: str) -> str:
     '''
     Update the OAI RAN CU configuration 
     '''
-    # load OAI RAN path from env variable
-    oai_ran_cu_config_path = os.getenv('OAI_RAN_CU_CONFIG_PATH', '/opt/oai-ran')
-    if oai_ran_cu_config_path is None or oai_ran_cu_config_path == "":
-        return "OAI RAN CU configuration path is not set in environment variables."
     
     # write the configuration data to the file
     try:

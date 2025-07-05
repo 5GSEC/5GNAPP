@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   Typography, Grid, Card, CardContent, FormControl, InputAdornment, OutlinedInput, Button,
-  Dialog, DialogTitle, DialogContent, DialogActions
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";
 import { Paper, Slide, IconButton, Box } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -11,6 +11,10 @@ import { fetchSdlEventData, sendLLMResumeCommand } from "../backend/fetchUserDat
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ReactMarkdown from 'react-markdown';
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
+import InfoIcon from "@mui/icons-material/Info";
+
 
 function parseTimestamp(raw) {
   if (!raw) return null;
@@ -68,8 +72,14 @@ function IssuesPage() {
   const [genaiLoading, setGenaiLoading] = useState(false);
   const [genaiError, setGenaiError] = useState(null);
   const [genaiInterrupted, setgenaiInterrupted] = useState(null);
+  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState(null);
+  const [genaiActionStrategy, setgenaiActionStrategy] = useState(null);
   const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState(null);
   const [genaiActionResponse, setgenaiActionResponse] = useState(null);
+
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [editableConfig, setEditableConfig] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   // Cache for GenAI responses
   const genaiCache = useRef({});
@@ -104,10 +114,12 @@ function IssuesPage() {
             body: JSON.stringify({ message: prompt }),
           });
           const data = await res.json();
-          console.log(data);
+          // console.log(data);
           if (!res.ok) throw new Error(data.error || "Chat error");
           setGenaiResponse(data.output);
           setgenaiInterrupted(data.interrupted || false);
+          setgenaiActionStrategy(data.action_strategy || null);
+          setgenaiInterruptPrompt(data.interrupt_prompt || null);
           setgenaiUpdatedConfig(data.updated_config || null);
           genaiCache.current[cacheKey] = data.output; // Store in cache
         } catch (e) {
@@ -336,7 +348,7 @@ function IssuesPage() {
           width: 800,
           maxWidth: "90vw",
           height: 600,
-          zIndex: 1400,
+          // zIndex: 1400,
           display: "flex",
           flexDirection: "column",
           borderRadius: 4,
@@ -395,6 +407,31 @@ function IssuesPage() {
                 <Button
                   sx={{
                     ml: 2,
+                    backgroundColor: '#11182E',
+                    color: '#fff',
+                    minWidth: 0,
+                    px: 2,
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    '&:hover': {
+                      backgroundColor: '#2d3c6b',
+                    },
+                  }}
+                  variant="contained"
+                  onClick={() => {
+                    setEditableConfig(
+                      typeof genaiUpdatedConfig === "object"
+                        ? JSON.stringify(genaiUpdatedConfig, null, 2)
+                        : (genaiUpdatedConfig || "")
+                    );
+                    setReviewDialogOpen(true);
+                  }}
+                >
+                  Review Actions
+                </Button>
+                {/* <Button
+                  sx={{
+                    ml: 2,
                     backgroundColor: '#388e3c',
                     color: '#fff',
                     borderRadius: 2,
@@ -446,14 +483,13 @@ function IssuesPage() {
                   }}
                   variant="contained"
                   onClick={async () => {
-                    /* Edit and Approve logic here */
                     let config_data = "test";
                     sendLLMResumeCommand({"type": "edit", "config_data": config_data});
                     setgenaiInterrupted(false);
                   }}
                 >
                   Edit and Approve
-                </Button>
+                </Button> */}
               </>
             )}
         </Box>
@@ -477,6 +513,207 @@ function IssuesPage() {
         </Box>
       </Paper>
     </Slide>
+
+    {/* Review Actions Dialog */}
+    <Dialog
+      open={reviewDialogOpen}
+      onClose={() => setReviewDialogOpen(false)}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: { 
+          zIndex: 2000,
+          borderRadius: 4,
+          boxShadow: 6,
+          background: "rgba(255,255,255,0.95)",
+          backdropFilter: "blur(8px)",
+          border: "1px solid rgba(200,200,200,0.3)",
+          } // or any value higher than your Insight dialog
+      }}
+    >
+      <DialogTitle sx={{ display: "flex", alignItems: "center", fontSize: 24 }}>
+        <AutoAwesomeIcon sx={{ color: "#11182E", fontSize: 32, mr: 1 }} />
+        RAN Configuration Update Review
+      </DialogTitle>
+      {/* Show prompt only if not loading and no response yet */}
+      {!actionLoading && !genaiActionResponse && (
+        <Typography sx={{ px: 3, pt: 1, pb: 1, color: "text.secondary" }}>
+          {genaiInterruptPrompt || "Please review and edit the proposed RAN configuration below. Approve to apply, or deny to reject the changes."}
+        </Typography>
+      )}
+      <DialogContent>
+        {/* Loading spinner */}
+        {actionLoading && (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 120 }}>
+            <Typography color="text.secondary" sx={{ mr: 2 }}>Processing...</Typography>
+            <span className="MuiCircularProgress-root MuiCircularProgress-indeterminate" style={{ width: 32, height: 32, display: "inline-block", borderWidth: 3, borderStyle: "solid", borderRadius: "50%", borderColor: "#11182E transparent #11182E transparent", animation: "mui-spin 1s linear infinite" }} />
+            <style>
+              {`@keyframes mui-spin { 100% { transform: rotate(360deg); } }`}
+            </style>
+          </Box>
+        )}
+        {/* Show response output if available */}
+        {!actionLoading && genaiActionResponse && (
+          <Box sx={{ px: 2, py: 2 }}>
+            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, display: "flex", alignItems: "center" }}>
+              {/* Choose icon based on response content */}
+              {genaiActionResponse.toLowerCase().includes("error") ? (
+                <ErrorIcon color="error" sx={{ mr: 1, fontSize: 32 }} />
+              ) : genaiActionResponse.toLowerCase().includes("success") ||
+                genaiActionResponse.toLowerCase().includes("approve") ? (
+                <CheckCircleIcon color="success" sx={{ mr: 1, fontSize: 32 }} />
+              ) : (
+                <InfoIcon color="primary" sx={{ mr: 1, fontSize: 32 }} />
+              )}
+              Action Outcome
+            </Typography>
+            <Typography sx={{ whiteSpace: "pre-line", color: "text.primary", fontSize: 18 }}>
+              {genaiActionResponse}
+            </Typography>
+          </Box>
+        )}
+        {/* Show config editor only if not loading and no response yet */}
+        {!actionLoading && !genaiActionResponse && (
+          <TextField
+            label="Updated RAN Config"
+            multiline
+            minRows={8}
+            maxRows={20}
+            fullWidth
+            value={editableConfig}
+            onChange={e => setEditableConfig(e.target.value)}
+            variant="outlined"
+            sx={{ mt: 2, fontFamily: "monospace" }}
+            InputProps={{
+              style: { fontFamily: "monospace" }
+            }}
+          />
+        )}
+      </DialogContent>
+      {/* Hide actions if loading or response is shown */}
+      {!actionLoading && !genaiActionResponse && (
+        <DialogActions>
+          <Button
+            color="error"
+            variant="contained"
+            sx={{
+              backgroundColor: '#641B25',
+              color: '#fff',
+              minWidth: 0,
+              px: 2,
+              borderRadius: 2,
+              boxShadow: 1,
+              '&:hover': {
+                backgroundColor: '#56161F',
+              },
+            }}
+            onClick={async () => {
+              setActionLoading(true);
+              try {
+                const resp = await sendLLMResumeCommand({"type": "deny"});
+                setgenaiActionResponse(resp.outcome);
+                // console.log(resp.outcome);
+              } catch (e) {
+                console.error("Deny action failed:", e);
+                setgenaiActionResponse("Error: " + e.message);
+              } finally {
+                setActionLoading(false);
+                setgenaiInterrupted(false);
+                setReviewDialogOpen(true);
+              }
+            }}
+          >
+            Deny
+          </Button>
+          <Button
+            color="primary"
+            variant="contained"
+            sx={{
+              backgroundColor: '#11182E',
+              color: '#fff',
+              minWidth: 0,
+              px: 2,
+              borderRadius: 2,
+              boxShadow: 1,
+              '&:hover': {
+                backgroundColor: '#2d3c6b',
+              },
+            }}
+            onClick={async () => {
+              setActionLoading(true);
+              try {
+                const resp = await sendLLMResumeCommand({"type": "edit", "config_data": editableConfig});
+                if (resp.interrupted == true) {
+                  // the LLM further ask for reboot, deny the action
+                  // console.log(resp.interrupt_prompt);
+                  const final_resp = await sendLLMResumeCommand({"type": "deny"});
+                  setgenaiActionResponse(final_resp.outcome);
+                  // console.log(final_resp.outcome);
+                }
+                else {
+                  // the LLM don't ask for reboot, probably something wrong happened
+                  console.log("MobiLLM asks for config update but did not ask for reboot, please debug response below.");
+                  console.log(resp.outcome);
+                  setgenaiActionResponse(resp.outcome);
+                }
+              } catch (e) {
+                console.error("Approve action failed:", e);
+                setgenaiActionResponse("Error: " + e.message);
+              } finally {
+                setActionLoading(false);
+                setgenaiInterrupted(false);
+                setReviewDialogOpen(true);
+              }
+            }}
+          >
+            Approve (No Reboot)
+          </Button>
+          <Button
+            color="primary"
+            variant="contained"
+            sx={{
+              backgroundColor: '#11182E',
+              color: '#fff',
+              minWidth: 0,
+              px: 2,
+              borderRadius: 2,
+              boxShadow: 1,
+              '&:hover': {
+                backgroundColor: '#2d3c6b',
+              },
+            }}
+            onClick={async () => {
+              setActionLoading(true);
+              try {
+                const resp = await sendLLMResumeCommand({"type": "edit", "config_data": editableConfig});
+                if (resp.interrupted == true) {
+                  // the LLM further ask for reboot, accept the action
+                  // console.log(resp.interrupt_prompt);
+                  const final_resp = await sendLLMResumeCommand({"type": "accept"});
+                  setgenaiActionResponse(final_resp.outcome);
+                  // console.log(final_resp.outcome);
+                }
+                else {
+                  // the LLM don't ask for reboot, probably something wrong happened
+                  console.log("MobiLLM asks for config update but did not ask for reboot, please debug response below.");
+                  console.log(resp.outcome);
+                  setgenaiActionResponse(resp.outcome);
+                }
+              } catch (e) {
+                console.error("Approve action failed:", e);
+                setgenaiActionResponse("Error: " + e.message);
+              } finally {
+                setActionLoading(false);
+                setgenaiInterrupted(false);
+                setReviewDialogOpen(true);
+              }
+            }}
+          >
+            Approve and Reboot RAN
+          </Button>
+        </DialogActions>
+      )}
+    </Dialog>
     </>
   );
 }
