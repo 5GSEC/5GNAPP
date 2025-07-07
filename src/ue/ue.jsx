@@ -198,7 +198,14 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
         >
 
       {/* Show the UE ID label above or below the icon based on labelOnBottom prop */}
-      {!labelOnBottom && <div className="ue-label ue-label-top">{ueId}</div>}
+      {!labelOnBottom && (
+        <div
+          className="ue-label ue-label-top"
+          style={{ opacity: fade ? 0.5 : 1 }}
+        >
+          {ueId}
+        </div>
+      )}
       <div
         className="ue-icon"
         style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }}
@@ -207,7 +214,14 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
       >
         <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
       </div>
-      {labelOnBottom && <div className="ue-label ue-label-bottom">{ueId}</div>}
+      {labelOnBottom && (
+        <div
+          className="ue-label ue-label-bottom"
+          style={{ opacity: fade ? 0.5 : 1 }}
+        >
+          {ueId}
+        </div>
+      )}
 
 
             {/* NEW: permanent UE ID label above the icon */}
