@@ -14,6 +14,16 @@ function parseTimestamp(raw) {
   return n < 1e12 ? new Date(n * 1000) : new Date(n);
 }
 
+function parseStatus(status) {
+  if (!status) return null;
+  if (status == 1)
+    return "Connected";
+  else if (status == 2)
+    return "Disconnected";
+  else
+    return "Unknown"
+}
+
 function everyOtherDegree(index, length) {
   return index % 2 === 0
     ? (index / 2) * (360 / length)
@@ -60,6 +70,7 @@ const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
           <p><strong>MNC</strong>: {bsData.mnc}</p>
           <p><strong>TAC</strong>: {bsData.tac}</p>
           <p><strong>Report Period</strong>: {bsData.report_period}ms</p>
+          <p><strong>Status</strong>: {parseStatus(bsData.status)}</p>
           <p><strong>Time Created</strong>: {parseTimestamp(bsData.timestamp)?.toLocaleString() || ''}</p>
         </Box>
       )}

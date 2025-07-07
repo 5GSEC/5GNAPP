@@ -176,7 +176,7 @@ def fetch_sdl_data_osc() -> dict:
 
     # get all BS mobiflow
     bs_mobiflow_key = ns_target[1]
-    bs_meta = "DataType,Index,Timestamp,Version,Generator,nr_cell_id,mcc,mnc,tac,report_period".split(",")
+    bs_meta = "DataType,Index,Timestamp,Version,Generator,nr_cell_id,mcc,mnc,tac,report_period,status".split(",")
     values = get_bs_mobiflow_data_all_tool("")
     for val in values:
         bs_mf_item = val.split(";")
@@ -186,11 +186,13 @@ def fetch_sdl_data_osc() -> dict:
         mnc = bs_mf_item[bs_meta.index("mnc")]
         tac = bs_mf_item[bs_meta.index("tac")]
         report_period = bs_mf_item[bs_meta.index("report_period")]
+        status = bs_mf_item[bs_meta.index("status")]
         network[nr_cell_id] = {
             "mcc": mcc,
             "mnc": mnc,
             "tac": tac,
             "report_period": report_period,
+            "status": status,
             "timestamp": timestamp,
             "ue": {}
         }
@@ -1064,13 +1066,7 @@ def get_bs_mobiflow_description_tool() -> str:
     mnc = ""                   # BS meta  - mobile network code
     tac = ""                   # BS meta  - tracking area code
     report_period = 0          # BS meta  - report period (ms)
-    ################################################################
-    connected_ue_cnt = 0       # BS stats -
-    idle_ue_cnt = 0            # BS stats -
-    max_ue_cnt = 0             # BS stats -
-    ################################################################
-    initial_timer = 0          # BS timer  -
-    inactive_timer = 0         # BS timer  -
+    status = 0                 # BS meta  - status (1: connected, 2: disconnected)
     '''
 
 @tool

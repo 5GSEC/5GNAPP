@@ -1,15 +1,9 @@
-import time
 import logging
 import copy
 from enum import Enum
 from typing import List
 from .encoding import *
-
-def get_time_ms():
-    return time.time() * 1000
-
-def get_time_sec():
-    return time.time()
+from ..utils import get_time_sec
 
 ###################### Auxiliary classes ######################
 
@@ -54,9 +48,13 @@ class SecState(State):
     SEC_CONTEXT_NOT_EXIST = 0
     SEC_CONTEXT_EXIST = 1
 
+class BsStatus(State):
+    CONNECTED = 1
+    DISCONNECTED = 2
+
 ###################### Constants ######################
 
-MOBIFLOW_VERSION = "v2.1"
+MOBIFLOW_VERSION = "v2.2"
 GENERATOR_NAME = "SECSM"
 UE_MOBIFLOW_ID_COUNTER = 0
 BS_MOBIFLOW_ID_COUNTER = 0
@@ -73,7 +71,7 @@ class UEMobiFlow:
         self.mobiflow_ver = MOBIFLOW_VERSION        # Msg hdr  - version of Mobiflow
         self.generator_name = GENERATOR_NAME        # Msg hdr  - generator name (e.g., SECSM)
         #####################################################################
-        self.timestamp = 0              # UE meta  - timestamp (ms)
+        self.timestamp = 0              # UE meta  - timestamp (s)
         self.nr_cell_id = 0             # UE meta  - NR (5G) basestation id
         self.gnb_cu_ue_f1ap_id = 0      # UE meta  - UE id identified by gNB CU F1AP
         self.gnb_du_ue_f1ap_id = 0      # UE meta  - UE id identified by gNB DU F1AP
@@ -117,7 +115,7 @@ class BSMobiFlow:
     def __init__(self):
         self.msg_type = "BS"            # Msg hdr  - mobiflow type [UE, BS]
         self.msg_id = 0                 # Msg hdr  - unique mobiflow event ID
-        self.timestamp = get_time_sec()              # Msg hdr  - timestamp (ms)
+        self.timestamp = get_time_sec()             # Msg hdr  - timestamp (s)
         self.mobiflow_ver = MOBIFLOW_VERSION        # Msg hdr  - version of Mobiflow
         self.generator_name = GENERATOR_NAME        # Msg hdr  - generator name (e.g., SECSM)
         #####################################################################
@@ -126,13 +124,14 @@ class BSMobiFlow:
         self.mnc = ""                   # BS meta  - mobile network code
         self.tac = ""                   # BS meta  - tracking area code
         self.report_period = 0          # BS meta  - report period (ms)
+        self.status = 0                 # BS meta  - status (1: connected, 2: disconnected)
         #####################################################################
-        self.connected_ue_cnt = 0       # BS stats -
-        self.idle_ue_cnt = 0            # BS stats -
-        self.max_ue_cnt = 0             # BS stats -
-        #####################################################################
-        self.initial_timer = 0          # BS timer  -
-        self.inactive_timer = 0         # BS timer  -
+        # self.connected_ue_cnt = 0       # BS stats -
+        # self.idle_ue_cnt = 0            # BS stats -
+        # self.max_ue_cnt = 0             # BS stats -
+        # #####################################################################
+        # self.initial_timer = 0          # BS timer  -
+        # self.inactive_timer = 0         # BS timer  -
 
     def __str__(self):
         attrs = []
@@ -280,6 +279,7 @@ class BS:
         self.mnc = 0
         self.tac = 0
         self.report_period = 0
+        self.status = 0
         #### BS Stats ####
         self.connected_ue_cnt = 0
         self.idle_ue_cnt = 0
@@ -347,11 +347,12 @@ class BS:
         bmf.mnc = self.mnc
         bmf.tac = self.tac
         bmf.report_period = self.report_period
-        bmf.connected_ue_cnt = self.connected_ue_cnt
-        bmf.idle_ue_cnt = self.idle_ue_cnt
-        bmf.max_ue_cnt = self.max_ue_cnt
-        bmf.initial_timer = self.initial_timer
-        bmf.inactive_timer = self.inactive_timer
+        bmf.status = self.status
+        # bmf.connected_ue_cnt = self.connected_ue_cnt
+        # bmf.idle_ue_cnt = self.idle_ue_cnt
+        # bmf.max_ue_cnt = self.max_ue_cnt
+        # bmf.initial_timer = self.initial_timer
+        # bmf.inactive_timer = self.inactive_timer
         self.should_report = False
         return bmf
 
