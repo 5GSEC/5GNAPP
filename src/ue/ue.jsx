@@ -67,7 +67,7 @@ function parseTimestamp(raw) {
     }
   }
 
-const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId, angle}) => {
+const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId, angle, fade}) => {
     const [showInfo, setShowInfo] = useState(false);
     const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
@@ -108,6 +108,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
         }
 
         ueIcon.style.background = bgColor;
+        ueIcon.style.opacity = fade ? 0.5 : 1;
       }, [ueData, ueId, ueEvent]);
 
   const handleUeMouseOnEnter = (e) => {

@@ -55,7 +55,10 @@ const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
       onContextMenu={e => { e.preventDefault(); setClick(!click); }}
       style={{ visibility: hoveredBsId && hoveredBsId !== bsId ? 'hidden' : 'visible' }}
     >
-      <div className="bs-core">
+      <div className="bs-core"
+        // make disconnected BS look more faded
+        style={{ opacity: bsData.status == 2 ? 0.5 : 1 }}
+      >
         <img src={bsIcon} alt="BS Icon" className="bs-icon" />
         <div className="bs-label">{bsId}</div>
       </div>
@@ -85,7 +88,7 @@ const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
               style={{
                 position: 'absolute',
                 top:  `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60) * Math.sin(angle * Math.PI / 180)}px)`,
-                left: `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60) * Math.cos(angle * Math.PI / 180)}px)`
+                left: `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60) * Math.cos(angle * Math.PI / 180)}px)`,
               }}
             >
               <UeIcon
@@ -100,6 +103,8 @@ const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
                 setHoveredUeId={setHoveredUeId}
                 setIsBsHovered={setIsHovered}
                 setBsHoverId={setHoveredBsId}
+                // make UEs under disconnected BS look more faded 
+                fade={bsData.status == 2} // pass a boolean or use opacity={0.5}
               />
             </div>
           );
