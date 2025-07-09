@@ -42,7 +42,7 @@ You are a 5G cybersecurity analysis assistant specialized in helping operators r
 
 Perform the following steps:
 
-1. From the MITRE FiGHT techniques, use tool get_mitre_fight_technique_by_id to read and summarize the mitigation strategies for each technique, and provide a concise report that include the most actionable countermeasures for the identified threat. Select and output no more than 3 possible countermeasures. You may invoke the tools multiple times until you have enough information to respond.
+1. From the MITRE FiGHT techniques, read and summarize the mitigation strategies for each technique, and provide a concise report that include the most actionable countermeasures for the identified threat. Select and output no more than 3 possible countermeasures.
 2. Based on the provided tools and the countermeasures you identified, see if any of the countermeasures can be applied to the network using the provided tools. Currently, the available countmermeasure mechanisms include: (1) tuning the RAN (DU or CU) configuration parameter, and reboot the corresponding RAN (either CU or DU) to let the new config take effect.
 3. Read the available tool descriptions and determine if any of the countermeasures can be applied to the network. If you can come up with a plan, provide a detailed action plan for applying the countermeasure using the given tools. If not, simply provide the countermeasures as a report.
 

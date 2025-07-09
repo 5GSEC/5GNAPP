@@ -214,10 +214,23 @@ class MobiLLM_Multiagent:
         threat_summary = state["threat_summary"]
         if not threat_summary or threat_summary.strip() == "":
             return state
-        call_result = self.classification_agent.invoke({"messages": [("user", threat_summary)]})
-        response = call_result["messages"][-1].content
-        state["mitre_technique"] = response
-        state["tools_called"] += call_result["messages"][1].tool_calls
+
+        # call_result = self.classification_agent.invoke({"messages": [("user", threat_summary)]})
+        # response = call_result["messages"][-1].content
+        # state["mitre_technique"] = response
+        # state["tools_called"] += call_result["messages"][1].tool_calls
+        
+        techs = {}
+        mitre_tech_ids = search_mitre_fight_techniques.invoke({"threat_summary": threat_summary, "top_k": 3})
+        for tech_id in mitre_tech_ids:
+            tech = get_mitre_fight_technique_by_id.invoke(tech_id)
+            techs[tech_id] = {
+                "Name": tech.get("Name", ""),
+                "Description": tech.get("Description", ""),
+                "Mitigations": tech.get("Mitigations", ""),
+            }
+
+        state["mitre_technique"] = json.dumps(techs, indent=4)
         return state
 
     def mobillm_security_response_agent_node(self, state: MobiLLMState) -> MobiLLMState:
@@ -230,10 +243,13 @@ class MobiLLM_Multiagent:
         call_result = self.response_agent.invoke({"messages": [("user", prompt)]})
         raw_response = call_result["messages"][-1].content
 
-        if raw_response.strip() == "" and call_result["messages"][-1].response_metadata.get("finish_reason") == "MALFORMED_FUNCTION_CALL":
-            print("MALFORMED_FUNCTION_CALL detected, retrying...")
-            call_result = self.response_agent.invoke({"messages": [("user", prompt)]})
-            raw_response = call_result["messages"][-1].content
+        try:
+            if raw_response.strip() == "" and call_result["messages"][-1].response_metadata.get("finish_reason") == "MALFORMED_FUNCTION_CALL":
+                print("MALFORMED_FUNCTION_CALL detected, retrying...")
+                call_result = self.response_agent.invoke({"messages": [("user", prompt)]})
+                raw_response = call_result["messages"][-1].content
+        except:
+            print("raw_response", raw_response)
 
         response = extract_json_from_string(raw_response.strip().replace("\n", ""))
 

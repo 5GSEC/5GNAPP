@@ -47,25 +47,49 @@ const fieldRenderNames = {
   ];
 
 function parseTimestamp(raw) {
-    if (!raw) return null;
-  
-    const tsString = String(raw);        // Convert the raw value to string
-    const tsNum = parseInt(tsString, 10); // Convert to integer
-  
-    if (tsString.length === 13) {
-      // 13-digit likely "ms" timestamp
-      
-      return new Date(tsNum);
-    } else if (tsString.length === 10) {
-      // 10-digit likely "s" timestamp
-      
-      return new Date(tsNum * 1000);
+  if (!raw) return null;
 
-    } else {
-      // Otherwise, we might handle differently or just return null
-      return null;
-    }
+  const tsString = String(raw);        // Convert the raw value to string
+  const tsNum = parseInt(tsString, 10); // Convert to integer
+
+  if (tsString.length === 13) {
+    // 13-digit likely "ms" timestamp
+    
+    return new Date(tsNum);
+  } else if (tsString.length === 10) {
+    // 10-digit likely "s" timestamp
+    
+    return new Date(tsNum * 1000);
+
+  } else {
+    // Otherwise, we might handle differently or just return null
+    return null;
   }
+}
+
+function parseUEStates(ueData) {
+  if (!ueData || !ueData.mobiflow || ueData.mobiflow.length === 0) return "Unknown";
+
+  const last = ueData.mobiflow[ueData.mobiflow.length - 1];
+  const rrcMap = {
+    0: "RRC_Inactive",
+    1: "RRC_Idle",
+    2: "RRC_Connected",
+    3: "RRC_Reconfigured",
+  };
+  const emmMap = {
+    0: "EMM_Deregistered",
+    1: "EMM_Registered_Init",
+    2: "EMM_Registered",
+  };
+
+  const rrcState = rrcMap[last.rrc_state] ?? `RRC_${last.rrc_state}`;
+  const emmState = emmMap[last.nas_state] ?? `EMM_${last.nas_state}`;
+
+  // return `${rrcState}, ${emmState}`;
+  return `${rrcState}`;
+}
+
 
 const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId, angle, fade}) => {
     const [showInfo, setShowInfo] = useState(false);
@@ -273,6 +297,14 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                             ? format(dateObj, 'PPpp')
                             : "N/A";
                         })()}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 1 }}>
+                      <Typography variant="body1" component="span" sx={{ fontWeight: 600 }}>
+                        UE Status:
+                      </Typography>{" "}
+                      <Typography variant="body1" component="span">
+                        {parseUEStates(ueData)}
                       </Typography>
                     </Box>
                     <Box sx={{ mb: 1 }}>
