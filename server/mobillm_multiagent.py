@@ -334,9 +334,9 @@ class MobiLLM_Multiagent:
         #     print("MITRE Technique:", result["mitre_technique"])
         #     response_message = response_message + f"\n\n**Related MITRE Technique**:\n\n{result['mitre_technique']}\n\n"
         if "countermeasures" in result and result["countermeasures"] != "":
-            actionable = result['countermeasures']['actionable']
-            actionable_strategy = result['countermeasures']["action_strategy"]
-            action_plan = result['countermeasures']['action_plan']
+            actionable = result['actionable']
+            actionable_strategy = result["action_strategy"]
+            action_plan = result['action_plan']
 
             if actionable.lower() == "yes":
                 # if actionable, provide the LLM's action plan to user to review
@@ -367,15 +367,26 @@ if __name__ == "__main__":
     # result = agent.invoke("[chat] How many cells are currently deployed in the network?")
     # result = agent.invoke("[chat] What are the IMSIs of the UEs connected to the network?")
     # result = agent.invoke("[security analysis] Conduct a thorough security analysis for event ID 4")
-    result = agent.invoke("""[security analysis] Conduct a thorough security analysis for the following event detected in the network: 
+    result = agent.invoke("""[security analysis]
+    Event Details:
+    - Source: MobieXpert
+    - Name: RRC Null Cipher
+    - Cell ID: 20000
+    - UE ID: 54649
+    - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
+    - Severity: Critical
+    - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
+    """)
+
+    # result = agent.invoke("""[security analysis] 
     # Event Details:
     # - Source: MobieXpert
-    # - Name: RRC Null Cipher
+    # - Name: Blind DoS
     # - Cell ID: 20000
-    # - UE ID: 54649
-    # - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
+    # - UE ID: 39592
+    # - Time: Mon Jun 09 2025 11:29:14 GMT-0400 (Eastern Daylight Time)
     # - Severity: Critical
-    # - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
+    # - Description: A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.
     # """)
 
     while True:
