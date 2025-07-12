@@ -840,7 +840,7 @@ def unDeploy_xapp_tool(xapp_name: str):
 @tool
 def get_ue_mobiflow_data_all_tool() -> list:
     '''
-    Get all UE MobiFlow telemetry from SDL. UE MobiFlow telemetry records UE meta data, identifiers, and RRC/NAS security algorithms, as well as RRC/NAS messages.
+    Get all UE MobiFlow telemetry from SDL. UE MobiFlow telemetry records UE meta data, identifiers, connection status, RRC/NAS security algorithms, and RRC/NAS messages.
     Before analyzing the MobiFlow telemetry, ensure you have called get_ue_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
     Returns:
         list: a list of UE MobiFlow telemetry in raw format (separated by ; delimiter)
@@ -929,7 +929,7 @@ def get_ue_mobiflow_data_by_index(index_list: list) -> list:
 @tool
 def get_bs_mobiflow_data_all_tool() -> list:
     '''
-    Get all Base Station (BS) MobiFlow telemetry from SDL. BS MobiFlow telemetry records Base Station / gNodeB / Cell meta data such as cell ID, MCC, MNC, etc.
+    Get all Base Station (BS) MobiFlow telemetry from SDL. BS MobiFlow telemetry records Base Station / gNodeB / Cell meta data such as cell ID, state, MCC, MNC, etc.
     Before analyzing the MobiFlow telemetry, ensure you have called get_bs_mobiflow_description_tool() to obtain the semantics associated with the data for better understanding.
     Returns:
         list: a list of BS MobiFlow telemetry in raw format (separated by ; delimiter)

@@ -197,7 +197,7 @@ class MobiLLM_Multiagent:
         call_result = self.chat_agent.invoke({"messages": [("user", query)]})
         response = call_result["messages"][-1].content
         state["chat_response"] = response
-        state["tools_called"] += call_result["messages"][1].tool_calls
+        state = self.collect_tool_calls(call_result, state)
         return state
 
     def mobillm_security_analysis_agent_node(self, state: MobiLLMState) -> MobiLLMState:
@@ -207,7 +207,7 @@ class MobiLLM_Multiagent:
         call_result = self.security_analysis_agent.invoke({"messages": [("user", query)]})
         response = call_result["messages"][-1].content
         state["threat_summary"] = response
-        state["tools_called"] += call_result["messages"][1].tool_calls
+        state = self.collect_tool_calls(call_result, state)
         return state
 
     def mobillm_security_classification_agent_node(self, state: MobiLLMState) -> MobiLLMState:
@@ -218,7 +218,7 @@ class MobiLLM_Multiagent:
         # call_result = self.classification_agent.invoke({"messages": [("user", threat_summary)]})
         # response = call_result["messages"][-1].content
         # state["mitre_technique"] = response
-        # state["tools_called"] += call_result["messages"][1].tool_calls
+        # state = self.collect_tool_calls(call_result, state)
         
         techs = {}
         mitre_tech_ids = search_mitre_fight_techniques.invoke({"threat_summary": threat_summary, "top_k": 3})
@@ -263,7 +263,7 @@ class MobiLLM_Multiagent:
             state["action_strategy"] = "none"
 
         state["countermeasures"] = response
-        state["tools_called"] += call_result["messages"][1].tool_calls
+        state = self.collect_tool_calls(call_result, state)
         return state
 
     def mobillm_config_tuning_agent_node(self, state: MobiLLMState) -> MobiLLMState:
@@ -285,7 +285,7 @@ class MobiLLM_Multiagent:
             state["outcome"] = response["outcome"]
             state["updated_config"] = response["updated_config"]
 
-        state["tools_called"] += call_result["messages"][1].tool_calls
+        state = self.collect_tool_calls(call_result, state)
         return state
 
     def route_after_response_agent(self, state: MobiLLMState) -> str:
@@ -313,6 +313,14 @@ class MobiLLM_Multiagent:
         image_data = self.graph.get_graph().draw_mermaid_png()
         with open(path, "wb") as f:
             f.write(image_data)
+
+    def collect_tool_calls(self, call_result, state: MobiLLMState):
+        if not call_result or "messages" not in call_result.keys():
+            return state
+        for msg in call_result["messages"]:
+            if "tool_calls" in dir(msg):
+                state["tools_called"] += msg.tool_calls
+        return state
 
     def chat(self, query: str) -> str:
         result = self.invoke(f"[chat] {query}")
@@ -365,6 +373,7 @@ if __name__ == "__main__":
     agent = MobiLLM_Multiagent()
     # result = agent.invoke("[chat] How many services are currently in Running state and how long they have been running?")
     # result = agent.invoke("[chat] How many cells are currently deployed in the network?")
+    # result = agent.invoke("[chat] How many UEs are currently connected to the network?")
     # result = agent.invoke("[chat] What are the IMSIs of the UEs connected to the network?")
     # result = agent.invoke("[security analysis] Conduct a thorough security analysis for event ID 4")
     result = agent.invoke("""[security analysis]
