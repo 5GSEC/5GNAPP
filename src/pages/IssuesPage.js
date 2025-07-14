@@ -71,11 +71,11 @@ function IssuesPage() {
   const [genaiResponse, setGenaiResponse] = useState("");
   const [genaiLoading, setGenaiLoading] = useState(false);
   const [genaiError, setGenaiError] = useState(null);
-  const [genaiInterrupted, setgenaiInterrupted] = useState(null);
-  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState(null);
-  const [genaiActionStrategy, setgenaiActionStrategy] = useState(null);
-  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState(null);
-  const [genaiActionResponse, setgenaiActionResponse] = useState(null);
+  const [genaiInterrupted, setgenaiInterrupted] = useState({});
+  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState({});
+  const [genaiActionStrategy, setgenaiActionStrategy] = useState({});
+  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState({});
+  const [genaiActionResponse, setgenaiActionResponse] = useState({});
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [editableConfig, setEditableConfig] = useState("");
@@ -83,6 +83,8 @@ function IssuesPage() {
 
   // Cache for GenAI responses
   const genaiCache = useRef({});
+
+  const rowIdToThreadId = useRef({}); // Global mapping
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -114,13 +116,15 @@ function IssuesPage() {
             body: JSON.stringify({ message: prompt }),
           });
           const data = await res.json();
+          const threadId = data.thread_id || cacheKey; // fallback if thread_id missing
+          rowIdToThreadId[insightRow.id] = threadId; // update thread ID mapping
           // console.log(data);
           if (!res.ok) throw new Error(data.error || "Chat error");
           setGenaiResponse(data.output);
-          setgenaiInterrupted(data.interrupted || false);
-          setgenaiActionStrategy(data.action_strategy || null);
-          setgenaiInterruptPrompt(data.interrupt_prompt || null);
-          setgenaiUpdatedConfig(data.updated_config || null);
+          setgenaiInterrupted(prev => ({ ...prev, [threadId]: data.interrupted || false }));
+          setgenaiActionStrategy(prev => ({ ...prev, [threadId]: data.action_strategy || null }));
+          setgenaiInterruptPrompt(prev => ({ ...prev, [threadId]: data.interrupt_prompt || null }));
+          setgenaiUpdatedConfig(prev => ({ ...prev, [threadId]: data.updated_config || null }));
           genaiCache.current[cacheKey] = data.output; // Store in cache
         } catch (e) {
           setGenaiError(e.message || "Unknown error");
@@ -402,7 +406,7 @@ function IssuesPage() {
               </Box>
             )}
             {/* Show Approve/Deny/Edit buttons if interrupted is true */}
-            {insightRow && genaiInterrupted === true && (
+            {insightRow && genaiInterrupted[rowIdToThreadId[insightRow.id]] === true && (
               <>
                 <Button
                   sx={{
@@ -420,76 +424,15 @@ function IssuesPage() {
                   variant="contained"
                   onClick={() => {
                     setEditableConfig(
-                      typeof genaiUpdatedConfig === "object"
-                        ? JSON.stringify(genaiUpdatedConfig, null, 2)
-                        : (genaiUpdatedConfig || "")
+                      typeof genaiUpdatedConfig[rowIdToThreadId[insightRow.id]] === "object"
+                        ? JSON.stringify(genaiUpdatedConfig[rowIdToThreadId[insightRow.id]], null, 2)
+                        : (genaiUpdatedConfig[rowIdToThreadId[insightRow.id]] || "")
                     );
                     setReviewDialogOpen(true);
                   }}
                 >
                   Review Actions
                 </Button>
-                {/* <Button
-                  sx={{
-                    ml: 2,
-                    backgroundColor: '#388e3c',
-                    color: '#fff',
-                    borderRadius: 2,
-                    '&:hover': { backgroundColor: '#2e7031' },
-                  }}
-                  variant="contained"
-                  onClick={async () => {
-                    setgenaiInterrupted(false);
-                    try {
-                      const resp = await sendLLMResumeCommand({ type: "accept" });
-                      setgenaiActionResponse(resp.outcome);
-                      console.log(resp.outcome);
-                    } catch (e) {
-                      console.error("Approve action failed:", e);
-                    }
-                  }}
-                >
-                  Approve
-                </Button>
-                <Button
-                  sx={{
-                    ml: 2,
-                    backgroundColor: '#d32f2f',
-                    color: '#fff',
-                    borderRadius: 2,
-                    '&:hover': { backgroundColor: '#a31515' },
-                  }}
-                  variant="contained"
-                  onClick={async () => {
-                    setgenaiInterrupted(false);
-                    try {
-                      const resp = await sendLLMResumeCommand({ type: "deny" });
-                      setgenaiActionResponse(resp.outcome);
-                      console.log(resp.outcome);
-                    } catch (e) {
-                      console.error("Approve action failed:", e);
-                    }
-                  }}
-                >
-                  Deny
-                </Button>
-                <Button
-                  sx={{
-                    ml: 2,
-                    backgroundColor: '#1976d2',
-                    color: '#fff',
-                    borderRadius: 2,
-                    '&:hover': { backgroundColor: '#115293' },
-                  }}
-                  variant="contained"
-                  onClick={async () => {
-                    let config_data = "test";
-                    sendLLMResumeCommand({"type": "edit", "config_data": config_data});
-                    setgenaiInterrupted(false);
-                  }}
-                >
-                  Edit and Approve
-                </Button> */}
               </>
             )}
         </Box>
@@ -536,9 +479,9 @@ function IssuesPage() {
         RAN Configuration Update Review
       </DialogTitle>
       {/* Show prompt only if not loading and no response yet */}
-      {!actionLoading && !genaiActionResponse && (
+      {!actionLoading && insightRow && !genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
         <Typography sx={{ px: 3, pt: 1, pb: 1, color: "text.secondary" }}>
-          {genaiInterruptPrompt || "Please review and edit the proposed RAN configuration below. Approve to apply, or deny to reject the changes."}
+          {genaiInterruptPrompt[rowIdToThreadId[insightRow.id]] || "Please review and edit the proposed RAN configuration below. Approve to apply, or deny to reject the changes."}
         </Typography>
       )}
       <DialogContent>
@@ -553,14 +496,14 @@ function IssuesPage() {
           </Box>
         )}
         {/* Show response output if available */}
-        {!actionLoading && genaiActionResponse && (
+        {!actionLoading && insightRow && genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
           <Box sx={{ px: 2, py: 2 }}>
             <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, display: "flex", alignItems: "center" }}>
               {/* Choose icon based on response content */}
-              {genaiActionResponse.toLowerCase().includes("error") ? (
+              {genaiActionResponse[rowIdToThreadId[insightRow.id]].toLowerCase().includes("error") ? (
                 <ErrorIcon color="error" sx={{ mr: 1, fontSize: 32 }} />
-              ) : genaiActionResponse.toLowerCase().includes("success") ||
-                genaiActionResponse.toLowerCase().includes("approve") ? (
+              ) : genaiActionResponse[rowIdToThreadId[insightRow.id]].toLowerCase().includes("success") ||
+                genaiActionResponse[rowIdToThreadId[insightRow.id]].toLowerCase().includes("approve") ? (
                 <CheckCircleIcon color="success" sx={{ mr: 1, fontSize: 32 }} />
               ) : (
                 <InfoIcon color="primary" sx={{ mr: 1, fontSize: 32 }} />
@@ -568,12 +511,12 @@ function IssuesPage() {
               Action Outcome
             </Typography>
             <Typography sx={{ whiteSpace: "pre-line", color: "text.primary", fontSize: 18 }}>
-              {genaiActionResponse}
+              {genaiActionResponse[rowIdToThreadId[insightRow.id]]}
             </Typography>
           </Box>
         )}
         {/* Show config editor only if not loading and no response yet */}
-        {!actionLoading && !genaiActionResponse && (
+        {!actionLoading && insightRow && !genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
           <TextField
             label="Updated RAN Config"
             multiline
@@ -591,7 +534,7 @@ function IssuesPage() {
         )}
       </DialogContent>
       {/* Hide actions if loading or response is shown */}
-      {!actionLoading && !genaiActionResponse && (
+      {!actionLoading && insightRow && !genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
         <DialogActions>
           <Button
             color="error"
@@ -609,16 +552,16 @@ function IssuesPage() {
             }}
             onClick={async () => {
               setActionLoading(true);
+              const threadId = rowIdToThreadId[insightRow.id];
               try {
-                const resp = await sendLLMResumeCommand({"type": "deny"});
-                setgenaiActionResponse(resp.outcome);
+                const resp = await sendLLMResumeCommand({"type": "deny", "thread_id": threadId});
+                setgenaiActionResponse(prev => ({ ...prev, [threadId]: resp.outcome}));
                 // console.log(resp.outcome);
               } catch (e) {
                 console.error("Deny action failed:", e);
-                setgenaiActionResponse("Error: " + e.message);
               } finally {
                 setActionLoading(false);
-                setgenaiInterrupted(false);
+                // setgenaiInterrupted(prev => ({ ...prev, [threadId]: false }));
                 setReviewDialogOpen(true);
               }
             }}
@@ -641,27 +584,28 @@ function IssuesPage() {
             }}
             onClick={async () => {
               setActionLoading(true);
+              const threadId = rowIdToThreadId[insightRow.id];
               try {
-                const resp = await sendLLMResumeCommand({"type": "edit", "config_data": editableConfig});
+                const resp = await sendLLMResumeCommand({"type": "edit", "config_data": editableConfig, "thread_id": threadId});
                 if (resp.interrupted == true) {
                   // the LLM further ask for reboot, deny the action
                   // console.log(resp.interrupt_prompt);
-                  const final_resp = await sendLLMResumeCommand({"type": "deny"});
-                  setgenaiActionResponse(final_resp.outcome);
+                  const final_resp = await sendLLMResumeCommand({"type": "deny", "thread_id": threadId});
+                  setgenaiActionResponse(prev => ({ ...prev, [threadId]: final_resp.outcome}));
                   // console.log(final_resp.outcome);
                 }
                 else {
                   // the LLM don't ask for reboot, probably something wrong happened
                   console.log("MobiLLM asks for config update but did not ask for reboot, please debug response below.");
                   console.log(resp.outcome);
-                  setgenaiActionResponse(resp.outcome);
+                  setgenaiActionResponse(prev => ({ ...prev, [threadId]: resp.outcome}));
                 }
               } catch (e) {
                 console.error("Approve action failed:", e);
-                setgenaiActionResponse("Error: " + e.message);
+                // setgenaiActionResponse("Error: " + e.message);
               } finally {
                 setActionLoading(false);
-                setgenaiInterrupted(false);
+                // setgenaiInterrupted(prev => ({ ...prev, [threadId]: false }));
                 setReviewDialogOpen(true);
               }
             }}
@@ -684,27 +628,28 @@ function IssuesPage() {
             }}
             onClick={async () => {
               setActionLoading(true);
+              const threadId = rowIdToThreadId[insightRow.id];
               try {
-                const resp = await sendLLMResumeCommand({"type": "edit", "config_data": editableConfig});
+                const resp = await sendLLMResumeCommand({"type": "edit", "config_data": editableConfig, "thread_id": threadId});
                 if (resp.interrupted == true) {
                   // the LLM further ask for reboot, accept the action
                   // console.log(resp.interrupt_prompt);
-                  const final_resp = await sendLLMResumeCommand({"type": "accept"});
-                  setgenaiActionResponse(final_resp.outcome);
+                  const final_resp = await sendLLMResumeCommand({"type": "accept", "thread_id": threadId});
+                  setgenaiActionResponse(prev => ({ ...prev, [threadId]: final_resp.outcome}));
                   // console.log(final_resp.outcome);
                 }
                 else {
                   // the LLM don't ask for reboot, probably something wrong happened
                   console.log("MobiLLM asks for config update but did not ask for reboot, please debug response below.");
                   console.log(resp.outcome);
-                  setgenaiActionResponse(resp.outcome);
+                  setgenaiActionResponse(prev => ({ ...prev, [threadId]: resp.outcome}));
                 }
               } catch (e) {
                 console.error("Approve action failed:", e);
-                setgenaiActionResponse("Error: " + e.message);
+                // setgenaiActionResponse("Error: " + e.message);
               } finally {
                 setActionLoading(false);
-                setgenaiInterrupted(false);
+                // setgenaiInterrupted(prev => ({ ...prev, [threadId]: false }));
                 setReviewDialogOpen(true);
               }
             }}
