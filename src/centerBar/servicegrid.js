@@ -126,7 +126,7 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
       <CardContent>
         {/* Title with reduced font size */}
         <Typography variant="h6" sx={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: 2 }}>
-          SE-RAN AISecOps Services
+          SE-RAN Service Status
         </Typography>
         {/* DataGrid Table */}
         <Box sx={{ height: 250, width: "100%" }}>

@@ -56,7 +56,7 @@ function MenuNavBar() {
         width: "200px",
         backgroundColor: "#11182E",
         padding: "20px",
-        height: "100%"
+        // height: "100%"
       }}
     >
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
@@ -145,7 +145,7 @@ function MenuNavBar() {
                 ▸ MobieXpert
               </Link>
             </li>
-            <li style={subItemStyle}>
+            {/* <li style={subItemStyle}>
               <Link
                 to="/xapps/mobiflow-auditor"
                 style={{
@@ -155,7 +155,7 @@ function MenuNavBar() {
               >
                 ▸ Mobiflow Auditor
               </Link>
-            </li>
+            </li> */}
             {/* NEW: added mobillm page */}
             <li style={subItemStyle}>
               <Link
