@@ -22,7 +22,11 @@ def extract_json_from_string(input_str: str):
         return response
     except json.JSONDecodeError:
         json_match = re.search(r'{[\s\S]*}', input_str)
-        response = json.loads(json_match.group()) if json_match else ""
+        try:
+            response = json.loads(json_match.group()) if json_match else ""
+        except json.JSONDecodeError:
+            print(f"Fail to extract json from string {input_str}")
+            return None
         return response
 
 def pretty_print_message(message, indent=False):

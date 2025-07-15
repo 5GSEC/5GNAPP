@@ -1,5 +1,6 @@
 import subprocess
 import os
+import time
 from utils import *
 from langchain.tools import tool
 from langgraph.types import interrupt
@@ -64,12 +65,12 @@ def update_oai_ran_cu_config(config_data: str, oai_ran_cu_config_path: str) -> s
     '''
     Update the OAI RAN CU configuration 
     '''
+    return f"OAI RAN CU configuration updated successfully at path {oai_ran_cu_config_path}." # TODO: for testing
     
     # write the configuration data to the file
     try:
-        # TODO: temp disable
-        # with open(oai_ran_cu_config_path, 'w') as config_file:
-        #     config_file.write(config_data) 
+        with open(oai_ran_cu_config_path, 'w') as config_file:
+            config_file.write(config_data) 
         return f"OAI RAN CU configuration updated successfully at path {oai_ran_cu_config_path}."
     except Exception as e:
         return f"Error updating OAI RAN CU configuration: {e}"
@@ -84,26 +85,42 @@ def reboot_ran_cu_tool() -> bool:
         "Please approve or suggest edits."
     )
     if response["type"] == "accept":
-        pass
+        return reboot_oai_ran()
     elif response["type"] == "deny":
         return "reboot_ran_cu_tool operation denied by the user."
     else:
-        raise ValueError(f"Unknown response type: {response['type']}")
+        return f"Unknown response type: {response['type']}"
 
-    return reboot_oai_ran_cu()
-
-def reboot_oai_ran_cu() -> bool:
+def reboot_oai_ran() -> str:
     '''
     Reboot the OAI RAN CU.
     '''
-    # load OAI RAN path from env variable
-    oai_ran_cu_config_path = os.getenv('OAI_RAN_CU_CONFIG_PATH', '/opt/oai-ran')
-    try:
-        # execute docker commands to reboot the CU
-        pass
-        # subprocess.run(["sudo", "systemctl", "reboot"], check=True)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"Error rebooting RAN CU: {e}")
-        return False
+    return "OAI RAN Containers restarted successfully." # TODO: for testing 
 
+    # load OAI RAN path from env variable
+    oai_ran_cu_config_path = os.getenv('OAI_RAN_CU_CONFIG_PATH', '')
+    if oai_ran_cu_config_path is None or oai_ran_cu_config_path == "":
+        return "OAI RAN CU configuration path is not set in environment variables."
+
+    oai_ran_cu_path = os.path.dirname(oai_ran_cu_config_path)
+
+    # Step into that directory
+    try:
+        # print(f"Changing directory to: {oai_ran_cu_path}")
+        # Run docker-compose commands in that directory
+        res = subprocess.run(["docker-compose", "restart", "oai-cu-1", "oai-du-1"], cwd=oai_ran_cu_path, check=True)
+        if res.returncode != 0:
+            return "Error while restarting oai-cu-1 oai-du-1 containers"
+        time.sleep(15)
+        res = subprocess.run(["docker-compose", "restart", "oai-nr-ue-4"], cwd=oai_ran_cu_path, check=True)
+        if res.returncode != 0:
+            return "Error while restarting oai-nr-ue-4 container"
+        time.sleep(5)
+        res = subprocess.run(["docker-compose", "restart", "oai-nr-ue-5"], cwd=oai_ran_cu_path, check=True)
+        if res.returncode != 0:
+            return "Error while restarting oai-nr-ue-5 container"
+        return "OAI RAN Containers restarted successfully."
+    except subprocess.CalledProcessError as e:
+        return f"Error while restarting OAI containers: {e}"
+    except Exception as e:
+        return f"Unexpected error: {e}"
