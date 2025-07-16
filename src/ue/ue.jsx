@@ -471,7 +471,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                   {metadataObj.map((item, index) => (
                     <TableRow key={index}>
                       {metadataFields.map((fld) => (
-                        <TableCell key={fld}>{item[fld] || "N/A"}</TableCell>
+                        <TableCell key={fld}>{item[fld] !== undefined && item[fld] !== null && item[fld] !== "" ? item[fld] : "N/A"}</TableCell>
                       ))}
                     </TableRow>
                   ))}
