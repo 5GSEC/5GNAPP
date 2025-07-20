@@ -141,7 +141,7 @@ def mobillm_chat():
 
     try:
         response = mobillm_agent.chat(user_msg)
-        return jsonify({"output": response['output']}), 200
+        return jsonify(response), 200
 
     except Exception as e:
         traceback.print_exc()
@@ -180,7 +180,8 @@ def mobillm_resume_command():
     if not type_msg:
         return jsonify({"error": "No type message provided"}), 400
 
-    config_data = body.get('config_data', '').strip()
+    config_data = body.get('config_data', '')
+    thread_id = body.get('thread_id', '')
 
     resume_command = {}
     resume_command['type'] = type_msg
@@ -192,8 +193,13 @@ def mobillm_resume_command():
         return jsonify({"output": "MobiLLM Agent has not been initialized, please go to the MobiLLM page to specify your API key and model config."}), 200
 
     try:
-        response = mobillm_agent.resume(resume_command)
-        return jsonify(response), 200
+        response = mobillm_agent.resume(resume_command, thread_id)
+        response_payload = dict(response)
+        if "__interrupt__" in response.keys():
+            interrupt_value = response["__interrupt__"][0].value
+            response_payload["interrupted"] = True
+            response_payload["interrupt_prompt"] = interrupt_value.split("```")[0]
+        return jsonify(response_payload), 200
 
     except Exception as e:
         traceback.print_exc()

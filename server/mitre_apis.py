@@ -213,5 +213,5 @@ def load_or_create_mitre_fight_faiss_index(fight_json_path: str="mitre_fight_tec
 # The primary security implication of using null cipher mode for the RRC session is the complete lack of confidentiality for RRC signaling traffic. All RRC messages exchanged between the UE and the network are transmitted in plaintext. This makes the communication vulnerable to passive sniffing attacks, where an attacker can intercept and read sensitive information contained within the RRC messages. Such information could include details about the UE's identity (if not properly protected at higher layers), its capabilities, network configuration details, and control plane procedures, potentially enabling further attacks or reconnaissance against the user or the network.
 # '''
 
-# res = search_mitre_fight_techniques(test_query)
+# res = search_mitre_fight_techniques.invoke({"threat_summary": test_query, "top_k": 5})
 # print(res)

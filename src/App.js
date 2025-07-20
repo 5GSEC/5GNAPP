@@ -31,7 +31,7 @@ function XAppsIndex() {
     <p style={{ padding: 20 }}>
       Select an xApp on the left, or visit<br />
       <Link to="mobiexpert">/xapps/mobiexpert</Link>&nbsp;or&nbsp;
-      <Link to="mobiflow-auditor">/xapps/mobiflow-auditor</Link>.
+      {/* <Link to="mobiflow-auditor">/xapps/mobiflow-auditor</Link>. */}
       <Link to="mobillm">/xapps/mobillm</Link>.
     </p>
   );
@@ -94,7 +94,7 @@ function DashboardPage() {
   return (
     <>
       <h2 className="header">5GNAPP - 5G-Native Management Platform</h2>
-      <h3 className="subheader">You cannot secure what you cannot see</h3>
+      {/* <h3 className="subheader">You cannot secure what you cannot see</h3> */}
       <div style={{ height: "2em" }} />
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
         <CenterBar
