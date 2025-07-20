@@ -65,7 +65,7 @@ def update_oai_ran_cu_config(config_data: str, oai_ran_cu_config_path: str) -> s
     '''
     Update the OAI RAN CU configuration 
     '''
-    return f"OAI RAN CU configuration updated successfully at path {oai_ran_cu_config_path}." # TODO: for testing
+    # return f"OAI RAN CU configuration updated successfully at path {oai_ran_cu_config_path}." # TODO: for testing
     
     # write the configuration data to the file
     try:
@@ -76,7 +76,7 @@ def update_oai_ran_cu_config(config_data: str, oai_ran_cu_config_path: str) -> s
         return f"Error updating OAI RAN CU configuration: {e}"
 
 @tool
-def reboot_ran_cu_tool() -> bool:
+def reboot_ran_cu_tool() -> str:
     '''
     Reboot the RAN CU. The invocation will be sent to the human in the loop for approval or edits.
     '''
@@ -95,7 +95,7 @@ def reboot_oai_ran() -> str:
     '''
     Reboot the OAI RAN CU.
     '''
-    return "OAI RAN Containers restarted successfully." # TODO: for testing 
+    # return "OAI RAN Containers restarted successfully." # TODO: for testing 
 
     # load OAI RAN path from env variable
     oai_ran_cu_config_path = os.getenv('OAI_RAN_CU_CONFIG_PATH', '')
@@ -107,18 +107,34 @@ def reboot_oai_ran() -> str:
     # Step into that directory
     try:
         # print(f"Changing directory to: {oai_ran_cu_path}")
-        # Run docker-compose commands in that directory
-        res = subprocess.run(["docker-compose", "restart", "oai-cu-1", "oai-du-1"], cwd=oai_ran_cu_path, check=True)
+        # shutdown all containers
+        res = subprocess.run(["docker-compose", "down", "mobiflow-agent-1"], cwd=oai_ran_cu_path, check=True)
         if res.returncode != 0:
-            return "Error while restarting oai-cu-1 oai-du-1 containers"
+            return "Error while shutting down mobiflow-agent-1 containers"
+        res = subprocess.run(["./kill_gnb_1_demo.sh"], cwd=oai_ran_cu_path, check=True)
+        if res.returncode != 0:
+            return "Error while shutting down RAN containers"
         time.sleep(15)
-        res = subprocess.run(["docker-compose", "restart", "oai-nr-ue-4"], cwd=oai_ran_cu_path, check=True)
+        # Run docker-compose commands in that directory
+        res = subprocess.run(["./run_gnb_1_demo.sh"], cwd=oai_ran_cu_path, check=True)
         if res.returncode != 0:
-            return "Error while restarting oai-nr-ue-4 container"
-        time.sleep(5)
-        res = subprocess.run(["docker-compose", "restart", "oai-nr-ue-5"], cwd=oai_ran_cu_path, check=True)
-        if res.returncode != 0:
-            return "Error while restarting oai-nr-ue-5 container"
+            return "Error while shutting down mobiflow-agent-1 containers"
+
+        # res = subprocess.run(["docker-compose", "restart", "oai-cu-1", "oai-du-1"], cwd=oai_ran_cu_path, check=True)
+        # if res.returncode != 0:
+        #     return "Error while restarting oai-cu-1 oai-du-1 containers"
+        # time.sleep(5)
+        # res = subprocess.run(["./run_mobiflow_agent_1.sh"], cwd=oai_ran_cu_path, check=True)
+        # if res.returncode != 0:
+        #     return "Error while restarting mobiflow-agent-1 containers"
+        # time.sleep(5)
+        # res = subprocess.run(["docker-compose", "restart", "oai-nr-ue-4"], cwd=oai_ran_cu_path, check=True)
+        # if res.returncode != 0:
+        #     return "Error while restarting oai-nr-ue-4 container"
+        # time.sleep(5)
+        # res = subprocess.run(["docker-compose", "restart", "oai-nr-ue-5"], cwd=oai_ran_cu_path, check=True)
+        # if res.returncode != 0:
+        #     return "Error while restarting oai-nr-ue-5 container"
         return "OAI RAN Containers restarted successfully."
     except subprocess.CalledProcessError as e:
         return f"Error while restarting OAI containers: {e}"
