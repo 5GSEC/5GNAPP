@@ -103,7 +103,7 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
             }}
             onClick={() => handleUndeploy(params.row.service)}
           >
-            Undeploy
+            Stop
           </Button>
         </Box>
       ),

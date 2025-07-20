@@ -389,7 +389,7 @@ function IssuesPage() {
               <Typography>No data selected.</Typography>
             )}
             {insightRow && genaiLoading && (
-              <Typography color="text.secondary">Loading MobiLLM GenAI insight...</Typography>
+              <Typography color="text.secondary">MobiLLM is analyzing the event...</Typography>
             )}
             {insightRow && genaiError && (
               <Typography color="error">Error: {genaiError}</Typography>
@@ -488,7 +488,7 @@ function IssuesPage() {
         {/* Loading spinner */}
         {actionLoading && (
           <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 120 }}>
-            <Typography color="text.secondary" sx={{ mr: 2 }}>Processing...</Typography>
+            <Typography color="text.secondary" sx={{ mr: 2 }}>Executing actions...</Typography>
             <span className="MuiCircularProgress-root MuiCircularProgress-indeterminate" style={{ width: 32, height: 32, display: "inline-block", borderWidth: 3, borderStyle: "solid", borderRadius: "50%", borderColor: "#11182E transparent #11182E transparent", animation: "mui-spin 1s linear infinite" }} />
             <style>
               {`@keyframes mui-spin { 100% { transform: rotate(360deg); } }`}
