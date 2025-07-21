@@ -206,6 +206,11 @@ def fetch_sdl_data_osc() -> dict:
         ue_id = ue_mf_item[ue_meta.index("gnb_du_ue_f1ap_id")]
         nr_cell_id = ue_mf_item[ue_meta.index("nr_cell_id")]
         if nr_cell_id in network:
+            ue_timestamp = ue_mf_item[ue_meta.index('Timestamp')]
+            bs_timestamp = network[nr_cell_id]["timestamp"]
+            # don't report UE if the UE's timestamp is older than the BS's timestamp, which means the UE is not connected to the BS
+            if ue_timestamp < bs_timestamp:
+                continue
             if ue_id not in network[nr_cell_id]["ue"]:
                 # add UE
                 network[nr_cell_id]["ue"][ue_id] = {
