@@ -14,6 +14,7 @@ import ReactMarkdown from 'react-markdown';
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
+import DiffViewer from 'react-diff-viewer';
 
 
 function parseTimestamp(raw) {
@@ -75,11 +76,13 @@ function IssuesPage() {
   const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState({});
   const [genaiActionStrategy, setgenaiActionStrategy] = useState({});
   const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState({});
+  const [genaiOriginalConfig, setgenaiOriginalConfig] = useState({});
   const [genaiActionResponse, setgenaiActionResponse] = useState({});
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [editableConfig, setEditableConfig] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [showDiffView, setShowDiffView] = useState(false);
 
   // Cache for GenAI responses
   const genaiCache = useRef({});
@@ -125,6 +128,7 @@ function IssuesPage() {
           setgenaiActionStrategy(prev => ({ ...prev, [threadId]: data.action_strategy || null }));
           setgenaiInterruptPrompt(prev => ({ ...prev, [threadId]: data.interrupt_prompt || null }));
           setgenaiUpdatedConfig(prev => ({ ...prev, [threadId]: data.updated_config || null }));
+          setgenaiOriginalConfig(prev => ({ ...prev, [threadId]: data.original_config || null }));
           genaiCache.current[cacheKey] = data.output; // Store in cache
         } catch (e) {
           setGenaiError(e.message || "Unknown error");
@@ -461,17 +465,18 @@ function IssuesPage() {
     <Dialog
       open={reviewDialogOpen}
       onClose={() => setReviewDialogOpen(false)}
-      maxWidth="md"
-      fullWidth
+      maxWidth={false}
       PaperProps={{
-        sx: { 
+        sx: {
+          width: '75vw',
+          maxWidth: '75vw',
           zIndex: 2000,
           borderRadius: 4,
           boxShadow: 6,
           background: "rgba(255,255,255,0.95)",
           backdropFilter: "blur(8px)",
           border: "1px solid rgba(200,200,200,0.3)",
-          } // or any value higher than your Insight dialog
+        }
       }}
     >
       <DialogTitle sx={{ display: "flex", alignItems: "center", fontSize: 24 }}>
@@ -517,20 +522,91 @@ function IssuesPage() {
         )}
         {/* Show config editor only if not loading and no response yet */}
         {!actionLoading && insightRow && !genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
-          <TextField
-            label="Updated RAN Config"
-            multiline
-            minRows={8}
-            maxRows={20}
-            fullWidth
-            value={editableConfig}
-            onChange={e => setEditableConfig(e.target.value)}
-            variant="outlined"
-            sx={{ mt: 2, fontFamily: "monospace" }}
-            InputProps={{
-              style: { fontFamily: "monospace" }
-            }}
-          />
+          <>
+            <Button
+              variant="outlined"
+              sx={{
+                backgroundColor: '#11182E',
+                color: '#fff',
+                minWidth: 0,
+                px: 2,
+                borderRadius: 2,
+                boxShadow: 1,
+                '&:hover': {
+                  backgroundColor: '#2d3c6b',
+                },
+              }}
+              onClick={() => setShowDiffView(prev => !prev)}
+            >
+              {showDiffView ? "Switch to Edit View" : "Show Diff"}
+            </Button>
+            {showDiffView ? (
+              <Box sx={{
+                border: '1px solid #e0e4ef',
+                borderRadius: 2,
+                background: '#f8fafd',
+                p: 2,
+                mb: 2,
+                boxShadow: 1,
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ color: '#23305a', fontWeight: 600 }}>
+                    Original Config
+                  </Typography>
+                  <Typography variant="subtitle2" sx={{ color: '#23305a', fontWeight: 600 }}>
+                    Updated Config
+                  </Typography>
+                </Box>
+                <DiffViewer
+                  oldValue={typeof genaiOriginalConfig[rowIdToThreadId[insightRow.id]] === "object"
+                    ? JSON.stringify(genaiOriginalConfig[rowIdToThreadId[insightRow.id]], null, 2)
+                    : (genaiOriginalConfig[rowIdToThreadId[insightRow.id]] || "")}
+                  newValue={typeof genaiUpdatedConfig[rowIdToThreadId[insightRow.id]] === "object"
+                    ? JSON.stringify(genaiUpdatedConfig[rowIdToThreadId[insightRow.id]], null, 2)
+                    : (genaiUpdatedConfig[rowIdToThreadId[insightRow.id]] || "")}
+                  splitView={true}
+                  showDiffOnly={false}
+                  styles={{
+                    variables: {
+                      light: {
+                        diffViewerBackground: '#f8fafd',
+                        addedBackground: '#e6ffed',
+                        removedBackground: '#ffeef0',
+                        wordAddedBackground: '#acf2bd',
+                        wordRemovedBackground: '#fdb8c0',
+                      },
+                    },
+                    lineNumber: {
+                      minWidth: '24px',
+                      width: '24px',
+                      padding: '0 4px',
+                      fontSize: 12,
+                    },
+                    gutter: {
+                      minWidth: '24px',
+                      width: '24px',
+                      padding: '0 4px',
+                    },
+                  }}
+                />
+              </Box>
+            ) : (
+              <TextField
+                label="Updated RAN Config"
+                multiline
+                minRows={8}
+                maxRows={20}
+                fullWidth
+                value={editableConfig}
+                onChange={e => setEditableConfig(e.target.value)}
+                variant="outlined"
+                sx={{ mt: 2, fontFamily: "monospace" }}
+                InputProps={{
+                  style: { fontFamily: "monospace" }
+                }}
+              />
+            )}
+          </>
         )}
       </DialogContent>
       {/* Hide actions if loading or response is shown */}

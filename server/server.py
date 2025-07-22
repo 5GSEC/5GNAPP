@@ -199,6 +199,8 @@ def mobillm_resume_command():
             interrupt_value = response["__interrupt__"][0].value
             response_payload["interrupted"] = True
             response_payload["interrupt_prompt"] = interrupt_value.split("```")[0]
+            response_payload["original_config"] = response["original_config"]
+            response_payload["updated_config"] = response["updated_config"]
         return jsonify(response_payload), 200
 
     except Exception as e:

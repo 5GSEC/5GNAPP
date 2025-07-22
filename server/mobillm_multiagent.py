@@ -24,7 +24,11 @@ class MobiLLMState(TypedDict):
     """
     Represents the state of our graph.
     """
+    # generic parameters
     thread_id: str
+    tools_called: List[str]
+    # task-specific parameters
+    task: str
     query: str
     event: str
     network_data: str
@@ -35,10 +39,12 @@ class MobiLLMState(TypedDict):
     action_strategy: Literal["config tuning", "reboot", "none"]
     action_plan: str
     chat_response: str
-    task: str
-    updated_config: str
     outcome: str
-    tools_called: List[str]
+
+    # config tuning related
+    updated_config: str
+    original_config: str
+
 
 class MobiLLM_Multiagent:
     def __init__(self, google_api_key: str=None, gemini_llm_model: str="gemini-2.5-flash"):
@@ -118,15 +124,13 @@ class MobiLLM_Multiagent:
         ]
         self.classification_agent = create_react_agent(model=self.llm, tools=mobillm_security_classification_tools, prompt=DEFAULT_SECURITY_CLASSIFICATION_TASK_BACKGROUND, name="mobillm_security_classification_agent")
         
-        # MobiLLM Security Response Agent
-        mobillm_security_response_tools = [
+        # MobiLLM Response Planning Agent
+        mobillm_response_planning_tools = [
             get_all_mitre_fight_techniques,
             get_mitre_fight_technique_by_id,
-            get_ran_cu_config_tool,
-            update_ran_cu_config_tool,
-            reboot_ran_cu_tool,
+            get_ran_cu_config_tool
         ]
-        self.response_agent = create_react_agent(model=self.llm, tools=mobillm_security_response_tools, prompt=DEFAULT_SECURITY_RESPONSE_TASK_BACKGROUND, name="mobillm_security_response_agent")
+        self.response_planning_agent = create_react_agent(model=self.llm, tools=mobillm_response_planning_tools, prompt=DEFAULT_RESPONSE_PLANNING_TASK_BACKGROUND, name="mobillm_response_planning_agent")
         
         # MobiLLM Config Tuning Agent
         mobillm_config_tuning_tools = [
@@ -145,12 +149,12 @@ class MobiLLM_Multiagent:
         builder.add_node("mobillm_chat_agent", self.mobillm_chat_agent_node)
         builder.add_node("mobillm_security_analysis_agent", self.mobillm_security_analysis_agent_node)
         builder.add_node("mobillm_security_classification_agent", self.mobillm_security_classification_agent_node)
-        builder.add_node("mobillm_security_response_agent", self.mobillm_security_response_agent_node)
+        builder.add_node("mobillm_response_planning_agent", self.mobillm_response_planning_agent_node)
         builder.add_node("mobillm_config_tuning_agent", self.mobillm_config_tuning_agent_node)
 
         builder.add_edge(START, "supervisor")
         builder.add_edge("mobillm_security_analysis_agent", "mobillm_security_classification_agent")
-        builder.add_edge("mobillm_security_classification_agent", "mobillm_security_response_agent")
+        builder.add_edge("mobillm_security_classification_agent", "mobillm_response_planning_agent")
 
         builder.add_conditional_edges(
             "supervisor",
@@ -162,7 +166,7 @@ class MobiLLM_Multiagent:
         )
 
         builder.add_conditional_edges(
-            "mobillm_security_response_agent",
+            "mobillm_response_planning_agent",
             self.route_after_response_agent,
             {
                 "config_tuning": "mobillm_config_tuning_agent",
@@ -227,20 +231,20 @@ class MobiLLM_Multiagent:
         state["mitre_technique"] = json.dumps(techs, indent=4)
         return state
 
-    def mobillm_security_response_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+    def mobillm_response_planning_agent_node(self, state: MobiLLMState) -> MobiLLMState:
         threat_summary = state["threat_summary"]
         mitre_technique = state["mitre_technique"]
         if not threat_summary or not mitre_technique:
             return state
 
         prompt = f"Threat summary:\n{threat_summary}\nRelevant MiTRE FiGHT Techniques:\n{mitre_technique}"
-        call_result = self.response_agent.invoke({"messages": [("user", prompt)]})
+        call_result = self.response_planning_agent.invoke({"messages": [("user", prompt)]})
         raw_response = call_result["messages"][-1].content
 
         try:
             if raw_response.strip() == "" and call_result["messages"][-1].response_metadata.get("finish_reason") == "MALFORMED_FUNCTION_CALL":
                 print("MALFORMED_FUNCTION_CALL detected, retrying...")
-                call_result = self.response_agent.invoke({"messages": [("user", prompt)]})
+                call_result = self.response_planning_agent.invoke({"messages": [("user", prompt)]})
                 raw_response = call_result["messages"][-1].content
         except:
             print("raw_response", raw_response)
@@ -251,6 +255,8 @@ class MobiLLM_Multiagent:
             state["actionable"] = response["actionable"]
             state["action_plan"] = response["action_plan"]
             state["action_strategy"] = response["action_strategy"]
+            if state["action_strategy"] == "config tuning":
+                state["original_config"] = get_ran_cu_config_tool.invoke("") # store original RAN config before changes
         else:
             state["actionable"] = "no"
             state["action_plan"] = ""
@@ -358,6 +364,7 @@ class MobiLLM_Multiagent:
                         response_payload["interrupted"] = True  
                         response_payload["action_strategy"] = actionable_strategy
                         response_payload["updated_config"] = updated_config
+                        response_payload["original_config"] = result["original_config"] if "original_config" in result else ""
                         response_payload["interrupt_prompt"] = interrupt_value.split("```")[0]
                         response_message = response_message + f"\n\n**Proposed Response**:\n\nMobiLLM has identified an actionable response to mitigate the event through RAN configuration tuning. Please read following action plan:\n\n{action_plan}\n\n**Would you like to review and approve MobiLLM's actions?**"
             else:
@@ -378,27 +385,27 @@ if __name__ == "__main__":
     # result = agent.invoke("[chat] How many UEs are connected to the network?")
     # result = agent.invoke("[chat] What are the IMSIs of the UEs connected to the network?")
     # result = agent.invoke("[security analysis] Conduct a thorough security analysis for event ID 4")
-    result = agent.invoke("""[security analysis]
-    Event Details:
-    - Source: MobieXpert
-    - Name: RRC Null Cipher
-    - Cell ID: 20000
-    - UE ID: 54649
-    - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
-    - Severity: Critical
-    - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
-    """)
-
-    # result = agent.invoke("""[security analysis] 
+    # result = agent.invoke("""[security analysis]
     # Event Details:
     # - Source: MobieXpert
-    # - Name: Blind DoS
+    # - Name: RRC Null Cipher
     # - Cell ID: 20000
-    # - UE ID: 39592
-    # - Time: Mon Jun 09 2025 11:29:14 GMT-0400 (Eastern Daylight Time)
+    # - UE ID: 54649
+    # - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
     # - Severity: Critical
-    # - Description: A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.
+    # - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
     # """)
+
+    result = agent.invoke("""[security analysis] 
+    Event Details:
+    - Source: MobieXpert
+    - Name: Blind DoS
+    - Cell ID: 20000
+    - UE ID: 39592
+    - Time: Mon Jun 09 2025 11:29:14 GMT-0400 (Eastern Daylight Time)
+    - Severity: Critical
+    - Description: A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.
+    """)
 
     while True:
         # Check if an interrupt occurred in the result
