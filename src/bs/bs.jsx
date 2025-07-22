@@ -66,7 +66,7 @@ const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
       {isHovered && !hoveredUeId && (
         <Box
           className="bs-showinfo"
-          sx={{ background: "#f8fafd", transform: 'translate(50%, 15%)', maxHeight: 320, overflowY: "auto", borderRadius: 2, p: 2 }}
+          sx={{ background: "#f8fafd", transform: 'translate(50%, 35%)', maxHeight: 320, overflowY: "auto", borderRadius: 2, p: 2 }}
         >
           <p><strong>Base Station ID</strong>: {bsId}</p>
           <p><strong>MCC</strong>: {bsData.mcc}</p>
