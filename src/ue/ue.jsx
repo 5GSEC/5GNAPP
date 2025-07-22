@@ -71,24 +71,91 @@ function parseUEStates(ueData) {
   if (!ueData || !ueData.mobiflow || ueData.mobiflow.length === 0) return "Unknown";
 
   const last = ueData.mobiflow[ueData.mobiflow.length - 1];
+
+  const rrcState = parseUERRCState(last.rrc_state);
+  const emmState = parseUENASState(last.nas_state);
+
+  // return `${rrcState}, ${emmState}`;
+  return `${rrcState}`;
+}
+
+function parseUERRCState(rrc_state) {
   const rrcMap = {
     0: "RRC_Inactive",
     1: "RRC_Idle",
     2: "RRC_Connected",
     3: "RRC_Reconfigured",
   };
+  return rrcMap[rrc_state] ?? `${rrc_state}`;
+}
+
+function parseUENASState(nas_state) {
   const emmMap = {
     0: "EMM_Deregistered",
     1: "EMM_Registered_Init",
     2: "EMM_Registered",
   };
-
-  const rrcState = rrcMap[last.rrc_state] ?? `RRC_${last.rrc_state}`;
-  const emmState = emmMap[last.nas_state] ?? `EMM_${last.nas_state}`;
-
-  // return `${rrcState}, ${emmState}`;
-  return `${rrcState}`;
+  return emmMap[nas_state] ?? "Unknown";
 }
+
+function parseUERRCSecState(rrc_sec_state) {
+  const rrcSecMap = {
+    0: "SEC_CONTEXT_NOT_EXIST",
+    1: "RRC_SEC_CONTEXT_INTEGRITY_PROTECTED",
+    2: "RRC_SEC_CONTEXT_CIPHERED",
+    3: "RRC_SEC_CONTEXT_CIPHERED_AND_INTEGRITY_PROTECTED"
+  };
+  return rrcSecMap[rrc_sec_state] ?? "Unknown";
+}
+
+function parseUERRCCipherAlg(rrc_cipher_alg) {
+  const rrcCipherMap = {
+    0: "NEA0",
+    1: "128-NEA1",
+    2: "128-NEA2",
+    3: "128-NEA3"
+  };
+  return rrcCipherMap[rrc_cipher_alg] ?? "Unknown";
+}
+
+function parseUERRCIntegrityAlg(rrc_integrity_alg) {
+  const rrcIntegrityMap = {
+    0: "NIA0",
+    1: "128-NIA1",
+    2: "128-NIA2",
+    3: "128-NIA3"
+  };
+  return rrcIntegrityMap[rrc_integrity_alg] ?? "Unknown";
+}
+
+function parseUENASCipherAlg(nas_cipher_alg) {
+  const nasCipherMap = {
+    0: "5G-EA0",
+    1: "128-5G-EA1",
+    2: "128-5G-EA2",
+    3: "128-5G-EA3",
+    4: "5G-EA4",
+    5: "5G-EA5",
+    6: "5G-EA6",
+    7: "5G-EA7",
+  };
+  return nasCipherMap[nas_cipher_alg] ?? `${nas_cipher_alg}`;
+}
+
+function parseUENASIntegrityAlg(nas_integrity_alg) {
+  const nasIntegrityMap = {
+    0: "5G-IA0",
+    1: "128-5G-IA1",
+    2: "128-5G-IA2",
+    3: "128-5G-IA3",
+    4: "5G-IA4",
+    5: "5G-IA5",
+    6: "5G-IA6",
+    7: "5G-IA7",
+  };
+  return nasIntegrityMap[nas_integrity_alg] ?? "Unknown";
+}
+
 
 
 const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId, angle, fade}) => {
@@ -383,7 +450,8 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
               backgroundColor: '#fff',
               // color: '#000',
               padding: '16px',
-              border: '1px solid #000', // Added black border
+              border: '1px solid #ccc', // Added black border
+              borderRadius: 2,
               width: '900px', // Increased width
               height: '400px', // Added height
               overflow: 'auto', // Added overflow for scroll
@@ -443,9 +511,22 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                       "rrc_integrity_alg",
                       "nas_cipher_alg",
                       "nas_integrity_alg",
-                    ].map((label) => (
-                      <TableCell key={label}>{ueData?.[label] || "N/A"}</TableCell>
-                    ))}
+                    ].map((label) => {
+                      let value = ueData?.[label];
+                      // Branch for cipher/integrity algorithms
+                      if (label === "rrc_cipher_alg") {
+                        value = value !== undefined && value !== null && value !== "" ? parseUERRCCipherAlg(value) : "N/A";
+                      } else if (label === "rrc_integrity_alg") {
+                        value = value !== undefined && value !== null && value !== "" ? parseUERRCIntegrityAlg(value) : "N/A";
+                      } else if (label === "nas_cipher_alg") {
+                        value = value !== undefined && value !== null && value !== "" ? parseUENASCipherAlg(value) : "N/A";
+                      } else if (label === "nas_integrity_alg") {
+                        value = value !== undefined && value !== null && value !== "" ? parseUENASIntegrityAlg(value) : "N/A";
+                      } else {
+                        value = value !== undefined && value !== null && value !== "" ? value : "N/A";
+                      }
+                      return <TableCell key={label}>{value}</TableCell>;
+                    })}
                   </TableRow>
                 </TableBody>
               </Table>
@@ -471,7 +552,21 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                   {metadataObj.map((item, index) => (
                     <TableRow key={index}>
                       {metadataFields.map((fld) => (
-                        <TableCell key={fld}>{item[fld] !== undefined && item[fld] !== null && item[fld] !== "" ? item[fld] : "N/A"}</TableCell>
+                        <TableCell key={fld}>
+                          {(() => {
+                            if (fld === "rrc_state" && item[fld]) {
+                              return parseUERRCState(item[fld]);
+                            } else if (fld === "nas_state" && item[fld]) {
+                              return parseUENASState(item[fld]);
+                            } else if (fld === "rrc_sec_state" && item[fld]) {
+                              return parseUERRCSecState(item[fld]);
+                            } else if (item[fld] !== undefined && item[fld] !== null && item[fld] !== "") {
+                              return item[fld];
+                            } else {
+                              return "N/A";
+                            }
+                          })()}
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))}
