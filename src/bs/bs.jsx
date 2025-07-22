@@ -53,7 +53,7 @@ const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
       onContextMenu={e => { e.preventDefault(); setClick(!click); }}
-      style={{ visibility: hoveredBsId && hoveredBsId !== bsId ? 'hidden' : 'visible' }}
+      // style={{ visibility: hoveredBsId && hoveredBsId !== bsId ? 'hidden' : 'visible' }}
     >
       <div className="bs-core"
         // make disconnected BS look more faded
@@ -87,8 +87,10 @@ const BsIcon = ({ bsId, bsData, bsEvent, ueData = {} }) => {
               className="branch"
               style={{
                 position: 'absolute',
-                top:  `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60) * Math.sin(angle * Math.PI / 180)}px)`,
-                left: `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60) * Math.cos(angle * Math.PI / 180)}px)`,
+                // top:  `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60) * Math.sin(angle * Math.PI / 180)}px)`,
+                // left: `calc(39% + ${(isHovered ? 10 * Object.keys(ueData).length + 100 : 60) * Math.cos(angle * Math.PI / 180)}px)`,
+                top:  `calc(36% + ${70 * Math.sin(angle * Math.PI / 180)}px)`,
+                left: `calc(36% + ${60 * Math.cos(angle * Math.PI / 180)}px)`,
               }}
             >
               <UeIcon

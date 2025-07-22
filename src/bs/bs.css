@@ -32,7 +32,7 @@
   font-weight: 500;
 }
 
-.icon-container.hovered .bs-core {
+/* .icon-container.hovered .bs-core {
   transform: scale(1.25);
 }
 
@@ -41,7 +41,7 @@
 .icon-container.hovered .bs-label {
   transform: translateX(5%) scale(1.25);
   font-size: 0.9rem;
-}
+} */
 
 
 .branches {

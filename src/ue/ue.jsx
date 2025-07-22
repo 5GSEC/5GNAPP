@@ -19,6 +19,7 @@ import {
   Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import ReactDOM from 'react-dom';
 
 const fieldsToRender = [
     "name",
@@ -162,6 +163,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
     const [showInfo, setShowInfo] = useState(false);
     const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
+    const [infoPos, setInfoPos] = useState({ top: 0, left: 0 });
 
     //for showing the detail metadata when clicking on the UE
     const [showDetails, setShowDetails] = useState(false);
@@ -204,6 +206,13 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
 
   const handleUeMouseOnEnter = (e) => {
     setHoveredUeId(ueId);
+    if (ueIconRef.current) {
+      const rect = ueIconRef.current.getBoundingClientRect();
+      setInfoPos({
+        top: rect.bottom + window.scrollY + 8, // 8px below the icon
+        left: rect.left + window.scrollX,      // align left edges
+      });
+    }
     setShowInfo(true);
   };
 
@@ -299,7 +308,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
       )}
       <div
         className="ue-icon"
-        style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }}
+        // style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }}
         ref={ueIconRef}
         onClick={handleUeClick}
       >
@@ -327,15 +336,19 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                 <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
             </div> */}
 
-            {showInfo && (
-                <Box className="floating-window" 
+            {showInfo && ReactDOM.createPortal(
+                <Box
+                  className="floating-window"
                   sx={{
+                    position: 'absolute',
+                    top: infoPos.top,
+                    left: infoPos.left,
                     background: "#f8fafd",
-                    transform: 'translate(50%, 15%)', 
                     maxHeight: 320,
                     overflowY: "auto",
                     borderRadius: 2,
                     p: 2,
+                    zIndex: 9999
                   }}
                 >
                     <Box sx={{ mb: 1 }}>
@@ -434,27 +447,27 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                             );
                           }
                         })}
-                      </Box>
+                        </Box>
                     ))}
-                  </Box>
-      )}
+                </Box>,
+                document.body
+            )}
 
       {/* showinfo window for clicking */}
-        {showDetails && (
+        {showDetails && ReactDOM.createPortal(
           <Box
             sx={{
               position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)', 
+              top: '60%',
+              left: '60%',
+              transform: 'translate(-50%, -50%)',
               backgroundColor: '#fff',
-              // color: '#000',
               padding: '16px',
-              border: '1px solid #ccc', // Added black border
+              border: '1px solid #ccc',
               borderRadius: 2,
-              width: '900px', // Increased width
-              height: '400px', // Added height
-              overflow: 'auto', // Added overflow for scroll
+              width: '1000px',
+              height: '450px',
+              overflow: 'auto',
               zIndex: 9999
             }}
           >
@@ -464,24 +477,21 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: 0,
+                marginBottom: 1,
               }}
             >
-            {/* Close Button */}
-            <IconButton
-              onClick={handleCloseDetailsWindow}
-              sx={{
-                color: "black",
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-            {/* replaced single row with a table for metadata in two rows */}
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginTop: 0, marginBottom: 1 }}>
-              UE Metadata
-            </Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginTop: 0 }}>
+                UE Metadata
+              </Typography>
+              <IconButton
+                onClick={handleCloseDetailsWindow}
+                sx={{
+                  color: "black",
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -513,7 +523,6 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                       "nas_integrity_alg",
                     ].map((label) => {
                       let value = ueData?.[label];
-                      // Branch for cipher/integrity algorithms
                       if (label === "rrc_cipher_alg") {
                         value = value !== undefined && value !== null && value !== "" ? parseUERRCCipherAlg(value) : "N/A";
                       } else if (label === "rrc_integrity_alg") {
@@ -574,8 +583,9 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
               </Table>
             </TableContainer>
 
-          </Box>
-          )}
+          </Box>,
+          document.body
+        )}
 
       
     </div>
