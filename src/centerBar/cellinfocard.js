@@ -22,7 +22,7 @@ function parseTimestamp(raw) {
   return n < 1e12 ? new Date(n * 1000) : new Date(n);
 }
 
-function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, updateData }) {
+function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, updateData, timeSeriesData }) {
   const theme = useTheme();
   const [timeSeries, setTimeSeries] = useState({
     activeCells: [],
@@ -32,54 +32,19 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
   });
 
   useEffect(() => {
-    const cellMap = {};
-    const ueMap = {};
-    const eventMap = {};
-    const criticalMap = {};
-
-    Object.values(network).forEach(cell => {
-      const ts = parseTimestamp(cell.timestamp)?.getTime();
-      if (!ts) return;
-      cellMap[ts] = (cellMap[ts] || 0) + 1;
-    });
-
-    Object.values(network).forEach(cell => {
-      Object.values(cell.ue || {}).forEach(ue => {
-        const ts = parseTimestamp(ue.timestamp)?.getTime();
-        if (!ts) return;
-        ueMap[ts] = (ueMap[ts] || 0) + 1;
-      });
-    });
-
-    if (events && typeof events === 'object') {
-      Object.values(events).forEach(evt => {
-        const ts = parseTimestamp(evt.timestamp)?.getTime();
-        if (!ts) return;
-        eventMap[ts] = (eventMap[ts] || 0) + 1;
-        if ((evt.severity || '').toLowerCase() === 'critical') {
-          criticalMap[ts] = (criticalMap[ts] || 0) + 1;
-        }
-      });
+    const makeSeries = (map) => {
+      if (!map) return [];
+      return Object.entries(map)
+        .map(([ts, val]) => ({ ts: Number(ts), val }))
     }
 
-    const makeSeries = (map) => {
-      const keys = Object.keys(map).map(Number).sort((a, b) => a - b);
-      const result = [];
-      let acc = 0;
-      for (const ts of keys) {
-        acc += map[ts];
-        result.push({ ts, val: acc });
-      }
-      return result;
-    };
-
     setTimeSeries({
-      activeCells: makeSeries(cellMap),
-      totalUEs: makeSeries(ueMap),
-      totalEvents: makeSeries(eventMap),
-      criticalEvents: makeSeries(criticalMap)
+      activeCells: makeSeries(timeSeriesData.active_bs),
+      totalUEs: makeSeries(timeSeriesData.active_ue),
+      totalEvents: makeSeries(timeSeriesData.critical_event),
+      criticalEvents: makeSeries(timeSeriesData.total_event)
     });
-  }, [network, events]);
+  }, [timeSeriesData]);
 
   const iconMap = {
     "Active Cells": <CellTowerIcon fontSize="small" sx={{ mr: 1 }} />,
@@ -134,6 +99,12 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
             const timestamps = series.map(d => d.ts);
             const data = series.map(d => d.val);
 
+            let xMin = null, xMax = null;
+            if (timestamps.length > 0) {
+              xMin = Math.min(...timestamps);
+              xMax = Math.max(...timestamps);
+            }
+
             if (timestamps.length === 0) {
               return (
                 <Grid item xs={12} sm={6} md={3} key={idx}>
@@ -157,13 +128,10 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
               );
             }
 
-            const minTs = Math.min(...timestamps);
-            const maxTs = Math.max(...timestamps);
-
-            // 新增：判断趋势颜色
+            // trend color
             const trendColor = (data.length >= 2 && data[data.length - 1] < data[0])
-              ? '#e53935' // 红色
-              : '#90a757'; // 绿色
+              ? '#e53935' // red
+              : '#90a757'; // green
 
             return (
               <Grid item xs={12} sm={6} md={3} key={idx}>
@@ -182,16 +150,10 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                       xAxis={[{
                         scaleType: 'time',
                         data: timestamps,
-                        // position: 'none',
-                        ...(key === 'activeCells'
-                          ? { min: minTs - 5, max: maxTs + 5 }
-                          : key === 'totalUEs'
-                          ? { min: minTs - 10000, max: maxTs + 10000 }
-                          : key === 'totalEvents' || key === 'criticalEvents'
-                          ? { min: minTs - 10000, max: maxTs + 10000 }
-                          : { min: minTs - 10, max: maxTs + 10 }),
                         valueFormatter: (ts) =>
-                          new Date(ts).toLocaleTimeString('en-US', { hour12: false }),
+                          new Date(ts * 1000).toLocaleTimeString('en-US', { hour12: false }),
+                        min: xMin,
+                        max: xMax,
                       }]}
                       leftAxis={null}
                       bottomAxis={null}

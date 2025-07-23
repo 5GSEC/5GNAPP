@@ -1,6 +1,7 @@
 import subprocess
 import os
 import json
+import time
 from utils import *
 from langchain.tools import tool
 import global_vars
@@ -23,6 +24,11 @@ sdl_namespaces = ["ue_mobiflow", "bs_mobiflow", "mobiexpert-event", "mobiwatch-e
 pod_names = ["ricplt-e2mgr", "mobiflow-auditor", "mobiexpert-xapp", "mobiwatch-xapp"]
 display_names = ["E2 Manager", "MobiFlow Auditor xApp", "MobieXpert xApp", "MobiWatch xApp"]
 
+active_ue_data_time_series = {}
+active_bs_data_time_series = {}
+critical_event_time_series = {}
+total_event_time_series = {}
+max_time_series_length = 90 # update once every 10 seconds, 15 minutes = 900 seconds = 90 data points
 
 def fetch_service_status_osc() -> dict:
     ''' 
@@ -177,7 +183,7 @@ def fetch_sdl_data_osc() -> dict:
     # get all BS mobiflow
     bs_mobiflow_key = ns_target[1]
     bs_meta = "DataType,Index,Timestamp,Version,Generator,nr_cell_id,mcc,mnc,tac,report_period,status".split(",")
-    values = get_bs_mobiflow_data_all_tool("")
+    values = get_bs_mobiflow_data_all_tool.invoke("")
     for val in values:
         bs_mf_item = val.split(";")
         nr_cell_id = bs_mf_item[bs_meta.index("nr_cell_id")]
@@ -200,7 +206,7 @@ def fetch_sdl_data_osc() -> dict:
     # get all UE mobiflow
     ue_mobiflow_key = ns_target[0]
     ue_meta = "DataType,Index,Version,Generator,Timestamp,nr_cell_id,gnb_cu_ue_f1ap_id,gnb_du_ue_f1ap_id,rnti,s_tmsi,mobile_id,rrc_cipher_alg,rrc_integrity_alg,nas_cipher_alg,nas_integrity_alg,rrc_msg,nas_msg,rrc_state,nas_state,rrc_sec_state,reserved_field_1,reserved_field_2,reserved_field_3".split(",")
-    values = get_ue_mobiflow_data_all_tool("")
+    values = get_ue_mobiflow_data_all_tool.invoke("")
     for val in values:
         ue_mf_item = val.split(";")
         ue_id = ue_mf_item[ue_meta.index("gnb_du_ue_f1ap_id")]
@@ -301,7 +307,65 @@ def fetch_sdl_data_osc() -> dict:
     # get all mobiwatch-event
 
     # print(json.dumps(network, indent=4))
+
+    # update time series data
+    update_network_time_series(network)
+
     return network
+
+def update_network_time_series(network: dict):
+    '''
+    Update the time series data for the network data. Invoked when fetch_sdl_data_osc is called.
+    '''
+    current_active_ue = 0
+    current_active_bs = 0
+    for nr_cell_id in network.keys():
+        if int(network[nr_cell_id]["status"]) == 1:
+            current_active_bs += 1
+            if "ue" in network[nr_cell_id].keys():
+                current_active_ue += len(network[nr_cell_id]["ue"].keys())
+    
+    # get current timestamp (integer)
+    current_ts = int(time.time())
+    active_bs_data_time_series[current_ts] = current_active_bs
+    active_ue_data_time_series[current_ts] = current_active_ue
+
+    # remove the oldest timestamp
+    if len(active_bs_data_time_series) > max_time_series_length:
+        active_bs_data_time_series.pop(min(active_bs_data_time_series.keys()))
+    if len(active_ue_data_time_series) > max_time_series_length:
+        active_ue_data_time_series.pop(min(active_ue_data_time_series.keys()))
+
+def update_event_time_series(event: dict):
+    '''
+    Update the time series data for the event data. Invoked when fetch_sdl_event_data_osc is called.
+    '''
+    current_critical_event = 0
+    current_total_event = 0
+    for event_id in event.keys():
+        if event[event_id]["severity"] == "Critical":
+            current_critical_event += 1
+        current_total_event += 1
+    
+    current_ts = int(time.time())
+    critical_event_time_series[current_ts] = current_critical_event
+    total_event_time_series[current_ts] = current_total_event
+
+    # remove the oldest timestamp
+    if len(critical_event_time_series) > max_time_series_length:
+        critical_event_time_series.pop(min(critical_event_time_series.keys()))
+    if len(total_event_time_series) > max_time_series_length:
+        total_event_time_series.pop(min(total_event_time_series.keys()))
+
+def get_time_series_data() -> dict:
+    global active_bs_data_time_series, active_ue_data_time_series
+    global critical_event_time_series, total_event_time_series
+    ts = {}
+    ts["active_bs"] = active_bs_data_time_series
+    ts["active_ue"] = active_ue_data_time_series
+    ts["critical_event"] = critical_event_time_series
+    ts["total_event"] = total_event_time_series
+    return ts
 
 @tool
 def fetch_sdl_data_osc_tool() -> dict:
@@ -464,6 +528,9 @@ def fetch_sdl_event_data_osc() -> dict:
                     "description": event_item[6],
                 }
     
+    # update event time series data
+    update_event_time_series(event)
+
     return event
 
 @tool

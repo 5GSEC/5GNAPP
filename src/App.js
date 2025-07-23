@@ -17,7 +17,7 @@ import Chatbot from './components/Chatbot';
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
-import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, setSimulationMode } from "./backend/fetchUserData";
+import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, fetchTimeSeriesData, setSimulationMode } from "./backend/fetchUserData";
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
@@ -64,11 +64,12 @@ function XAppsLayout() {
 const data_simulation = 1;
 const update_interval = 10000;
 
-export function updateData(setNetwork, setEvent, setService) {
+export function updateData(setNetwork, setEvent, setService, setTimeSeriesData) {
   // Data fetch
   fetchSdlData(setNetwork);
   fetchSdlEventData(setEvent);
   fetchServiceStatus(setService);
+  fetchTimeSeriesData(setTimeSeriesData);
 }
 
 // ----------------------------------------
@@ -78,15 +79,16 @@ function DashboardPage() {
   const [network, setNetwork] = useState({});
   const [services, setService] = useState({});
   const [events, setEvent] = useState({});
+  const [timeSeriesData, setTimeSeriesData] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      updateData(setNetwork, setEvent, setService);
+      updateData(setNetwork, setEvent, setService, setTimeSeriesData);
     }, update_interval);
     if (data_simulation === 1)
       setSimulationMode();
-    updateData(setNetwork, setEvent, setService);
+    updateData(setNetwork, setEvent, setService, setTimeSeriesData);
 
     return () => clearInterval(interval);
   }, []);
@@ -104,6 +106,7 @@ function DashboardPage() {
           network={network}
           events={events}
           services={services}
+          timeSeriesData={timeSeriesData}
           bsId={hoveredBsId}
           ueId={hoveredUeId}
         />

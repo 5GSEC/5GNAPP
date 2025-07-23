@@ -45,7 +45,7 @@ const StatusIndicator = styled.span`
   margin-right: 8px;
 `;
 
-function CenterBar({ setNetwork, setService, setEvent, network, events, services, bsId, ueId }) {
+function CenterBar({ setNetwork, setService, setEvent, network, events, services, bsId, ueId, timeSeriesData }) {
   // Banner message and visibility
   const [bannerMessage, setBannerMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -153,6 +153,7 @@ function CenterBar({ setNetwork, setService, setEvent, network, events, services
           <ActiveCellInfo
             network={network}
             events={events}
+            timeSeriesData={timeSeriesData}
             bsId={bsId}
             setNetwork={setNetwork}
             setEvent={setEvent}

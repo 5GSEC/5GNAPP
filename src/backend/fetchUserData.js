@@ -62,6 +62,27 @@ function fetchSdlEventData(setEvent) {
     });
 }
 
+function fetchTimeSeriesData(setTimeSeries) {
+  fetch("http://localhost:8080/fetchTimeSeriesData", {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      setTimeSeries(data);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+}
+
 
 // Return a promise from deployXapp
 function deployXapp(xappName) {
@@ -296,3 +317,4 @@ export { fetchSdlEventData };
 export { mobiLLMChat };
 export { setSimulationMode };
 export { sendLLMResumeCommand };
+export { fetchTimeSeriesData}
