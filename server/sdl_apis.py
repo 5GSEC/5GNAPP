@@ -361,6 +361,18 @@ def get_time_series_data() -> dict:
     global active_bs_data_time_series, active_ue_data_time_series
     global critical_event_time_series, total_event_time_series
     ts = {}
+    # active_bs_data_time_series_example = {
+    #     1721731200: 0,
+    #     1721731210: 0,
+    #     1721731220: 0,
+    #     1721731230: 4,
+    #     1721731240: 5,
+    #     1721731250: 5,
+    #     1721731260: 5,
+    #     1721731270: 5,
+    #     1721731280: 8,
+    #     1721731290: 8,
+    # }
     ts["active_bs"] = active_bs_data_time_series
     ts["active_ue"] = active_ue_data_time_series
     ts["critical_event"] = critical_event_time_series

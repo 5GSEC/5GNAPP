@@ -11,7 +11,9 @@ import {
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CellTowerIcon from "@mui/icons-material/CellTower";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import SmartphoneIcon from "@mui/icons-material/Smartphone";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { LineChart } from "@mui/x-charts/LineChart";
 
@@ -48,8 +50,8 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
 
   const iconMap = {
     "Active Cells": <CellTowerIcon fontSize="small" sx={{ mr: 1 }} />,
-    "Active UEs": <PeopleAltIcon fontSize="small" sx={{ mr: 1 }} />,
-    "Critical Events": <WarningAmberIcon fontSize="small" sx={{ mr: 1, color: "orange" }} />,
+    "Active UEs": <SmartphoneIcon fontSize="small" sx={{ mr: 1 }} />,
+    "Critical Events": <WarningAmberIcon fontSize="small" sx={{ mr: 1, color: "red" }} />,
     "Total Events": <AssessmentIcon fontSize="small" sx={{ mr: 1 }} />,
   };
 
@@ -100,9 +102,14 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
             const data = series.map(d => d.val);
 
             let xMin = null, xMax = null;
+            let yMin = null, yMax = null;
             if (timestamps.length > 0) {
               xMin = Math.min(...timestamps);
               xMax = Math.max(...timestamps);
+            }
+            if (data.length > 0) {
+              yMin = Math.min(...data) == 0 ? -0.5 :(Math.min(...data)) * 0.9;
+              yMax = (Math.max(...data)) * 1.1;
             }
 
             if (timestamps.length === 0) {
@@ -129,9 +136,10 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
             }
 
             // trend color
-            const trendColor = (data.length >= 2 && data[data.length - 1] <= data[0])
-              ? '#90a757' // green
-              : '#e53935'; // red
+            const trendColor = '#90a757'; // green
+            // const trendColor = (data.length >= 2 && data[data.length - 1] <= data[0])
+            //   ? '#90a757' // green
+            //   : '#e53935'; // red
 
             return (
               <Grid item xs={12} sm={6} md={3} key={idx}>
@@ -155,6 +163,10 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                         min: xMin,
                         max: xMax,
                       }]}
+                      yAxis={[{
+                        min: yMin,
+                        max: yMax,
+                      }]}
                       leftAxis={null}
                       bottomAxis={null}
                       series={[{
@@ -162,40 +174,40 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                         showMark: false,
                         color: trendColor,
                       }]}
-                      height={60}
-                      margin={{ top: 5, bottom: 5, left: 0, right: 0 }}
+                      height={80}
+                      margin={{ top: 5, bottom: 5, left: 2, right: 0 }}
                       grid={{ horizontal: false, vertical: false }}
-slotProps={{
-  legend: { hidden: true },
-  tooltip: {
-    sx: {
-      backgroundColor: 'white',
-      borderRadius: 1,
-      boxShadow: 3,
-      padding: '4px 8px',
-      fontSize: '0.75rem',
-      color: '#000',
-    },
-    content: ({ axisValue, series }) => (
-      <Box>
-        <Typography sx={{ fontWeight: 600, color: '#000' }}>
-          {new Date(axisValue).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-          })}
-        </Typography>
-        {series.map(({ label, value, color }, i) => (
-          <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 12, height: 3, backgroundColor: color }} />
-            <Typography variant="body2" sx={{ color: '#000' }}>
-              {value}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
-    ),
-  },
-}}
+                      slotProps={{
+                        legend: { hidden: true },
+                        tooltip: {
+                          sx: {
+                            backgroundColor: 'white',
+                            borderRadius: 1,
+                            boxShadow: 3,
+                            padding: '4px 8px',
+                            fontSize: '0.75rem',
+                            color: '#000',
+                          },
+                          content: ({ axisValue, series }) => (
+                            <Box>
+                              <Typography sx={{ fontWeight: 600, color: '#000' }}>
+                                {new Date(axisValue).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                })}
+                              </Typography>
+                              {series.map(({ label, value, color }, i) => (
+                                <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Box sx={{ width: 12, height: 3, backgroundColor: color }} />
+                                  <Typography variant="body2" sx={{ color: '#000' }}>
+                                    {value}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          ),
+                        },
+                      }}
 
                     />
                   </CardContent>
