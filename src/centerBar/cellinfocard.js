@@ -41,8 +41,8 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
     setTimeSeries({
       activeCells: makeSeries(timeSeriesData.active_bs),
       totalUEs: makeSeries(timeSeriesData.active_ue),
-      totalEvents: makeSeries(timeSeriesData.critical_event),
-      criticalEvents: makeSeries(timeSeriesData.total_event)
+      totalEvents: makeSeries(timeSeriesData.total_event),
+      criticalEvents: makeSeries(timeSeriesData.critical_event)
     });
   }, [timeSeriesData]);
 
@@ -129,9 +129,9 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
             }
 
             // trend color
-            const trendColor = (data.length >= 2 && data[data.length - 1] < data[0])
-              ? '#e53935' // red
-              : '#90a757'; // green
+            const trendColor = (data.length >= 2 && data[data.length - 1] <= data[0])
+              ? '#90a757' // green
+              : '#e53935'; // red
 
             return (
               <Grid item xs={12} sm={6} md={3} key={idx}>
