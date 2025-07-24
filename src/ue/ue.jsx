@@ -463,7 +463,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
               transform: 'translate(-50%, -50%)',
               backgroundColor: '#fff',
               padding: '16px',
-              border: '1px solid #ccc',
+              border: '2px solid #ccc',
               borderRadius: 2,
               width: '1000px',
               height: '450px',

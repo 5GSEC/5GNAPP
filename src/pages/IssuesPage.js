@@ -61,6 +61,15 @@ Event Details:
 - Description: ${row.description}
 `;
 
+async function fetchEvents(setEvent) {
+  try {
+    const sdlEventData = await fetchSdlEventData();
+    setEvent(sdlEventData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
 function IssuesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [bevent, setEvent] = useState({});
@@ -91,9 +100,9 @@ function IssuesPage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchSdlEventData(setEvent);
+      fetchEvents(setEvent);
     }, update_interval);
-    fetchSdlEventData(setEvent);
+    fetchEvents(setEvent);
     return () => clearInterval(interval);
   }, []);
 
