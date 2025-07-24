@@ -64,12 +64,21 @@ function XAppsLayout() {
 const data_simulation = 1;
 const update_interval = 10000;
 
-export function updateData(setNetwork, setEvent, setService, setTimeSeriesData) {
-  // Data fetch
-  fetchSdlData(setNetwork);
-  fetchSdlEventData(setEvent);
+async function fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData) {
   fetchServiceStatus(setService);
-  fetchTimeSeriesData(setTimeSeriesData);
+  try {
+    // ensure fetch order in API calls
+    const sdlData = await fetchSdlData();
+    setNetwork(sdlData);
+
+    const sdlEventData = await fetchSdlEventData();
+    setEvent(sdlEventData);
+
+    const timeSeriesData = await fetchTimeSeriesData();
+    setTimeSeriesData(timeSeriesData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 }
 
 // ----------------------------------------
@@ -84,11 +93,11 @@ function DashboardPage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      updateData(setNetwork, setEvent, setService, setTimeSeriesData);
+      fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData);
     }, update_interval);
     if (data_simulation === 1)
       setSimulationMode();
-    updateData(setNetwork, setEvent, setService, setTimeSeriesData);
+    fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData);
 
     return () => clearInterval(interval);
   }, []);

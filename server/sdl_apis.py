@@ -28,6 +28,7 @@ active_ue_data_time_series = {}
 active_bs_data_time_series = {}
 critical_event_time_series = {}
 total_event_time_series = {}
+current_active_ue_ids = []
 max_time_series_length = 90 # update once every 10 seconds, 15 minutes = 900 seconds = 90 data points
 
 def fetch_service_status_osc() -> dict:
@@ -277,35 +278,6 @@ def fetch_sdl_data_osc() -> dict:
         else:
             print("nr_cell_id not found")
 
-
-    # # get all mobiexpert-event
-    # events = fetch_sdl_event_data_osc()
-    # event_key = ns_target[2]
-    # event_meta = "Event ID,Event Name,Affected base station ID,Time,Affected UE ID,Description,Level".split(",")
-    # for event in events.values():
-    #     # load MobieXpert events
-    #     if event['source'] == "MobieXpert":
-    #         nr_cell_id = event["cellID"]
-    #         event_id = event["id"]
-    #         ue_id = event["ueID"]
-    #         if nr_cell_id in network:
-    #             if ue_id in network[nr_cell_id]["ue"]:
-    #                 # add event
-    #                 network[nr_cell_id]["ue"][ue_id]["event"][event_id] = {
-    #                     "Event Name": event["name"],
-    #                     "Timestamp": event["timestamp"],
-    #                     "Affected base station ID": nr_cell_id,
-    #                     "Affected UE ID": ue_id,
-    #                     "Level": event["severity"],
-    #                     "Description": event["description"]
-    #                 }
-    #             else:
-    #                 print(f"gnb_du_ue_f1ap_id {ue_id} not found")
-    #     else:
-    #         print(f"nr_cell_id {nr_cell_id} not found")
-    
-    # get all mobiwatch-event
-
     # print(json.dumps(network, indent=4))
 
     # update time series data
@@ -319,11 +291,14 @@ def update_network_time_series(network: dict):
     '''
     current_active_ue = 0
     current_active_bs = 0
+    global current_active_ue_ids
+    current_active_ue_ids = []
     for nr_cell_id in network.keys():
         if int(network[nr_cell_id]["status"]) == 1:
             current_active_bs += 1
             if "ue" in network[nr_cell_id].keys():
                 current_active_ue += len(network[nr_cell_id]["ue"].keys())
+                current_active_ue_ids.extend([int(ue_id) for ue_id in network[nr_cell_id]["ue"].keys()])
     
     # get current timestamp (integer)
     current_ts = int(time.time())
@@ -483,6 +458,9 @@ def fetch_sdl_event_data_osc() -> dict:
             val = ''.join([c for c in val if 32 <= ord(c) <= 126])[2:]  # Remove non-ASCII characters
             event_item = val.split(";")
             
+            if int(event_item[event_meta.index("Affected UE ID")]) not in current_active_ue_ids: # only track events that are related to active UEs
+                continue
+            
             # create and insert attack event
             event[len(event)+1] = {
                 "id": len(event)+1,
@@ -512,6 +490,8 @@ def fetch_sdl_event_data_osc() -> dict:
             val = ''.join([c for c in val if 32 <= ord(c) <= 126])[2:]  # Remove non-ASCII characters
             event_item = val.split(";")
             model_name = event_item[0]
+            if int(event_item[3]) not in current_active_ue_ids: # only track events that are related to active UEs
+                continue
             if model_name == "autoencoder_v2":
                 # f"{model_name};{event['event_name']};{event['nr_cell_id']};{event['ue_id']};{event['timestamp']};{index_str};{event_desc}"
                 event[len(event)+1] = {

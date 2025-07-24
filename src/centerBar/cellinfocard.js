@@ -109,7 +109,7 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
             }
             if (data.length > 0) {
               yMin = Math.min(...data) == 0 ? -0.5 :(Math.min(...data)) * 0.9;
-              yMax = (Math.max(...data)) * 1.1;
+              yMax = Math.max(...data) == 0 ? 0.5 : (Math.max(...data)) * 1.1;
             }
 
             if (timestamps.length === 0) {

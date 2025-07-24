@@ -19,8 +19,8 @@ function fetchUserData(setEvent) {
     });
 }
 
-function fetchSdlData(setNetwork) {
-  fetch("http://localhost:8080/fetchSdlData", {
+function fetchSdlData() {
+  return fetch("http://localhost:8080/fetchSdlData", {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -31,18 +31,12 @@ function fetchSdlData(setNetwork) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       return response.json();
-    })
-    .then(data => {
-      setNetwork(data);
-    })
-    .catch(error => {
-      console.error('Error:', error);
     });
 }
 
 
-function fetchSdlEventData(setEvent) {
-  fetch("http://localhost:8080/fetchSdlEventData", {
+function fetchSdlEventData() {
+  return fetch("http://localhost:8080/fetchSdlEventData", {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -53,17 +47,11 @@ function fetchSdlEventData(setEvent) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       return response.json();
-    })
-    .then(data => {
-      setEvent(data);
-    })
-    .catch(error => {
-      console.error('Error:', error);
     });
 }
 
-function fetchTimeSeriesData(setTimeSeries) {
-  fetch("http://localhost:8080/fetchTimeSeriesData", {
+function fetchTimeSeriesData() {
+  return fetch("http://localhost:8080/fetchTimeSeriesData", {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -74,12 +62,6 @@ function fetchTimeSeriesData(setTimeSeries) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
       return response.json();
-    })
-    .then(data => {
-      setTimeSeries(data);
-    })
-    .catch(error => {
-      console.error('Error:', error);
     });
 }
 
