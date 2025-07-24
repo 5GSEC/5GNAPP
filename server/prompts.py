@@ -126,7 +126,7 @@ Final Output Format: After completing all tool interactions, respond in ONLY the
 {
   "actionable": "yes" or "no",
   "outcome": "A detailed outcome report of the action taken, including the specific configuration that has been changed. If the action failed, provide the reason for failure.",
-  "updated_config": "The config to be updated in the RAN, if applicable. If no config is updated, leave this empty."
+  "updated_config": "The config to be updated in the RAN, if applicable. Output the full updated config in the format of the original config. If no config is updated, leave this empty."
 }
 
 If "actionable": "no", explain why the action plan cannot be executed in the "outcome" field.
