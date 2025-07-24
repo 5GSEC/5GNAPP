@@ -64,7 +64,7 @@ function XAppsLayout() {
 const data_simulation = 1;
 const update_interval = 10000;
 
-async function fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData) {
+export async function fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData) {
   fetchServiceStatus(setService);
   try {
     // ensure fetch order in API calls
@@ -112,6 +112,7 @@ function DashboardPage() {
           setNetwork={setNetwork}
           setEvent={setEvent}
           setService={setService}
+          setTimeSeriesData={setTimeSeriesData}
           network={network}
           events={events}
           services={services}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { updateData } from '../App';
+import { fetchServiceStatus } from "../backend/fetchUserData";
 import { deployXapp, undeployXapp, buildXapp } from '../backend/fetchUserData';
 import refreshIcond from '../assets/refresh.png';
 import './centerBar.css'; // Import the external CSS file for the banner, animations, etc.
@@ -45,7 +45,7 @@ const StatusIndicator = styled.span`
   margin-right: 8px;
 `;
 
-function CenterBar({ setNetwork, setService, setEvent, network, events, services, bsId, ueId, timeSeriesData }) {
+function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, network, events, services, bsId, ueId, timeSeriesData }) {
   // Banner message and visibility
   const [bannerMessage, setBannerMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -92,7 +92,7 @@ function CenterBar({ setNetwork, setService, setEvent, network, events, services
     } catch (e) {
       showNotification(`Deploy of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setNetwork, setEvent, setService);
+      fetchServiceStatus(setService);
     }
   };
 
@@ -107,7 +107,7 @@ function CenterBar({ setNetwork, setService, setEvent, network, events, services
     } catch (e) {
       showNotification(`Undeploy of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setNetwork, setEvent, setService);
+      fetchServiceStatus(setService);
     }
   };
 
@@ -122,7 +122,7 @@ function CenterBar({ setNetwork, setService, setEvent, network, events, services
     } catch (e) {
       showNotification(`Build of ${svcName} failed: ${e.message}`, "banner-error");
     } finally {
-      updateData(setNetwork, setEvent, setService);
+      fetchServiceStatus(setService);
     }
   };
 
@@ -158,7 +158,7 @@ function CenterBar({ setNetwork, setService, setEvent, network, events, services
             setNetwork={setNetwork}
             setEvent={setEvent}
             setService={setService}
-            updateData={updateData}
+            setTimeSeriesData={setTimeSeriesData}
           />
         </Box>
       </Box>

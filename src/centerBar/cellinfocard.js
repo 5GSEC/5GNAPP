@@ -16,6 +16,7 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { LineChart } from "@mui/x-charts/LineChart";
+import { fetchAllData } from '../App';
 
 function parseTimestamp(raw) {
   if (!raw) return null;
@@ -24,7 +25,7 @@ function parseTimestamp(raw) {
   return n < 1e12 ? new Date(n * 1000) : new Date(n);
 }
 
-function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, updateData, timeSeriesData }) {
+function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, setTimeSeriesData, timeSeriesData }) {
   const theme = useTheme();
   const [timeSeries, setTimeSeries] = useState({
     activeCells: [],
@@ -77,7 +78,7 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
             variant="outlined"
             size="small"
             startIcon={<RefreshIcon sx={{ color: '#11182E' }} />}
-            onClick={() => updateData(setNetwork, setEvent, setService)}
+            onClick={() => fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData)}
             sx={{
               borderColor: '#11182E',
               color: '#11182E',
