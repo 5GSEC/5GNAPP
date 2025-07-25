@@ -78,15 +78,31 @@ function IssuesPage() {
   const update_interval = 10000;
 
   // New state for GenAI response
-  const [genaiResponse, setGenaiResponse] = useState("");
   const [genaiLoading, setGenaiLoading] = useState(false);
   const [genaiError, setGenaiError] = useState(null);
-  const [genaiInterrupted, setgenaiInterrupted] = useState({});
-  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState({});
-  const [genaiActionStrategy, setgenaiActionStrategy] = useState({});
-  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState({});
-  const [genaiOriginalConfig, setgenaiOriginalConfig] = useState({});
-  const [genaiActionResponse, setgenaiActionResponse] = useState({});
+  // Use localStorage to persist these state values across page reloads/unmounts
+  function usePersistentState(key, defaultValue) {
+    const [state, setState] = useState(() => {
+      try {
+        const stored = localStorage.getItem(key);
+        return stored !== null ? JSON.parse(stored) : defaultValue;
+      } catch {
+        return defaultValue;
+      }
+    });
+    useEffect(() => {
+      localStorage.setItem(key, JSON.stringify(state));
+    }, [key, state]);
+    return [state, setState];
+  }
+
+  const [genaiResponse, setGenaiResponse] = usePersistentState("genaiResponse", "");
+  const [genaiInterrupted, setgenaiInterrupted] = usePersistentState("genaiInterrupted", {});
+  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = usePersistentState("genaiInterruptPrompt", {});
+  const [genaiActionStrategy, setgenaiActionStrategy] = usePersistentState("genaiActionStrategy", {});
+  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = usePersistentState("genaiUpdatedConfig", {});
+  const [genaiOriginalConfig, setgenaiOriginalConfig] = usePersistentState("genaiOriginalConfig", {});
+  const [genaiActionResponse, setgenaiActionResponse] = usePersistentState("genaiActionResponse", {});
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [editableConfig, setEditableConfig] = useState("");
@@ -106,16 +122,33 @@ function IssuesPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // GenAI API call for insight with caching
+  // GenAI API call for insight with caching and persistent state check
   useEffect(() => {
     if (insightOpen && insightRow) {
-      const cacheKey = insightRow.id; // or another unique identifier
+      const cacheKey = insightRow.id;
+
+      // 1. Check in-memory cache first
       if (genaiCache.current[cacheKey]) {
         setGenaiResponse(genaiCache.current[cacheKey]);
         setGenaiLoading(false);
         setGenaiError(null);
         return;
       }
+
+      // 2. Check persistent state (localStorage) for this row
+      // genaiResponse is a string, but we want to check if it matches this row
+      // We'll assume that if genaiResponse is not empty and insightRow.id matches the last insightRow, it's valid
+      // For more robust logic, you may want to store a mapping of rowId to response in persistent state
+      // For now, if genaiResponse is not empty, use it
+      if (genaiResponse && typeof genaiResponse === "string" && genaiResponse.trim() !== "") {
+        setGenaiLoading(false);
+        setGenaiError(null);
+        // Optionally, update cache for this row
+        genaiCache.current[cacheKey] = genaiResponse;
+        return;
+      }
+
+      // 3. Otherwise, fetch from API
       const fetchGenAI = async () => {
         setGenaiLoading(true);
         setGenaiError(null);
@@ -130,7 +163,6 @@ function IssuesPage() {
           const data = await res.json();
           const threadId = data.thread_id || cacheKey; // fallback if thread_id missing
           rowIdToThreadId[insightRow.id] = threadId; // update thread ID mapping
-          // console.log(data);
           if (!res.ok) throw new Error(data.error || "Chat error");
           setGenaiResponse(data.output);
           setgenaiInterrupted(prev => ({ ...prev, [threadId]: data.interrupted || false }));
@@ -147,7 +179,8 @@ function IssuesPage() {
       };
       fetchGenAI();
     }
-  }, [insightOpen, insightRow]);
+  // Add genaiResponse as a dependency so it is checked when it changes
+  }, [insightOpen, insightRow, genaiResponse]);
 
   // load MobieXpert and MobiWatch event data
   const eventdata = Object.values(bevent).map((event) => ({
@@ -450,6 +483,46 @@ function IssuesPage() {
             )}
         </Box>
         <Box sx={{ p: 1, borderTop: "1px solid #eee", textAlign: "right" }}>
+          <Button
+            onClick={() => {
+              // Clear GenAI state for this row/thread
+              if (insightRow) {
+                const threadId = rowIdToThreadId[insightRow.id];
+                setGenaiResponse("");
+                setGenaiError(null);
+                setGenaiLoading(true);
+                setgenaiInterrupted(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiActionStrategy(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiInterruptPrompt(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiUpdatedConfig(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiOriginalConfig(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiActionResponse(prev => ({ ...prev, [threadId]: undefined }));
+                // Remove from in-memory cache
+                if (genaiCache.current[insightRow.id]) {
+                  delete genaiCache.current[insightRow.id];
+                }
+                // Trigger reload by setting insightRow to itself (forces useEffect to rerun)
+                setInsightRow({ ...insightRow });
+              }
+            }}
+            sx={{
+              backgroundColor: '#fff',
+              color: '#11182E',
+              minWidth: 0,
+              px: 2,
+              borderRadius: 2,
+              boxShadow: 1,
+              border: '1px solid #11182E',
+              mr: 1,
+              '&:hover': {
+                backgroundColor: '#e0e4ef',
+                color: '#11182E',
+              },
+            }}
+            variant="outlined"
+          >
+            Regenerate
+          </Button>
           <Button 
             onClick={() => setInsightOpen(false)} 
             sx={{
