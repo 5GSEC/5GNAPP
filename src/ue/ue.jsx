@@ -341,7 +341,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                   className="floating-window"
                   sx={{
                     position: 'absolute',
-                    top: infoPos.top,
+                    top: infoPos.top - 10,
                     left: infoPos.left,
                     background: "#f8fafd",
                     maxHeight: 320,
