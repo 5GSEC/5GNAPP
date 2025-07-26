@@ -3,7 +3,7 @@
  ******************************************************/
 
 import "./App.css";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, createContext } from "react";
 import { 
   BrowserRouter, 
   Routes, 
@@ -175,45 +175,87 @@ function SettingsPage() {
   );
 }
 
+// Create context for GenAI state
+export const GenAIContext = createContext();
+
+// GenAI Context Provider component
+function GenAIProvider({ children }) {
+  const [genaiResponse, setGenaiResponse] = useState({});
+  const [genaiInterrupted, setgenaiInterrupted] = useState({});
+  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState({});
+  const [genaiActionStrategy, setgenaiActionStrategy] = useState({});
+  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState({});
+  const [genaiOriginalConfig, setgenaiOriginalConfig] = useState({});
+  const [genaiActionResponse, setgenaiActionResponse] = useState({});
+  const [rowIdToThreadId, setRowIdToThreadId] = useState({});
+
+  const genaiState = {
+    genaiResponse,
+    setGenaiResponse,
+    genaiInterrupted,
+    setgenaiInterrupted,
+    genaiInterruptPrompt,
+    setgenaiInterruptPrompt,
+    genaiActionStrategy,
+    setgenaiActionStrategy,
+    genaiUpdatedConfig,
+    setgenaiUpdatedConfig,
+    genaiOriginalConfig,
+    setgenaiOriginalConfig,
+    genaiActionResponse,
+    setgenaiActionResponse,
+    rowIdToThreadId,
+    setRowIdToThreadId,
+  };
+
+  return (
+    <GenAIContext.Provider value={genaiState}>
+      {children}
+    </GenAIContext.Provider>
+  );
+}
+
 /* ──────────────────────────────────────────────
    Root component – main <Routes> updated
 ────────────────────────────────────────────── */
 function App() {
   return (
-    <BsIconProvider>
-      <BrowserRouter>
-        <div className="container" style={{ display: "flex" }}>
-          <MenuNavBar />
-          <div className="content" style={{ flex: 1 }}> 
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/issues" element={<IssuesPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/compliance" element={<CompliancePage />} />
+    <GenAIProvider>
+      <BsIconProvider>
+        <BrowserRouter>
+          <div className="container" style={{ display: "flex" }}>
+            <MenuNavBar />
+            <div className="content" style={{ flex: 1 }}> 
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/issues" element={<IssuesPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/compliance" element={<CompliancePage />} />
 
-              {/* /xapps parent + nested children */}
-              <Route path="/xapps" element={<XAppsLayout />}>
-                <Route index element={<XAppsIndex />} /> {/* /xapps */}
-                {/* import‑based MobieXpert page */}
-                <Route path="mobiexpert" element={<MobieXpertPage />} />
-                {/* still stubbed inline */}
-                <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
-                {/* NEW: dedicated MobiLLM page */}
-                <Route path="mobillm" element={<MobiLLMPage />} />
-                <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
-              </Route>
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route
-                path="*"
-                element={<div style={{ padding: 20 }}>Page Not Found</div>}
-              />
-            </Routes>
-            <Chatbot />   {/* NEW: added chatbot panel (stub for now) */}
+                {/* /xapps parent + nested children */}
+                <Route path="/xapps" element={<XAppsLayout />}>
+                  <Route index element={<XAppsIndex />} /> {/* /xapps */}
+                  {/* import‑based MobieXpert page */}
+                  <Route path="mobiexpert" element={<MobieXpertPage />} />
+                  {/* still stubbed inline */}
+                  <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
+                  {/* NEW: dedicated MobiLLM page */}
+                  <Route path="mobillm" element={<MobiLLMPage />} />
+                  <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
+                </Route>
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route
+                  path="*"
+                  element={<div style={{ padding: 20 }}>Page Not Found</div>}
+                />
+              </Routes>
+              <Chatbot />   {/* NEW: added chatbot panel (stub for now) */}
+            </div>
           </div>
-        </div>
-      </BrowserRouter>
-    </BsIconProvider>
+        </BrowserRouter>
+      </BsIconProvider>
+    </GenAIProvider>
   );
 }
 

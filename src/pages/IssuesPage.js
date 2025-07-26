@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   Typography, Grid, Card, CardContent, FormControl, InputAdornment, OutlinedInput, Button,
@@ -15,6 +15,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
 import DiffViewer from 'react-diff-viewer';
+import { GenAIContext } from "../App";
 
 
 function parseTimestamp(raw) {
@@ -80,39 +81,31 @@ function IssuesPage() {
   // New state for GenAI response
   const [genaiLoading, setGenaiLoading] = useState(false);
   const [genaiError, setGenaiError] = useState(null);
-  // Use localStorage to persist these state values across page reloads/unmounts
-  function usePersistentState(key, defaultValue) {
-    const [state, setState] = useState(() => {
-      try {
-        const stored = localStorage.getItem(key);
-        return stored !== null ? JSON.parse(stored) : defaultValue;
-      } catch {
-        return defaultValue;
-      }
-    });
-    useEffect(() => {
-      localStorage.setItem(key, JSON.stringify(state));
-    }, [key, state]);
-    return [state, setState];
-  }
-
-  const [genaiResponse, setGenaiResponse] = usePersistentState("genaiResponse", "");
-  const [genaiInterrupted, setgenaiInterrupted] = usePersistentState("genaiInterrupted", {});
-  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = usePersistentState("genaiInterruptPrompt", {});
-  const [genaiActionStrategy, setgenaiActionStrategy] = usePersistentState("genaiActionStrategy", {});
-  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = usePersistentState("genaiUpdatedConfig", {});
-  const [genaiOriginalConfig, setgenaiOriginalConfig] = usePersistentState("genaiOriginalConfig", {});
-  const [genaiActionResponse, setgenaiActionResponse] = usePersistentState("genaiActionResponse", {});
+  
+  // Use context for GenAI state instead of local state
+  const {
+    genaiResponse,
+    setGenaiResponse,
+    genaiInterrupted,
+    setgenaiInterrupted,
+    genaiInterruptPrompt,
+    setgenaiInterruptPrompt,
+    genaiActionStrategy,
+    setgenaiActionStrategy,
+    genaiUpdatedConfig,
+    setgenaiUpdatedConfig,
+    genaiOriginalConfig,
+    setgenaiOriginalConfig,
+    genaiActionResponse,
+    setgenaiActionResponse,
+    rowIdToThreadId,
+    setRowIdToThreadId,
+  } = useContext(GenAIContext);
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [editableConfig, setEditableConfig] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [showDiffView, setShowDiffView] = useState(false);
-
-  // Cache for GenAI responses
-  const genaiCache = useRef({});
-
-  const rowIdToThreadId = useRef({}); // Global mapping
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -125,26 +118,16 @@ function IssuesPage() {
   // GenAI API call for insight with caching and persistent state check
   useEffect(() => {
     if (insightOpen && insightRow) {
-      const cacheKey = insightRow.id;
 
-      // 1. Check in-memory cache first
-      if (genaiCache.current[cacheKey]) {
-        setGenaiResponse(genaiCache.current[cacheKey]);
-        setGenaiLoading(false);
-        setGenaiError(null);
-        return;
-      }
-
-      // 2. Check persistent state (localStorage) for this row
+      // Check persistent state (localStorage) for this row
       // genaiResponse is a string, but we want to check if it matches this row
       // We'll assume that if genaiResponse is not empty and insightRow.id matches the last insightRow, it's valid
       // For more robust logic, you may want to store a mapping of rowId to response in persistent state
       // For now, if genaiResponse is not empty, use it
-      if (genaiResponse && typeof genaiResponse === "string" && genaiResponse.trim() !== "") {
+      let response = genaiResponse[rowIdToThreadId[insightRow.id]];
+      if (response && typeof response === "string" && response.trim() !== "") {
         setGenaiLoading(false);
         setGenaiError(null);
-        // Optionally, update cache for this row
-        genaiCache.current[cacheKey] = genaiResponse;
         return;
       }
 
@@ -152,7 +135,7 @@ function IssuesPage() {
       const fetchGenAI = async () => {
         setGenaiLoading(true);
         setGenaiError(null);
-        setGenaiResponse("");
+        setGenaiResponse(prev => ({ ...prev, [rowIdToThreadId[insightRow.id]]: "" }));
         try {
           const prompt = buildGenAIPrompt(insightRow);
           const res = await fetch("http://localhost:8080/mobillm/security_analysis", {
@@ -161,16 +144,15 @@ function IssuesPage() {
             body: JSON.stringify({ message: prompt }),
           });
           const data = await res.json();
-          const threadId = data.thread_id || cacheKey; // fallback if thread_id missing
-          rowIdToThreadId[insightRow.id] = threadId; // update thread ID mapping
+          const threadId = data.thread_id; // fallback if thread_id missing
+          setRowIdToThreadId(prev => ({ ...prev, [insightRow.id]: threadId })); // update thread ID mapping
           if (!res.ok) throw new Error(data.error || "Chat error");
-          setGenaiResponse(data.output);
+          setGenaiResponse(prev => ({ ...prev, [threadId]: data.output || "" }));
           setgenaiInterrupted(prev => ({ ...prev, [threadId]: data.interrupted || false }));
           setgenaiActionStrategy(prev => ({ ...prev, [threadId]: data.action_strategy || null }));
           setgenaiInterruptPrompt(prev => ({ ...prev, [threadId]: data.interrupt_prompt || null }));
           setgenaiUpdatedConfig(prev => ({ ...prev, [threadId]: data.updated_config || null }));
           setgenaiOriginalConfig(prev => ({ ...prev, [threadId]: data.original_config || null }));
-          genaiCache.current[cacheKey] = data.output; // Store in cache
         } catch (e) {
           setGenaiError(e.message || "Unknown error");
         } finally {
@@ -179,8 +161,7 @@ function IssuesPage() {
       };
       fetchGenAI();
     }
-  // Add genaiResponse as a dependency so it is checked when it changes
-  }, [insightOpen, insightRow, genaiResponse]);
+  }, [insightOpen, insightRow]);
 
   // load MobieXpert and MobiWatch event data
   const eventdata = Object.values(bevent).map((event) => ({
@@ -447,7 +428,7 @@ function IssuesPage() {
                     strong: ({node, ...props}) => <Typography component="span" sx={{ fontWeight: 'bold', color: '#11182E', display: 'inline' }} {...props} />
                   }}
                 >
-                  {genaiResponse}
+                  {genaiResponse[rowIdToThreadId[insightRow.id]]}
                 </ReactMarkdown>
               </Box>
             )}
@@ -488,7 +469,7 @@ function IssuesPage() {
               // Clear GenAI state for this row/thread
               if (insightRow) {
                 const threadId = rowIdToThreadId[insightRow.id];
-                setGenaiResponse("");
+                setGenaiResponse(prev => ({ ...prev, [threadId]: "" }));
                 setGenaiError(null);
                 setGenaiLoading(true);
                 setgenaiInterrupted(prev => ({ ...prev, [threadId]: undefined }));
@@ -497,10 +478,6 @@ function IssuesPage() {
                 setgenaiUpdatedConfig(prev => ({ ...prev, [threadId]: undefined }));
                 setgenaiOriginalConfig(prev => ({ ...prev, [threadId]: undefined }));
                 setgenaiActionResponse(prev => ({ ...prev, [threadId]: undefined }));
-                // Remove from in-memory cache
-                if (genaiCache.current[insightRow.id]) {
-                  delete genaiCache.current[insightRow.id];
-                }
                 // Trigger reload by setting insightRow to itself (forces useEffect to rerun)
                 setInsightRow({ ...insightRow });
               }
