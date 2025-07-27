@@ -1,6 +1,7 @@
 import os
 import operator
 import json
+import time
 from uuid import uuid4
 from typing import TypedDict, Annotated, List, Literal
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -199,6 +200,8 @@ class MobiLLM_Multiagent:
         return state
 
     def mobillm_security_analysis_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        start_time = time.time()
+
         query = state["query"]
         if not query or query.strip() == "":
             return state
@@ -206,9 +209,14 @@ class MobiLLM_Multiagent:
         response = call_result["messages"][-1].content
         state["threat_summary"] = response
         state = self.collect_tool_calls(call_result, state)
+
+        end_time = time.time()
+        print(f"mobillm_security_analysis_agent_node Time taken: {end_time - start_time} seconds")
         return state
 
     def mobillm_security_classification_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        start_time = time.time()
+
         threat_summary = state["threat_summary"]
         if not threat_summary or threat_summary.strip() == "":
             return state
@@ -229,9 +237,14 @@ class MobiLLM_Multiagent:
             }
 
         state["mitre_technique"] = json.dumps(techs, indent=4)
+
+        end_time = time.time()
+        print(f"mobillm_security_classification_agent_node Time taken: {end_time - start_time} seconds")
         return state
 
     def mobillm_response_planning_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        start_time = time.time()
+
         threat_summary = state["threat_summary"]
         mitre_technique = state["mitre_technique"]
         if not threat_summary or not mitre_technique:
@@ -264,6 +277,9 @@ class MobiLLM_Multiagent:
 
         state["countermeasures"] = response
         state = self.collect_tool_calls(call_result, state)
+
+        end_time = time.time()
+        print(f"mobillm_response_planning_agent_node Time taken: {end_time - start_time} seconds")
         return state
 
     def mobillm_config_tuning_agent_node(self, state: MobiLLMState) -> MobiLLMState:
@@ -385,27 +401,27 @@ if __name__ == "__main__":
     # result = agent.invoke("[chat] How many UEs are connected to the network?")
     # result = agent.invoke("[chat] What are the IMSIs of the UEs connected to the network?")
     # result = agent.invoke("[security analysis] Conduct a thorough security analysis for event ID 4")
-    # result = agent.invoke("""[security analysis]
-    # Event Details:
-    # - Source: MobieXpert
-    # - Name: RRC Null Cipher
-    # - Cell ID: 20000
-    # - UE ID: 54649
-    # - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
-    # - Severity: Critical
-    # - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
-    # """)
-
-    result = agent.invoke("""[security analysis] 
+    result = agent.invoke("""[security analysis]
     Event Details:
     - Source: MobieXpert
-    - Name: Blind DoS
+    - Name: RRC Null Cipher
     - Cell ID: 20000
-    - UE ID: 39592
-    - Time: Mon Jun 09 2025 11:29:14 GMT-0400 (Eastern Daylight Time)
+    - UE ID: 54649
+    - Time: Mon Jun 09 2025 11:28:00 GMT-0400 (Eastern Daylight Time)
     - Severity: Critical
-    - Description: A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.
+    - Description: The UE uses null cipher mode in its RRC session, its RRC traffic data is subject to sniffing attack.
     """)
+
+    # result = agent.invoke("""[security analysis] 
+    # Event Details:
+    # - Source: MobieXpert
+    # - Name: Blind DoS
+    # - Cell ID: 20000
+    # - UE ID: 39592
+    # - Time: Mon Jun 09 2025 11:29:14 GMT-0400 (Eastern Daylight Time)
+    # - Severity: Critical
+    # - Description: A UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.
+    # """)
 
     while True:
         # Check if an interrupt occurred in the result
