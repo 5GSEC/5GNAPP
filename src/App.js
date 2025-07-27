@@ -21,6 +21,7 @@ import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, fetchTimeSeriesDat
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
+import CompliancePage from "./pages/CompliancePage"; // NEW: dedicated file for CompliancePage
 
 /* ──────────────────────────────────────────────
    NEW: xApps child pages (very small placeholders)
@@ -150,18 +151,6 @@ function ProfilePage() {
   );
 }
 
-
-// ----------------------------------------
-// Compliance (path="/compliance")
-// ----------------------------------------
-function CompliancePage() {
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2>Compliance Page</h2>
-      <p>Placeholder for the Compliance page.</p>
-    </div>
-  );
-}
 
 // ----------------------------------------
 // Settings (path="/settings")

@@ -257,7 +257,7 @@ function IssuesPage() {
       <Grid container spacing={3} sx={{ padding: "20px" }}>
         <Grid item xs={12}>
           <Typography variant="h4" gutterBottom>
-            Issues Page
+            Issues
           </Typography>
           <Typography variant="subtitle1" gutterBottom>
             Security Threats and Anomalies Detected
