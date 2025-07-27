@@ -298,6 +298,14 @@ def llm_list_models():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/getComplianceData', methods=['GET'])
+def get_compliance_data():
+    # read the compliance.csv file and return the data
+    with open('../src/db/compliance.csv', 'r') as file:
+        reader = csv.reader(file)
+        data = list(reader)
+    return jsonify({"data": data}), 200
+
 def __tools_init__():
     """
     Initialize the server.

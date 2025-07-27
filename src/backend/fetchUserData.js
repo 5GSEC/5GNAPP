@@ -1,4 +1,4 @@
-function fetchUserData(setEvent) {
+export function fetchUserData(setEvent) {
   fetch("http://localhost:8080/fetchUserData", {
     method: 'GET',
     headers: {
@@ -19,7 +19,7 @@ function fetchUserData(setEvent) {
     });
 }
 
-function fetchSdlData() {
+export function fetchSdlData() {
   return fetch("http://localhost:8080/fetchSdlData", {
     method: 'GET',
     headers: {
@@ -35,7 +35,7 @@ function fetchSdlData() {
 }
 
 
-function fetchSdlEventData() {
+export function fetchSdlEventData() {
   return fetch("http://localhost:8080/fetchSdlEventData", {
     method: 'GET',
     headers: {
@@ -50,7 +50,7 @@ function fetchSdlEventData() {
     });
 }
 
-function fetchTimeSeriesData() {
+export function fetchTimeSeriesData() {
   return fetch("http://localhost:8080/fetchTimeSeriesData", {
     method: 'GET',
     headers: {
@@ -67,7 +67,7 @@ function fetchTimeSeriesData() {
 
 
 // Return a promise from deployXapp
-function deployXapp(xappName) {
+export function deployXapp(xappName) {
   return fetch("http://localhost:8080/deployXapp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -98,7 +98,7 @@ function deployXapp(xappName) {
 }
 
 
-function buildXapp(xappName) {
+export function buildXapp(xappName) {
   // IMPORTANT: return the Promise so caller can await it
   return fetch("http://localhost:8080/buildXapp", {
     method: "POST",
@@ -133,7 +133,7 @@ function buildXapp(xappName) {
 
 
 // Return a promise from undeployXapp
-function undeployXapp(xappName) {
+export function undeployXapp(xappName) {
   return fetch("http://localhost:8080/unDeployXapp", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -159,7 +159,7 @@ function undeployXapp(xappName) {
     });
 }
 
-function fetchServiceStatus(setService) {
+export function fetchServiceStatus(setService) {
   fetch("http://localhost:8080/fetchServiceStatus", {
     method: 'GET',
     headers: {
@@ -180,7 +180,7 @@ function fetchServiceStatus(setService) {
     });
 }
 
-function setSimulationMode() {
+export function setSimulationMode() {
   fetch("http://localhost:8080/setSimulationMode", {
     method: 'POST',
     headers: {
@@ -201,7 +201,7 @@ function setSimulationMode() {
     });
 }
 
-function sendLLMResumeCommand(payload) {
+export function sendLLMResumeCommand(payload) {
   return fetch("http://localhost:8080/mobillm/sendLLMResumeCommand", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -234,14 +234,14 @@ function sendLLMResumeCommand(payload) {
 const RULES_API = "http://localhost:8080/api/mobieexpert/rules";
 
 
-function fetchRulesText() {
+export function fetchRulesText() {
   return fetch(RULES_API).then(res => {
     if (!res.ok) throw new Error("Failed to load rules.pbest");
     return res.text();
   });
 }
 
-function saveRulesText(newText) {
+export function saveRulesText(newText) {
   return fetch(RULES_API, {
     method: "PUT",
     headers: { "Content-Type": "text/plain" },
@@ -257,7 +257,7 @@ function saveRulesText(newText) {
  * Fetch a simple chat summary.
  * Returns a promise resolving to { base_station_count, ue_count }.
  */
-function fetchChatSummary() {
+export function fetchChatSummary() {
   return fetch("http://localhost:8080/chat/summary", {
     method: "GET",
     headers: { "Content-Type": "application/json" },
@@ -273,7 +273,7 @@ function fetchChatSummary() {
 /** 
  * Interface to chat with the MobiLLM Agent
 */
-function mobiLLMChat() {
+export function mobiLLMChat() {
   return fetch("http://localhost:8080/mobillm/chat", {
     method: "GET",
     headers: { "Content-Type": "application/json" },
@@ -286,17 +286,15 @@ function mobiLLMChat() {
   });
 }
 
-
-export { fetchUserData };
-export { fetchSdlData };
-export { fetchServiceStatus };
-export { deployXapp };
-export { undeployXapp };
-export { buildXapp };
-export { fetchRulesText, saveRulesText };
-export { fetchChatSummary };
-export { fetchSdlEventData };
-export { mobiLLMChat };
-export { setSimulationMode };
-export { sendLLMResumeCommand };
-export { fetchTimeSeriesData}
+export function getComplianceData() {
+  return fetch("http://localhost:8080/getComplianceData", {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.json();
+    });
+}
