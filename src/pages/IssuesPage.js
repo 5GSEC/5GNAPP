@@ -173,6 +173,7 @@ function IssuesPage() {
     time: parseTimestamp(event.timestamp) || "N/A",
     description: event.description || "No description available",
     severity: event.severity || "Medium",
+    active: event.active || false,
   }));
 
   // Filter rows based on the search query
@@ -323,10 +324,12 @@ function IssuesPage() {
                 <DataGrid
                   rows={filteredRows}
                   columns={columns}
-                  checkboxSelection
-                  getRowClassName={(params) =>
-                    params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"
-                  }
+                  // checkboxSelection
+                  getRowClassName={(params) => {
+                    const baseClass = params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd";
+                    const isInactive = !params.row.active;
+                    return isInactive ? `${baseClass} inactive` : baseClass;
+                  }}
                   initialState={{
                     pagination: { paginationModel: { pageSize: 5 } },
                   }}
@@ -350,6 +353,13 @@ function IssuesPage() {
                       bgcolor: "#fff",
                       '&.even': { bgcolor: "#f8fafd" },
                       '&:hover': { bgcolor: "#e0e4ef" },
+                      '&.inactive': {
+                        opacity: 0.4,
+                        bgcolor: "#f5f5f5 !important",
+                        '&:hover': { bgcolor: "#e8e8e8 !important" },
+                        '&.even': { bgcolor: "#f0f0f0 !important" },
+                        '&.odd': { bgcolor: "#f5f5f5 !important" },
+                      },
                     },
                     '& .MuiDataGrid-cell': {
                       borderBottom: '1px solid #e0e4ef',

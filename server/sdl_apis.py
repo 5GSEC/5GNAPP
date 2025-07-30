@@ -318,6 +318,8 @@ def update_event_time_series(event: dict):
     current_critical_event = 0
     current_total_event = 0
     for event_id in event.keys():
+        if event[event_id]["active"] is False:
+            continue # skip inactive events
         if event[event_id]["severity"] == "Critical":
             current_critical_event += 1
         current_total_event += 1
@@ -370,6 +372,7 @@ def fetch_sdl_event_data_osc() -> dict:
         dict: A dictionary containing the network event data.
     '''
     event = {}
+    event_id_counter = 1
     # if simulation mode is enabled, read from the sample data file
     if global_vars.simulation_mode is True:
         # read MobieXpert events
@@ -378,8 +381,8 @@ def fetch_sdl_event_data_osc() -> dict:
             lines = f.readlines()
             for line in lines:
                 event_item = line.strip().split(";")
-                event[len(event)+1] = {
-                    "id": len(event)+1,
+                event[event_id_counter] = {
+                    "id": event_id_counter,
                     "source": "MobieXpert",
                     "name": event_item[event_meta.index("Event Name")],
                     "cellID": event_item[event_meta.index("Affected base station ID")],
@@ -387,7 +390,9 @@ def fetch_sdl_event_data_osc() -> dict:
                     "timestamp": event_item[event_meta.index("Time")],
                     "severity": event_item[event_meta.index("Level")],
                     "description": event_item[event_meta.index("Description")],
+                    "active": True
                 }
+                event_id_counter += 1
 
         # read MobiWatch events
         with open("../src/db/5G-Sample-Data - Event - MobiWatch.csv", "r") as f:
@@ -397,8 +402,8 @@ def fetch_sdl_event_data_osc() -> dict:
                 event_item = line.strip().split(";")
                 model_name = event_item[0]
                 # f"{model_name};{event['event_name']};{event['nr_cell_id']};{event['ue_id']};{event['timestamp']};{index_str};{event_desc}"
-                event[len(event)+1] = {
-                    "id": len(event)+1,
+                event[event_id_counter] = {
+                    "id": event_id_counter,
                     "source": f"MobiWatch_{model_name}",
                     "name": event_item[1],
                     "cellID": event_item[2],
@@ -407,7 +412,9 @@ def fetch_sdl_event_data_osc() -> dict:
                     "severity": "Warning",
                     "mobiflow_index": event_item[5],
                     "description": event_item[6],
+                    "active": True
                 }
+                event_id_counter += 1
 
         return event
 
@@ -457,13 +464,10 @@ def fetch_sdl_event_data_osc() -> dict:
         for val in values:
             val = ''.join([c for c in val if 32 <= ord(c) <= 126])[2:]  # Remove non-ASCII characters
             event_item = val.split(";")
-            
-            if int(event_item[event_meta.index("Affected UE ID")]) not in current_active_ue_ids: # only track events that are related to active UEs
-                continue
-            
+                        
             # create and insert attack event
-            event[len(event)+1] = {
-                "id": len(event)+1,
+            event[event_id_counter] = {
+                "id": event_id_counter,
                 "source": "MobieXpert",
                 "name": event_item[event_meta.index("Event Name")],
                 "cellID": event_item[event_meta.index("Affected base station ID")],
@@ -471,7 +475,13 @@ def fetch_sdl_event_data_osc() -> dict:
                 "timestamp": event_item[event_meta.index("Time")],
                 "severity": event_item[event_meta.index("Level")],
                 "description": event_item[event_meta.index("Description")],
+                "active": True
             }
+
+            if int(event_item[event_meta.index("Affected UE ID")]) not in current_active_ue_ids:
+                event[event_id_counter]["active"] = False # indicate the event is not related to active UEs
+
+            event_id_counter += 1
 
     # get all mobiwatch-event
     event_key = ns_target[1]
@@ -490,12 +500,10 @@ def fetch_sdl_event_data_osc() -> dict:
             val = ''.join([c for c in val if 32 <= ord(c) <= 126])[2:]  # Remove non-ASCII characters
             event_item = val.split(";")
             model_name = event_item[0]
-            if int(event_item[3]) not in current_active_ue_ids: # only track events that are related to active UEs
-                continue
             if model_name == "autoencoder_v2":
                 # f"{model_name};{event['event_name']};{event['nr_cell_id']};{event['ue_id']};{event['timestamp']};{index_str};{event_desc}"
-                event[len(event)+1] = {
-                    "id": len(event)+1,
+                event[event_id_counter] = {
+                    "id": event_id_counter,
                     "source": f"MobiWatch_{model_name}",
                     "name": event_item[1],
                     "cellID": event_item[2],
@@ -504,12 +512,16 @@ def fetch_sdl_event_data_osc() -> dict:
                     "severity": "Warning", # TODO: this should be populated from the xApp data
                     "mobiflow_index": event_item[5],
                     "description": event_item[6],
+                    "active": True
                 }
+                if int(event_item[3]) not in current_active_ue_ids:
+                    event[event_id_counter]["active"] = False # indicate the event is not related to active UEs
+                event_id_counter += 1
 
             elif model_name == "lstm_v2":
                 # f"{model_name};{event['event_name']};{event['nr_cell_id']};{event['ue_id']};{event['timestamp']};{str(merged_sequence_list)};{event_desc}"
-                event[len(event)+1] = {
-                    "id": len(event)+1,
+                event[event_id_counter] = {
+                    "id": event_id_counter,
                     "source": f"MobiWatch_{model_name}",
                     "name": event_item[1],
                     "cellID": event_item[2],
@@ -518,8 +530,11 @@ def fetch_sdl_event_data_osc() -> dict:
                     "severity": "Warning", # TODO: this should be populated from the xApp data
                     "mobiflow_index": event_item[5],
                     "description": event_item[6],
+                    "active": True
                 }
-    
+                if int(event_item[3]) not in current_active_ue_ids:
+                    event[event_id_counter]["active"] = False # indicate the event is not related to active UEs
+                event_id_counter += 1
     # update event time series data
     update_event_time_series(event)
 
