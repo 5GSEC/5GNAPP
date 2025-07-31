@@ -132,7 +132,59 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
         <Box sx={{ height: 250, width: "100%" }}>
           <DataGrid
             rows={rows}
-            columns={columns}
+            columns={[
+              {
+                field: "service",
+                headerName: "Service",
+                width: 230,
+                renderCell: (params) => {
+                  // Custom icon selection based on service name
+                  // You can import more icons as needed
+                  // Example icons from @mui/icons-material
+                  // (Make sure to import these at the top of your file)
+                  // import StorageIcon from '@mui/icons-material/Storage';
+                  // import WifiIcon from '@mui/icons-material/Wifi';
+                  // import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
+                  // import SecurityIcon from '@mui/icons-material/Security';
+                  // import AppsIcon from '@mui/icons-material/Apps';
+
+                  let IconComponent = null;
+                  let iconColor = "#23305a";
+                  switch ((params.value || "").toLowerCase()) {
+                    case "e2 manager":
+                      IconComponent = require('@mui/icons-material/ManageAccounts').default;
+                      iconColor = "black";
+                      break;
+                    case "mobiflow agent":
+                      IconComponent = require('@mui/icons-material/QueryStats').default;
+                      iconColor = "black";
+                      break;
+                    case "mobiflow auditor xapp":
+                      IconComponent = require('@mui/icons-material/Analytics').default;
+                      iconColor = "black";
+                      break;
+                    case "mobiexpert xapp":
+                      IconComponent = require('@mui/icons-material/Troubleshoot').default;
+                      iconColor = "black";
+                      break;
+                    case "mobiwatch xapp":
+                      IconComponent = require('@mui/icons-material/Security').default;
+                      iconColor = "black";
+                      break;
+                    default:
+                      IconComponent = require('@mui/icons-material/Apps').default;
+                      iconColor = "black";
+                  }
+                  return (
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <IconComponent sx={{ color: iconColor, fontSize: 22, mr: 1 }} />
+                      <span>{params.value}</span>
+                    </Box>
+                  );
+                }
+              },
+              ...columns.filter(col => col.field !== "service")
+            ]}
             pageSize={5}
             hideFooter // Hides the footer, including "Rows per page:"
             disableSelectionOnClick

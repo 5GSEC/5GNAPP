@@ -191,7 +191,7 @@ function IssuesPage() {
 
   // Define columns INSIDE the component so it can access handleInsightClick
   const columns = [
-    { field: "id", headerName: "ID", width: 50 },
+    { field: "id", headerName: "ID", width: 70 },
     { field: "source", headerName: "Source", width: 120 },
     { field: "name", headerName: "Name", width: 150 },
     { field: "cellID", headerName: "Cell ID", width: 100 },

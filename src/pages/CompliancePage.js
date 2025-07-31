@@ -13,7 +13,6 @@ function CompliancePage() {
       try {
         const response = await getComplianceData();
         const lines = response.data;
-        console.log(lines);
         
         if (lines.length > 0) {
           // The first row is the header array
@@ -107,7 +106,7 @@ function CompliancePage() {
             <CardContent>
               <div
                 style={{
-                  height: 600,
+                  height: 700,
                   width: "100%",
                   background: "#f3f6fa",
                   borderRadius: 8,
