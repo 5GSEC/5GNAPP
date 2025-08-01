@@ -216,9 +216,9 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                     {/* Smart trend card below the chart */}
                     <Box
                       sx={{
-                        mt: 2,
+                        mt: 0.5,
                         px: 1.5,
-                        py: 0.5,
+                        py: 0,
                         borderRadius: 2,
                         display: "flex",
                         alignItems: "center",
