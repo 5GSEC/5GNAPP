@@ -3,7 +3,6 @@ import operator
 import json
 from uuid import uuid4
 from typing import TypedDict, Annotated, List, Literal
-from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 from IPython.display import display, Image
 
@@ -41,38 +40,22 @@ class MobiLLMState(TypedDict):
     tools_called: List[str]
 
 class MobiLLM_Multiagent:
-    def __init__(self, google_api_key: str=None, gemini_llm_model: str="gemini-2.5-flash"):
+    def __init__(self, google_api_key: str=None, gemini_llm_model: str="gemini-2.5-flash", local_model = None):
         self.init_completed = False
-        self.gemini_llm_model = gemini_llm_model
-        # --- Configuration ---
-        # IMPORTANT: Set your GOOGLE_API_KEY as an environment variable.
-        # LangChain's Google Generative AI integration will automatically pick it up.
-        # If you don't use dotenv, ensure the environment variable is set in your system.
-        # Alternatively, you can pass api_key directly to ChatGoogleGenerativeAI, but env var is preferred.
-        if not os.getenv("GOOGLE_API_KEY") and google_api_key == None:
-            print("Warning: GOOGLE_API_KEY not found in environment variables.")
-            print("Please set it for the LangChain Gemini LLM to work.")
-            return
-        elif google_api_key is not None:
-            os.environ["GOOGLE_API_KEY"] = google_api_key
-            # You could set it here as a fallback, but it's not recommended for production:
-            # os.environ["GOOGLE_API_KEY"] = "YOUR_ACTUAL_API_KEY"
+        # local_model = "Salesforce/xLAM-8x7b-r" # move this to config
+        # local_model = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+        # local_model = None
+        print('\n [STEP 1:] Instantiating the LLM] \n')
+        
+        self.llm = instantiate_llm(local_model=local_model)
 
-        # --- LLM Initialization ---
-        # Initialize the Gemini LLM through LangChain
-        try:
-            self.llm = ChatGoogleGenerativeAI(model=self.gemini_llm_model, temperature=0.3)
-            # You can adjust temperature and other parameters as needed.
-            # temperature=0 makes the model more deterministic, higher values make it more creative.
-        except Exception as e:
-            print(f"Error initializing Gemini LLM: {e}")
-            print("Ensure your GOOGLE_API_KEY is set correctly and you have internet access.")
-            return
-
+        print('\n [STEP 1:] Done instantiating the LLM] \n')
         self.thread_id_list = []
         self.checkpointer = InMemorySaver()
         self._build_agents()
+        print('\n [STEP 7:] Building graph] \n')
         self.graph = self._build_graph()
+        print('\n [STEP 7:] Done building graph] \n')
     
     def _build_agents(self):
         # MobiLLM Chat Agent
@@ -93,8 +76,13 @@ class MobiLLM_Multiagent:
             deploy_xapp_tool,
             unDeploy_xapp_tool,
         ]
-        self.chat_agent = create_react_agent(model=self.llm, tools=mobillm_chat_tools, prompt=DEFAULT_CHAT_TASK_BACKGROUND, name="mobillm_chat_agent")
+        print('\n [STEP 2:] Creating chat agent] \n')
+        self.chat_agent = create_react_agent(model=self.llm,
+                                             tools=mobillm_chat_tools,
+                                             prompt=DEFAULT_CHAT_TASK_BACKGROUND, 
+                                             name="mobillm_chat_agent")
 
+        print('\n [STEP 2:] Done creating chat agent] \n')
         # MobiLLM Security Analysis Agent
         mobillm_security_analysis_tools = [
             get_ue_mobiflow_data_all_tool,
@@ -108,7 +96,10 @@ class MobiLLM_Multiagent:
             fetch_sdl_event_data_by_cell_id_tool,
             get_event_description_tool,
         ]
+
+        print('\n [STEP 3:] Creating sec analysis agent] \n')
         self.security_analysis_agent = create_react_agent(model=self.llm, tools=mobillm_security_analysis_tools, prompt=DEFAULT_SECURITY_ANLYSIS_TASK_BACKGROUND, name="mobillm_security_analysis_agent")
+        print('\n [STEP 3:] Done creating sec analysis agent] \n')
         
         # MobiLLM Security Classification Agent
         mobillm_security_classification_tools = [
@@ -116,7 +107,10 @@ class MobiLLM_Multiagent:
             get_mitre_fight_technique_by_id,
             search_mitre_fight_techniques,
         ]
+
+        print('\n [STEP 4:] Creating classification agent] \n')
         self.classification_agent = create_react_agent(model=self.llm, tools=mobillm_security_classification_tools, prompt=DEFAULT_SECURITY_CLASSIFICATION_TASK_BACKGROUND, name="mobillm_security_classification_agent")
+        print('\n [STEP 4:] Done creating classification agent] \n')
         
         # MobiLLM Security Response Agent
         mobillm_security_response_tools = [
@@ -126,7 +120,10 @@ class MobiLLM_Multiagent:
             update_ran_cu_config_tool,
             reboot_ran_cu_tool,
         ]
+
+        print('\n [STEP 5:] Creating response agent] \n')
         self.response_agent = create_react_agent(model=self.llm, tools=mobillm_security_response_tools, prompt=DEFAULT_SECURITY_RESPONSE_TASK_BACKGROUND, name="mobillm_security_response_agent")
+        print('\n [STEP 5:] Done creating response agent] \n')
         
         # MobiLLM Config Tuning Agent
         mobillm_config_tuning_tools = [
@@ -136,7 +133,10 @@ class MobiLLM_Multiagent:
             update_ran_cu_config_tool,
             reboot_ran_cu_tool,
         ]
+
+        print('\n [STEP 6:] Creating config tuning agent] \n')
         self.config_tuning_agent = create_react_agent(model=self.llm, tools=mobillm_config_tuning_tools, prompt=DEFAULT_CONFIG_TUNING_TASK_BACKGROUND, name="mobillm_config_tuning_agent")
+        print('\n [STEP 6:] Done creating config tuning agent] \n')
 
     def _build_graph(self):
         builder = StateGraph(MobiLLMState)
@@ -190,6 +190,11 @@ class MobiLLM_Multiagent:
             return state
         call_result = self.chat_agent.invoke({"messages": [("user", query)]})
         response = call_result["messages"][-1].content
+        
+        print('\n\n-------- -------- mobillm_chat_agent_node -------- --------')
+        print('query: ', query)
+        print('response: ', response)
+
         state["chat_response"] = response
         state = self.collect_tool_calls(call_result, state)
         return state
@@ -200,6 +205,12 @@ class MobiLLM_Multiagent:
             return state
         call_result = self.security_analysis_agent.invoke({"messages": [("user", query)]})
         response = call_result["messages"][-1].content
+
+        print('\n\n-------- -------- mobillm_security_analysis_agent_node -------- --------')
+        print('query: ', query)
+        print('response: ', response)
+
+
         state["threat_summary"] = response
         state = self.collect_tool_calls(call_result, state)
         return state
@@ -246,6 +257,10 @@ class MobiLLM_Multiagent:
             print("raw_response", raw_response)
 
         response = extract_json_from_string(raw_response.strip().replace("\n", ""))
+        
+        print('\n\n-------- -------- mobillm_security_response_agent_node -------- --------')
+        print('prompt: ', prompt)
+        print('response: ', response)
 
         if response:
             state["actionable"] = response["actionable"]
@@ -274,6 +289,11 @@ class MobiLLM_Multiagent:
 
         response = extract_json_from_string(raw_response.strip().replace("\n", ""))
 
+        print('\n\n-------- -------- mobillm_security_response_agent_node -------- --------')
+        print('action_plan: ', action_plan)
+        print('action_strategy: ', action_strategy)
+        print('response: ', response)
+
         if response:
             state["actionable"] = response["actionable"]
             state["outcome"] = response["outcome"]
@@ -295,8 +315,10 @@ class MobiLLM_Multiagent:
         """
         thread_id = str(uuid4()) # create a random UUID
         self.thread_id_list.append(thread_id)
-        config = {"configurable": {"thread_id": thread_id}}
         input_state = {"thread_id": thread_id, "query": query, "tools_called": []}
+        # config = {"configurable": {"thread_id": thread_id}}
+        config = {"configurable": {"thread_id": thread_id}, "run_id": thread_id, "run_name": "mobillm_multiagent_gemini", "tags": ["running with gemini"]}
+        # config = {"configurable": {"thread_id": thread_id}, "run_id": thread_id, "run_name": "mobillm_multiagent_local", "tags": ["running with mistral derived local model"]}
         return self.graph.invoke(input_state, config=config)
 
     def resume(self, command: dict, thread_id: str) -> MobiLLMState:

@@ -2,6 +2,8 @@ import subprocess
 import os
 import json
 import re
+from langchain_google_genai import ChatGoogleGenerativeAI
+from custom_chatmodel import ChatAgenticxLAM
 
 def execute_command(command):
     ''' Execute a shell command and return the output '''
@@ -67,3 +69,21 @@ def pretty_print_messages(update, last_message=False):
         for m in messages:
             pretty_print_message(m, indent=is_subgraph)
         print("\n")
+
+def instantiate_llm(local_model=None, google_api_key: str=None, gemini_llm_model: str="gemini-2.5-flash"):
+    if local_model:
+        llm = ChatAgenticxLAM(model=local_model, temperature=0.1)
+    else:
+        print('creating google model!!')  
+        if not os.getenv("GOOGLE_API_KEY") and google_api_key == None:
+            print("Warning: GOOGLE_API_KEY not found in environment variables.")
+            print("Please set it for the LangChain Gemini LLM to work.")
+            return
+        elif google_api_key is not None:
+            os.environ["GOOGLE_API_KEY"] = google_api_key
+        try:
+            llm = ChatGoogleGenerativeAI(model=gemini_llm_model, temperature=0.3)
+        except Exception as e:
+            print(f"Error initializing Gemini LLM: {e}")
+            print("Ensure your GOOGLE_API_KEY is set correctly and you have internet access.")
+    return llm
