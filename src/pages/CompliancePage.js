@@ -93,7 +93,7 @@ function CompliancePage() {
   return (
     <>
       <Grid container spacing={3} sx={{ padding: "20px" }}>
-        <Grid item xs={12}>
+        <Grid item size={12}>
           <Typography variant="h4" gutterBottom>
             Compliance
           </Typography>
@@ -101,7 +101,7 @@ function CompliancePage() {
             SE-RAN ensures the 3GPP & NIST security requirements and compliance for RAN and UEs.
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid item size={12}>
           <Card>
             <CardContent>
               <div

@@ -256,7 +256,7 @@ function IssuesPage() {
   return (
     <>
       <Grid container spacing={3} sx={{ padding: "20px" }}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant="h4" gutterBottom>
             Issues
           </Typography>
@@ -264,7 +264,7 @@ function IssuesPage() {
             Security Threats and Anomalies Detected
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <FormControl
