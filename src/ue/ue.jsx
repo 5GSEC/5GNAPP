@@ -205,6 +205,8 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
       }, [ueData, ueId, ueEvent]);
 
   const handleUeMouseOnEnter = (e) => {
+    if (MouseClicked)
+      return;
     setHoveredUeId(ueId);
     if (ueIconRef.current) {
       const rect = ueIconRef.current.getBoundingClientRect();
