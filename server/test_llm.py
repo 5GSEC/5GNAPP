@@ -39,6 +39,15 @@ if __name__ == "__main__":
     UE;20;v2.0;SECSM;1715111927;12345678;43597;43597;43597;0;2089900000004;0;0;0;0;RRCSetupRequest; ;0;0;0;0;0;0
     UE;21;v2.0;SECSM;1715111927;12345678;43597;43597;43597;0;2089900000004;0;0;0;0;RRCSetup; ;2;0;0;0;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
     # bts-attack2.csv
     result = agent.invoke("""[security analysis] 
     The MobieXpert xApp has detected a BTS resource depletion attack. A malicious UE repeatedly created fabricated RRC connections to the gNB to perform denial-of-service attacks to exhaust the gNB's resources.
@@ -58,6 +67,15 @@ if __name__ == "__main__":
     UE;15;v2.0;SECSM;1715112114;12345678;30195;30195;30195;0;2089900000002;0;0;0;0;DLInformationTransfer;Authenticationrequest;2;1;0;0;0;0
     UE;16;v2.0;SECSM;1715112114;12345678;30195;30195;30195;0;2089900000002;0;0;0;0;DLInformationTransfer;Authenticationrequest;2;1;0;0;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
     # bts-attack3.csv
     result = agent.invoke("""[security analysis] 
     The MobieXpert xApp has detected a BTS resource depletion attack. A malicious UE repeatedly created fabricated RRC connections to the gNB to perform denial-of-service attacks to exhaust the gNB's resources.
@@ -74,6 +92,15 @@ if __name__ == "__main__":
     UE;11;v2.0;SECSM;1715112166;12345678;29295;29295;29295;0;2089900000001;0;0;0;0;DLInformationTransfer;Authenticationrequest;2;1;0;0;0;0
     UE;12;v2.0;SECSM;1715112166;12345678;29295;29295;29295;0;2089900000001;0;0;0;0;DLInformationTransfer;Authenticationrequest;2;1;0;0;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
 
     # Blind DoS attack. Traffic from blind_dos_tmsi_*.csv
     # No countermeasure strategy is available.
@@ -92,6 +119,15 @@ if __name__ == "__main__":
     UE;8;v2.0;SECSM;1746320761;12345678;61850;61850;61850;123456;2089900004788;2;2;0;2;SecurityModeComplete; ;2;1;3;0;0;0
     UE;9;v2.0;SECSM;1746320775;12345678;0;53464;53464;123456;2089900000000;0;0;0;0;RRCSetupRequest; ;0;0;0;3;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
     # blind_dos_tmsi_888888.csv
     result = agent.invoke("""[security analysis] 
     The MobieXpert xApp has detected a Blind DoS attack. A malicious UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.
@@ -107,6 +143,15 @@ if __name__ == "__main__":
     UE;18;v2.0;SECSM;1746320844;12345678;762;762;762;888888;2089900004788;2;2;0;2;SecurityModeComplete; ;2;1;3;0;0;0
     UE;19;v2.0;SECSM;1746320857;12345678;0;63968;63968;888888;2089900000000;0;0;0;0;RRCSetupRequest; ;0;0;0;3;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
     # blind_dos_tmsi_999999.csv
     result = agent.invoke("""[security analysis] 
     The MobieXpert xApp has detected a Blind DoS attack. A malicious UE initiated an RRC connection using the same S-TMSI as another connected UE. The previously connected UE's session could have been released by the gNB.
@@ -123,6 +168,15 @@ if __name__ == "__main__":
     UE;29;v2.0;SECSM;1746320906;12345678;55410;55410;55410;999999;2089900004788;2;2;0;2;SecurityModeComplete; ;2;1;3;0;0;0
     UE;30;v2.0;SECSM;1746320921;12345678;0;51080;51080;999999;2089900000000;0;0;0;0;RRCSetupRequest; ;0;0;0;3;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
 
     # Downlink DoS attack. Traffic from dnlink_dos_1.csv
     # No countermeasure strategy is available.
@@ -134,6 +188,15 @@ if __name__ == "__main__":
     UE;33;v2.0;SECSM;1746321023;12345678;26168;26168;26168;0;2089900000000;0;0;0;0;RRCSetupComplete;Registrationrequest;2;1;0;1;0;0
     UE;34;v2.0;SECSM;1746321023;12345678;26168;26168;26168;0;2089900000000;0;0;0;0;DLInformationTransfer;Authenticationrequest;2;1;0;0;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
 
     # Downlink IMSI Extraction attack. Traffic from dnlink_imsi_extr_1.csv
     # No countermeasure strategy is available.
@@ -146,6 +209,15 @@ if __name__ == "__main__":
     UE;38;v2.0;SECSM;1746321089;12345678;47344;47344;47344;0;2089900000000;0;0;0;0;DLInformationTransfer;Authenticationrequest;2;1;0;0;0;0
     UE;39;v2.0;SECSM;1746321089;12345678;47344;47344;47344;0;2089900000000;0;0;0;0;ULInformationTransfer;Identityresponse;2;1;0;0;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
 
     # Null ciphering & Integrity attack. Traffic from null_cipher_integ_2.csv
     # The LLM should invoke RAN CU Config Tuning APIs to adjust the ciphering and integrity mode (removing "nea0" or "nia0") in the RAN CU config file.
@@ -170,6 +242,15 @@ if __name__ == "__main__":
     UE;54;v2.1;SECSM;1749482881;20000;1;54649;54649;0;2089900004719;0;2;0;2;RRCReconfiguration; ;2;2;1;0;0;0
     UE;55;v2.1;SECSM;1749482881;20000;1;54649;54649;0;2089900004719;0;2;0;2;RRCReconfigurationComplete; ;2;2;1;0;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
 
     # Uplink IMSI Extraction. Traffic from uplink_imsi_extr_1.csv
     # No countermeasure strategy is available.
@@ -185,6 +266,15 @@ if __name__ == "__main__":
     UE;65;v2.0;SECSM;1746321324;12345678;50192;50192;50192;0;2089900000000;0;0;0;0;ULInformationTransfer;Authenticationresponse;2;1;0;0;0;0
     UE;66;v2.0;SECSM;1746321324;12345678;50192;50192;50192;0;2089900000000;0;0;0;0;DLInformationTransfer;Registrationreject;2;0;0;0;0;0
     """)
+    while True:
+        # Check if an interrupt occurred in the result
+        if "__interrupt__" in result.keys():
+            interrupt_value = result["__interrupt__"][0].value
+            # Resume the graph with the chosen command
+            thread_id = result["thread_id"]
+            result = agent.resume({"type": "deny"}, thread_id)
+        else:
+            break  # No interrupt means the flow is complete; exit the loop
 
     # tune the below code to print the result in a more readable format
     # while True:
