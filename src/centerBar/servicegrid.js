@@ -168,7 +168,7 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
                       iconColor = "black";
                       break;
                     case "mobiwatch xapp":
-                      IconComponent = require('@mui/icons-material/Security').default;
+                      IconComponent = require('@mui/icons-material/Insights').default;
                       iconColor = "black";
                       break;
                     default:
