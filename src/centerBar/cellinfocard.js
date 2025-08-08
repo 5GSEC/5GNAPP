@@ -190,11 +190,11 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
             let trendColor = '#888'; // green
             const isEvent = key === "criticalEvents" || key === "totalEvents";
             if (trend === "up" && isEvent) {
-              trendColor = '#d32f2f'; // improved red (Material UI red[700])
+              trendColor = '#B2281D'; // '#d32f2f'; // improved red (Material UI red[700])
             } else if ((trend === "down" || trend === "neutral") && isEvent) {
-              trendColor = '#388e3c'; // improved green (Material UI green[700])
+              trendColor = '#6FBA5F'; // '#388e3c'; // improved green (Material UI green[700])
             } else {
-              trendColor = '#888'; // neutral
+              trendColor = '#919BB0'; // '#888'; // neutral
             }
 
             return (
@@ -244,8 +244,18 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                         data,
                         showMark: false,
                         color: trendColor,
-                        // area: true,
+                        area: true,
                       }]}
+                      sx={{
+                        // Set area fill to a lighter, semi-transparent version of trendColor
+                        "& .MuiAreaElement-root": {
+                          fill: trendColor ? `${trendColor}22` : "rgba(0,0,0,0.10)", // 13% opacity if hex, fallback to light gray
+                        },
+                        "& .MuiChartsAxisHighlight-root": {
+                          strokeDasharray: 0,
+                          strokeWidth: 2,
+                        },
+                      }}
                       height={90}
                       // width={100}
                       margin={{ top: 5, bottom: 5, left: 2, right: 0 }}
@@ -303,14 +313,14 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                         const displayPercent = Math.abs(percent).toFixed(0);
 
                         // Choose color and icon
-                        let color = "#888";
+                        let color = '#919BB0' // "#888";
                         let icon = null;
 
                         // Apply special trend color only for "Critical Events" or "Total Events"
                         const isEvent = key === "criticalEvents" || key === "totalEvents";
                         if (isEvent) {
                           if (trend === "up") {
-                            color = "#d32f2f"; // improved green (Material UI green[700])
+                            color = '#B2281D'; // "#d32f2f"; // improved green (Material UI green[700])
                             icon = (
                               <TrendingUpIcon
                                 sx={{
@@ -322,7 +332,7 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                               />
                             );
                           } else if (trend === "down") {
-                            color = "#388e3c"; // improved red (Material UI red[700])
+                            color = '#6FBA5F'; // "#388e3c"; // improved red (Material UI red[700])
                             icon = (
                               <TrendingDownIcon
                                 sx={{
