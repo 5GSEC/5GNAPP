@@ -251,10 +251,10 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                         "& .MuiAreaElement-root": {
                           fill: trendColor ? `${trendColor}22` : "rgba(0,0,0,0.10)", // 13% opacity if hex, fallback to light gray
                         },
-                        "& .MuiChartsAxisHighlight-root": {
-                          strokeDasharray: 0,
-                          strokeWidth: 2,
-                        },
+                        // "& .MuiChartsAxisHighlight-root": {
+                        //   strokeDasharray: 0,
+                        //   strokeWidth: 2,
+                        // },
                       }}
                       height={90}
                       // width={100}
