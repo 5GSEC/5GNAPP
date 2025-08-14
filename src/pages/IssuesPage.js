@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   Typography, Grid, Card, CardContent, FormControl, InputAdornment, OutlinedInput, Button,
@@ -14,6 +14,8 @@ import ReactMarkdown from 'react-markdown';
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
+import DiffViewer from 'react-diff-viewer';
+import { GenAIContext } from "../App";
 
 
 function parseTimestamp(raw) {
@@ -60,6 +62,15 @@ Event Details:
 - Description: ${row.description}
 `;
 
+async function fetchEvents(setEvent) {
+  try {
+    const sdlEventData = await fetchSdlEventData();
+    setEvent(sdlEventData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
 function IssuesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [bevent, setEvent] = useState({});
@@ -68,46 +79,63 @@ function IssuesPage() {
   const update_interval = 10000;
 
   // New state for GenAI response
-  const [genaiResponse, setGenaiResponse] = useState("");
   const [genaiLoading, setGenaiLoading] = useState(false);
   const [genaiError, setGenaiError] = useState(null);
-  const [genaiInterrupted, setgenaiInterrupted] = useState({});
-  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState({});
-  const [genaiActionStrategy, setgenaiActionStrategy] = useState({});
-  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState({});
-  const [genaiActionResponse, setgenaiActionResponse] = useState({});
+  
+  // Use context for GenAI state instead of local state
+  const {
+    genaiResponse,
+    setGenaiResponse,
+    genaiInterrupted,
+    setgenaiInterrupted,
+    genaiInterruptPrompt,
+    setgenaiInterruptPrompt,
+    genaiActionStrategy,
+    setgenaiActionStrategy,
+    genaiUpdatedConfig,
+    setgenaiUpdatedConfig,
+    genaiOriginalConfig,
+    setgenaiOriginalConfig,
+    genaiActionResponse,
+    setgenaiActionResponse,
+    rowIdToThreadId,
+    setRowIdToThreadId,
+  } = useContext(GenAIContext);
 
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [editableConfig, setEditableConfig] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-
-  // Cache for GenAI responses
-  const genaiCache = useRef({});
-
-  const rowIdToThreadId = useRef({}); // Global mapping
+  const [showDiffView, setShowDiffView] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchSdlEventData(setEvent);
+      fetchEvents(setEvent);
     }, update_interval);
-    fetchSdlEventData(setEvent);
+    fetchEvents(setEvent);
     return () => clearInterval(interval);
   }, []);
 
-  // GenAI API call for insight with caching
+  // GenAI API call for insight with caching and persistent state check
   useEffect(() => {
     if (insightOpen && insightRow) {
-      const cacheKey = insightRow.id; // or another unique identifier
-      if (genaiCache.current[cacheKey]) {
-        setGenaiResponse(genaiCache.current[cacheKey]);
+
+      // Check persistent state (localStorage) for this row
+      // genaiResponse is a string, but we want to check if it matches this row
+      // We'll assume that if genaiResponse is not empty and insightRow.id matches the last insightRow, it's valid
+      // For more robust logic, you may want to store a mapping of rowId to response in persistent state
+      // For now, if genaiResponse is not empty, use it
+      let response = genaiResponse[rowIdToThreadId[insightRow.id]];
+      if (response && typeof response === "string" && response.trim() !== "") {
         setGenaiLoading(false);
         setGenaiError(null);
         return;
       }
+
+      // 3. Otherwise, fetch from API
       const fetchGenAI = async () => {
         setGenaiLoading(true);
         setGenaiError(null);
-        setGenaiResponse("");
+        setGenaiResponse(prev => ({ ...prev, [rowIdToThreadId[insightRow.id]]: "" }));
         try {
           const prompt = buildGenAIPrompt(insightRow);
           const res = await fetch("http://localhost:8080/mobillm/security_analysis", {
@@ -116,16 +144,15 @@ function IssuesPage() {
             body: JSON.stringify({ message: prompt }),
           });
           const data = await res.json();
-          const threadId = data.thread_id || cacheKey; // fallback if thread_id missing
-          rowIdToThreadId[insightRow.id] = threadId; // update thread ID mapping
-          // console.log(data);
+          const threadId = data.thread_id; // fallback if thread_id missing
+          setRowIdToThreadId(prev => ({ ...prev, [insightRow.id]: threadId })); // update thread ID mapping
           if (!res.ok) throw new Error(data.error || "Chat error");
-          setGenaiResponse(data.output);
+          setGenaiResponse(prev => ({ ...prev, [threadId]: data.output || "" }));
           setgenaiInterrupted(prev => ({ ...prev, [threadId]: data.interrupted || false }));
           setgenaiActionStrategy(prev => ({ ...prev, [threadId]: data.action_strategy || null }));
           setgenaiInterruptPrompt(prev => ({ ...prev, [threadId]: data.interrupt_prompt || null }));
           setgenaiUpdatedConfig(prev => ({ ...prev, [threadId]: data.updated_config || null }));
-          genaiCache.current[cacheKey] = data.output; // Store in cache
+          setgenaiOriginalConfig(prev => ({ ...prev, [threadId]: data.original_config || null }));
         } catch (e) {
           setGenaiError(e.message || "Unknown error");
         } finally {
@@ -146,6 +173,7 @@ function IssuesPage() {
     time: parseTimestamp(event.timestamp) || "N/A",
     description: event.description || "No description available",
     severity: event.severity || "Medium",
+    active: event.active || false,
   }));
 
   // Filter rows based on the search query
@@ -163,7 +191,7 @@ function IssuesPage() {
 
   // Define columns INSIDE the component so it can access handleInsightClick
   const columns = [
-    { field: "id", headerName: "ID", width: 50 },
+    { field: "id", headerName: "ID", width: 70 },
     { field: "source", headerName: "Source", width: 120 },
     { field: "name", headerName: "Name", width: 150 },
     { field: "cellID", headerName: "Cell ID", width: 100 },
@@ -228,15 +256,15 @@ function IssuesPage() {
   return (
     <>
       <Grid container spacing={3} sx={{ padding: "20px" }}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Typography variant="h4" gutterBottom>
-            Issues Page
+            Issues
           </Typography>
           <Typography variant="subtitle1" gutterBottom>
             Security Threats and Anomalies Detected
           </Typography>
         </Grid>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <FormControl
@@ -296,10 +324,12 @@ function IssuesPage() {
                 <DataGrid
                   rows={filteredRows}
                   columns={columns}
-                  checkboxSelection
-                  getRowClassName={(params) =>
-                    params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"
-                  }
+                  // checkboxSelection
+                  getRowClassName={(params) => {
+                    const baseClass = params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd";
+                    const isInactive = !params.row.active;
+                    return isInactive ? `${baseClass} inactive` : baseClass;
+                  }}
                   initialState={{
                     pagination: { paginationModel: { pageSize: 5 } },
                   }}
@@ -323,6 +353,13 @@ function IssuesPage() {
                       bgcolor: "#fff",
                       '&.even': { bgcolor: "#f8fafd" },
                       '&:hover': { bgcolor: "#e0e4ef" },
+                      '&.inactive': {
+                        opacity: 0.4,
+                        bgcolor: "#f5f5f5 !important",
+                        '&:hover': { bgcolor: "#e8e8e8 !important" },
+                        '&.even': { bgcolor: "#f0f0f0 !important" },
+                        '&.odd': { bgcolor: "#f5f5f5 !important" },
+                      },
                     },
                     '& .MuiDataGrid-cell': {
                       borderBottom: '1px solid #e0e4ef',
@@ -401,7 +438,7 @@ function IssuesPage() {
                     strong: ({node, ...props}) => <Typography component="span" sx={{ fontWeight: 'bold', color: '#11182E', display: 'inline' }} {...props} />
                   }}
                 >
-                  {genaiResponse}
+                  {genaiResponse[rowIdToThreadId[insightRow.id]]}
                 </ReactMarkdown>
               </Box>
             )}
@@ -437,6 +474,42 @@ function IssuesPage() {
             )}
         </Box>
         <Box sx={{ p: 1, borderTop: "1px solid #eee", textAlign: "right" }}>
+          <Button
+            onClick={() => {
+              // Clear GenAI state for this row/thread
+              if (insightRow) {
+                const threadId = rowIdToThreadId[insightRow.id];
+                setGenaiResponse(prev => ({ ...prev, [threadId]: "" }));
+                setGenaiError(null);
+                setGenaiLoading(true);
+                setgenaiInterrupted(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiActionStrategy(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiInterruptPrompt(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiUpdatedConfig(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiOriginalConfig(prev => ({ ...prev, [threadId]: undefined }));
+                setgenaiActionResponse(prev => ({ ...prev, [threadId]: undefined }));
+                // Trigger reload by setting insightRow to itself (forces useEffect to rerun)
+                setInsightRow({ ...insightRow });
+              }
+            }}
+            sx={{
+              backgroundColor: '#fff',
+              color: '#11182E',
+              minWidth: 0,
+              px: 2,
+              borderRadius: 2,
+              boxShadow: 1,
+              border: '1px solid #11182E',
+              mr: 1,
+              '&:hover': {
+                backgroundColor: '#e0e4ef',
+                color: '#11182E',
+              },
+            }}
+            variant="outlined"
+          >
+            Regenerate
+          </Button>
           <Button 
             onClick={() => setInsightOpen(false)} 
             sx={{
@@ -461,17 +534,18 @@ function IssuesPage() {
     <Dialog
       open={reviewDialogOpen}
       onClose={() => setReviewDialogOpen(false)}
-      maxWidth="md"
-      fullWidth
+      maxWidth={false}
       PaperProps={{
-        sx: { 
+        sx: {
+          width: '75vw',
+          maxWidth: '75vw',
           zIndex: 2000,
           borderRadius: 4,
           boxShadow: 6,
           background: "rgba(255,255,255,0.95)",
           backdropFilter: "blur(8px)",
           border: "1px solid rgba(200,200,200,0.3)",
-          } // or any value higher than your Insight dialog
+        }
       }}
     >
       <DialogTitle sx={{ display: "flex", alignItems: "center", fontSize: 24 }}>
@@ -488,7 +562,7 @@ function IssuesPage() {
         {/* Loading spinner */}
         {actionLoading && (
           <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 120 }}>
-            <Typography color="text.secondary" sx={{ mr: 2 }}>Executing actions...</Typography>
+            <Typography color="text.secondary" sx={{ mr: 2 }}>Executing actions...You may exit this dialog now and check the results later.</Typography>
             <span className="MuiCircularProgress-root MuiCircularProgress-indeterminate" style={{ width: 32, height: 32, display: "inline-block", borderWidth: 3, borderStyle: "solid", borderRadius: "50%", borderColor: "#11182E transparent #11182E transparent", animation: "mui-spin 1s linear infinite" }} />
             <style>
               {`@keyframes mui-spin { 100% { transform: rotate(360deg); } }`}
@@ -517,20 +591,91 @@ function IssuesPage() {
         )}
         {/* Show config editor only if not loading and no response yet */}
         {!actionLoading && insightRow && !genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
-          <TextField
-            label="Updated RAN Config"
-            multiline
-            minRows={8}
-            maxRows={20}
-            fullWidth
-            value={editableConfig}
-            onChange={e => setEditableConfig(e.target.value)}
-            variant="outlined"
-            sx={{ mt: 2, fontFamily: "monospace" }}
-            InputProps={{
-              style: { fontFamily: "monospace" }
-            }}
-          />
+          <>
+            <Button
+              variant="outlined"
+              sx={{
+                backgroundColor: '#11182E',
+                color: '#fff',
+                minWidth: 0,
+                px: 2,
+                borderRadius: 2,
+                boxShadow: 1,
+                '&:hover': {
+                  backgroundColor: '#2d3c6b',
+                },
+              }}
+              onClick={() => setShowDiffView(prev => !prev)}
+            >
+              {showDiffView ? "Switch to Edit View" : "Show Diff"}
+            </Button>
+            {showDiffView ? (
+              <Box sx={{
+                border: '1px solid #e0e4ef',
+                borderRadius: 2,
+                background: '#f8fafd',
+                p: 2,
+                mb: 2,
+                boxShadow: 1,
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ color: '#23305a', fontWeight: 600 }}>
+                    Original Config
+                  </Typography>
+                  <Typography variant="subtitle2" sx={{ color: '#23305a', fontWeight: 600 }}>
+                    Updated Config
+                  </Typography>
+                </Box>
+                <DiffViewer
+                  oldValue={typeof genaiOriginalConfig[rowIdToThreadId[insightRow.id]] === "object"
+                    ? JSON.stringify(genaiOriginalConfig[rowIdToThreadId[insightRow.id]], null, 2)
+                    : (genaiOriginalConfig[rowIdToThreadId[insightRow.id]] || "")}
+                  newValue={typeof genaiUpdatedConfig[rowIdToThreadId[insightRow.id]] === "object"
+                    ? JSON.stringify(genaiUpdatedConfig[rowIdToThreadId[insightRow.id]], null, 2)
+                    : (genaiUpdatedConfig[rowIdToThreadId[insightRow.id]] || "")}
+                  splitView={true}
+                  showDiffOnly={false}
+                  styles={{
+                    variables: {
+                      light: {
+                        diffViewerBackground: '#f8fafd',
+                        addedBackground: '#e6ffed',
+                        removedBackground: '#ffeef0',
+                        wordAddedBackground: '#acf2bd',
+                        wordRemovedBackground: '#fdb8c0',
+                      },
+                    },
+                    lineNumber: {
+                      minWidth: '24px',
+                      width: '24px',
+                      padding: '0 4px',
+                      fontSize: 12,
+                    },
+                    gutter: {
+                      minWidth: '24px',
+                      width: '24px',
+                      padding: '0 4px',
+                    },
+                  }}
+                />
+              </Box>
+            ) : (
+              <TextField
+                label="Updated RAN Config"
+                multiline
+                minRows={8}
+                maxRows={20}
+                fullWidth
+                value={editableConfig}
+                onChange={e => setEditableConfig(e.target.value)}
+                variant="outlined"
+                sx={{ mt: 2, fontFamily: "monospace" }}
+                InputProps={{
+                  style: { fontFamily: "monospace" }
+                }}
+              />
+            )}
+          </>
         )}
       </DialogContent>
       {/* Hide actions if loading or response is shown */}

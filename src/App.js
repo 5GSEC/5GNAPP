@@ -3,7 +3,7 @@
  ******************************************************/
 
 import "./App.css";
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, createContext } from "react";
 import { 
   BrowserRouter, 
   Routes, 
@@ -17,10 +17,11 @@ import Chatbot from './components/Chatbot';
 import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
-import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, setSimulationMode } from "./backend/fetchUserData";
+import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, fetchTimeSeriesData, setSimulationMode } from "./backend/fetchUserData";
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
+import CompliancePage from "./pages/CompliancePage"; // NEW: dedicated file for CompliancePage
 
 /* ──────────────────────────────────────────────
    NEW: xApps child pages (very small placeholders)
@@ -64,11 +65,21 @@ function XAppsLayout() {
 const data_simulation = 1;
 const update_interval = 10000;
 
-export function updateData(setNetwork, setEvent, setService) {
-  // Data fetch
-  fetchSdlData(setNetwork);
-  fetchSdlEventData(setEvent);
+export async function fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData) {
   fetchServiceStatus(setService);
+  try {
+    // ensure fetch order in API calls
+    const sdlData = await fetchSdlData();
+    setNetwork(sdlData);
+
+    const sdlEventData = await fetchSdlEventData();
+    setEvent(sdlEventData);
+
+    const timeSeriesData = await fetchTimeSeriesData();
+    setTimeSeriesData(timeSeriesData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 }
 
 // ----------------------------------------
@@ -78,15 +89,16 @@ function DashboardPage() {
   const [network, setNetwork] = useState({});
   const [services, setService] = useState({});
   const [events, setEvent] = useState({});
+  const [timeSeriesData, setTimeSeriesData] = useState({});
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      updateData(setNetwork, setEvent, setService);
+      fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData);
     }, update_interval);
     if (data_simulation === 1)
       setSimulationMode();
-    updateData(setNetwork, setEvent, setService);
+    fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData);
 
     return () => clearInterval(interval);
   }, []);
@@ -101,9 +113,11 @@ function DashboardPage() {
           setNetwork={setNetwork}
           setEvent={setEvent}
           setService={setService}
+          setTimeSeriesData={setTimeSeriesData}
           network={network}
           events={events}
           services={services}
+          timeSeriesData={timeSeriesData}
           bsId={hoveredBsId}
           ueId={hoveredUeId}
         />
@@ -139,18 +153,6 @@ function ProfilePage() {
 
 
 // ----------------------------------------
-// Compliance (path="/compliance")
-// ----------------------------------------
-function CompliancePage() {
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2>Compliance Page</h2>
-      <p>Placeholder for the Compliance page.</p>
-    </div>
-  );
-}
-
-// ----------------------------------------
 // Settings (path="/settings")
 // ----------------------------------------
 function SettingsPage() {
@@ -162,45 +164,87 @@ function SettingsPage() {
   );
 }
 
+// Create context for GenAI state
+export const GenAIContext = createContext();
+
+// GenAI Context Provider component
+function GenAIProvider({ children }) {
+  const [genaiResponse, setGenaiResponse] = useState({});
+  const [genaiInterrupted, setgenaiInterrupted] = useState({});
+  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState({});
+  const [genaiActionStrategy, setgenaiActionStrategy] = useState({});
+  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState({});
+  const [genaiOriginalConfig, setgenaiOriginalConfig] = useState({});
+  const [genaiActionResponse, setgenaiActionResponse] = useState({});
+  const [rowIdToThreadId, setRowIdToThreadId] = useState({});
+
+  const genaiState = {
+    genaiResponse,
+    setGenaiResponse,
+    genaiInterrupted,
+    setgenaiInterrupted,
+    genaiInterruptPrompt,
+    setgenaiInterruptPrompt,
+    genaiActionStrategy,
+    setgenaiActionStrategy,
+    genaiUpdatedConfig,
+    setgenaiUpdatedConfig,
+    genaiOriginalConfig,
+    setgenaiOriginalConfig,
+    genaiActionResponse,
+    setgenaiActionResponse,
+    rowIdToThreadId,
+    setRowIdToThreadId,
+  };
+
+  return (
+    <GenAIContext.Provider value={genaiState}>
+      {children}
+    </GenAIContext.Provider>
+  );
+}
+
 /* ──────────────────────────────────────────────
    Root component – main <Routes> updated
 ────────────────────────────────────────────── */
 function App() {
   return (
-    <BsIconProvider>
-      <BrowserRouter>
-        <div className="container" style={{ display: "flex" }}>
-          <MenuNavBar />
-          <div className="content" style={{ flex: 1 }}> 
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/issues" element={<IssuesPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/compliance" element={<CompliancePage />} />
+    <GenAIProvider>
+      <BsIconProvider>
+        <BrowserRouter>
+          <div className="container" style={{ display: "flex" }}>
+            <MenuNavBar />
+            <div className="content" style={{ flex: 1 }}> 
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/issues" element={<IssuesPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/compliance" element={<CompliancePage />} />
 
-              {/* /xapps parent + nested children */}
-              <Route path="/xapps" element={<XAppsLayout />}>
-                <Route index element={<XAppsIndex />} /> {/* /xapps */}
-                {/* import‑based MobieXpert page */}
-                <Route path="mobiexpert" element={<MobieXpertPage />} />
-                {/* still stubbed inline */}
-                <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
-                {/* NEW: dedicated MobiLLM page */}
-                <Route path="mobillm" element={<MobiLLMPage />} />
-                <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
-              </Route>
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route
-                path="*"
-                element={<div style={{ padding: 20 }}>Page Not Found</div>}
-              />
-            </Routes>
-            <Chatbot />   {/* NEW: added chatbot panel (stub for now) */}
+                {/* /xapps parent + nested children */}
+                <Route path="/xapps" element={<XAppsLayout />}>
+                  <Route index element={<XAppsIndex />} /> {/* /xapps */}
+                  {/* import‑based MobieXpert page */}
+                  <Route path="mobiexpert" element={<MobieXpertPage />} />
+                  {/* still stubbed inline */}
+                  <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
+                  {/* NEW: dedicated MobiLLM page */}
+                  <Route path="mobillm" element={<MobiLLMPage />} />
+                  <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
+                </Route>
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route
+                  path="*"
+                  element={<div style={{ padding: 20 }}>Page Not Found</div>}
+                />
+              </Routes>
+              <Chatbot />   {/* NEW: added chatbot panel (stub for now) */}
+            </div>
           </div>
-        </div>
-      </BrowserRouter>
-    </BsIconProvider>
+        </BrowserRouter>
+      </BsIconProvider>
+    </GenAIProvider>
   );
 }
 

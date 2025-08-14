@@ -19,6 +19,7 @@ import {
   Divider,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import ReactDOM from 'react-dom';
 
 const fieldsToRender = [
     "name",
@@ -71,30 +72,98 @@ function parseUEStates(ueData) {
   if (!ueData || !ueData.mobiflow || ueData.mobiflow.length === 0) return "Unknown";
 
   const last = ueData.mobiflow[ueData.mobiflow.length - 1];
+
+  const rrcState = parseUERRCState(last.rrc_state);
+  const emmState = parseUENASState(last.nas_state);
+
+  // return `${rrcState}, ${emmState}`;
+  return `${rrcState}`;
+}
+
+function parseUERRCState(rrc_state) {
   const rrcMap = {
     0: "RRC_Inactive",
     1: "RRC_Idle",
     2: "RRC_Connected",
     3: "RRC_Reconfigured",
   };
+  return rrcMap[rrc_state] ?? `${rrc_state}`;
+}
+
+function parseUENASState(nas_state) {
   const emmMap = {
     0: "EMM_Deregistered",
     1: "EMM_Registered_Init",
     2: "EMM_Registered",
   };
-
-  const rrcState = rrcMap[last.rrc_state] ?? `RRC_${last.rrc_state}`;
-  const emmState = emmMap[last.nas_state] ?? `EMM_${last.nas_state}`;
-
-  // return `${rrcState}, ${emmState}`;
-  return `${rrcState}`;
+  return emmMap[nas_state] ?? "Unknown";
 }
+
+function parseUERRCSecState(rrc_sec_state) {
+  const rrcSecMap = {
+    0: "SEC_CONTEXT_NOT_EXIST",
+    1: "RRC_SEC_CONTEXT_INTEGRITY_PROTECTED",
+    2: "RRC_SEC_CONTEXT_CIPHERED",
+    3: "RRC_SEC_CONTEXT_CIPHERED_AND_INTEGRITY_PROTECTED"
+  };
+  return rrcSecMap[rrc_sec_state] ?? "Unknown";
+}
+
+function parseUERRCCipherAlg(rrc_cipher_alg) {
+  const rrcCipherMap = {
+    0: "NEA0",
+    1: "128-NEA1",
+    2: "128-NEA2",
+    3: "128-NEA3"
+  };
+  return rrcCipherMap[rrc_cipher_alg] ?? "Unknown";
+}
+
+function parseUERRCIntegrityAlg(rrc_integrity_alg) {
+  const rrcIntegrityMap = {
+    0: "NIA0",
+    1: "128-NIA1",
+    2: "128-NIA2",
+    3: "128-NIA3"
+  };
+  return rrcIntegrityMap[rrc_integrity_alg] ?? "Unknown";
+}
+
+function parseUENASCipherAlg(nas_cipher_alg) {
+  const nasCipherMap = {
+    0: "5G-EA0",
+    1: "128-5G-EA1",
+    2: "128-5G-EA2",
+    3: "128-5G-EA3",
+    4: "5G-EA4",
+    5: "5G-EA5",
+    6: "5G-EA6",
+    7: "5G-EA7",
+  };
+  return nasCipherMap[nas_cipher_alg] ?? `${nas_cipher_alg}`;
+}
+
+function parseUENASIntegrityAlg(nas_integrity_alg) {
+  const nasIntegrityMap = {
+    0: "5G-IA0",
+    1: "128-5G-IA1",
+    2: "128-5G-IA2",
+    3: "128-5G-IA3",
+    4: "5G-IA4",
+    5: "5G-IA5",
+    6: "5G-IA6",
+    7: "5G-IA7",
+  };
+  return nasIntegrityMap[nas_integrity_alg] ?? "Unknown";
+}
+
 
 
 const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIsBsHovered, setBsHoverId, angle, fade}) => {
     const [showInfo, setShowInfo] = useState(false);
     const [MouseClicked, setMouseClicked] = useState(false); // New state variable
     const ueIconRef = useRef(null);
+    const [infoPos, setInfoPos] = useState({ top: 0, left: 0 });
 
     //for showing the detail metadata when clicking on the UE
     const [showDetails, setShowDetails] = useState(false);
@@ -136,7 +205,16 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
       }, [ueData, ueId, ueEvent]);
 
   const handleUeMouseOnEnter = (e) => {
+    if (MouseClicked)
+      return;
     setHoveredUeId(ueId);
+    if (ueIconRef.current) {
+      const rect = ueIconRef.current.getBoundingClientRect();
+      setInfoPos({
+        top: rect.bottom + window.scrollY + 8, // 8px below the icon
+        left: rect.left + window.scrollX,      // align left edges
+      });
+    }
     setShowInfo(true);
   };
 
@@ -232,7 +310,7 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
       )}
       <div
         className="ue-icon"
-        style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }}
+        // style={{ width: isHovered ? '100px' : '50px', height: isHovered ? '100px' : '50px' }}
         ref={ueIconRef}
         onClick={handleUeClick}
       >
@@ -260,15 +338,19 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                 <img src={ue_cctvCamera} alt="UE Icon" className="ue-icon-img" id={`_${ueId}`} style={{ width: '100%', height: '100%' }} />
             </div> */}
 
-            {showInfo && (
-                <Box className="floating-window" 
+            {showInfo && ReactDOM.createPortal(
+                <Box
+                  className="floating-window"
                   sx={{
+                    position: 'absolute',
+                    top: infoPos.top - 10,
+                    left: infoPos.left,
                     background: "#f8fafd",
-                    transform: 'translate(50%, 15%)', 
                     maxHeight: 320,
                     overflowY: "auto",
                     borderRadius: 2,
                     p: 2,
+                    zIndex: 9999
                   }}
                 >
                     <Box sx={{ mb: 1 }}>
@@ -367,26 +449,27 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                             );
                           }
                         })}
-                      </Box>
+                        </Box>
                     ))}
-                  </Box>
-      )}
+                </Box>,
+                document.body
+            )}
 
       {/* showinfo window for clicking */}
-        {showDetails && (
+        {showDetails && ReactDOM.createPortal(
           <Box
             sx={{
               position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)', 
+              top: '60%',
+              left: '60%',
+              transform: 'translate(-50%, -50%)',
               backgroundColor: '#fff',
-              // color: '#000',
               padding: '16px',
-              border: '1px solid #000', // Added black border
-              width: '900px', // Increased width
-              height: '400px', // Added height
-              overflow: 'auto', // Added overflow for scroll
+              border: '2px solid #ccc',
+              borderRadius: 2,
+              width: '1000px',
+              height: '450px',
+              overflow: 'auto',
               zIndex: 9999
             }}
           >
@@ -396,24 +479,21 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: 0,
+                marginBottom: 1,
               }}
             >
-            {/* Close Button */}
-            <IconButton
-              onClick={handleCloseDetailsWindow}
-              sx={{
-                color: "black",
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-            {/* replaced single row with a table for metadata in two rows */}
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginTop: 0, marginBottom: 1 }}>
-              UE Metadata
-            </Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginTop: 0 }}>
+                UE Metadata
+              </Typography>
+              <IconButton
+                onClick={handleCloseDetailsWindow}
+                sx={{
+                  color: "black",
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -443,9 +523,21 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                       "rrc_integrity_alg",
                       "nas_cipher_alg",
                       "nas_integrity_alg",
-                    ].map((label) => (
-                      <TableCell key={label}>{ueData?.[label] || "N/A"}</TableCell>
-                    ))}
+                    ].map((label) => {
+                      let value = ueData?.[label];
+                      if (label === "rrc_cipher_alg") {
+                        value = value !== undefined && value !== null && value !== "" ? parseUERRCCipherAlg(value) : "N/A";
+                      } else if (label === "rrc_integrity_alg") {
+                        value = value !== undefined && value !== null && value !== "" ? parseUERRCIntegrityAlg(value) : "N/A";
+                      } else if (label === "nas_cipher_alg") {
+                        value = value !== undefined && value !== null && value !== "" ? parseUENASCipherAlg(value) : "N/A";
+                      } else if (label === "nas_integrity_alg") {
+                        value = value !== undefined && value !== null && value !== "" ? parseUENASIntegrityAlg(value) : "N/A";
+                      } else {
+                        value = value !== undefined && value !== null && value !== "" ? value : "N/A";
+                      }
+                      return <TableCell key={label}>{value}</TableCell>;
+                    })}
                   </TableRow>
                 </TableBody>
               </Table>
@@ -471,7 +563,21 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
                   {metadataObj.map((item, index) => (
                     <TableRow key={index}>
                       {metadataFields.map((fld) => (
-                        <TableCell key={fld}>{item[fld] !== undefined && item[fld] !== null && item[fld] !== "" ? item[fld] : "N/A"}</TableCell>
+                        <TableCell key={fld}>
+                          {(() => {
+                            if (fld === "rrc_state" && item[fld]) {
+                              return parseUERRCState(item[fld]);
+                            } else if (fld === "nas_state" && item[fld]) {
+                              return parseUENASState(item[fld]);
+                            } else if (fld === "rrc_sec_state" && item[fld]) {
+                              return parseUERRCSecState(item[fld]);
+                            } else if (item[fld] !== undefined && item[fld] !== null && item[fld] !== "") {
+                              return item[fld];
+                            } else {
+                              return "N/A";
+                            }
+                          })()}
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))}
@@ -479,8 +585,9 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
               </Table>
             </TableContainer>
 
-          </Box>
-          )}
+          </Box>,
+          document.body
+        )}
 
       
     </div>
