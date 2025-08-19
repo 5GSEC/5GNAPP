@@ -1,0 +1,3 @@
+[submodule "server/MobiLLM"]
+	path = server/MobiLLM
+	url = https://github.com/5GSEC/MobiLLM.git
