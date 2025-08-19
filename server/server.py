@@ -2,10 +2,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from flask import Flask # pip install flask
 from flask import request, jsonify
 
-import sdl_apis
-import mitre_apis
-from mobillm import MobiLLMAgent
-from mobillm_multiagent import MobiLLM_Multiagent
+from MobiLLM import sdl_apis
+from MobiLLM import mitre_apis
+# from MobiLLM.mobillm import MobiLLMAgent
+from MobiLLM.mobillm_multiagent import MobiLLM_Multiagent
+from MobiLLM import global_vars
 
 # Gemini SDK
 from google import genai
@@ -22,7 +23,6 @@ import re
 import os
 import traceback # for debugging the agentic AI
 import threading
-import global_vars
 
 app = Flask(__name__)
 CORS(app) # for remote access

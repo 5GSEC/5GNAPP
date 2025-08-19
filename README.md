@@ -1,33 +1,100 @@
 # 5GNAPP
-5G-native management platform
 
-## Run instructions
+**5G-native management platform**
 
-In windows first run npm start then in another terminal run cd src then python server.py
+5GNAPP is a comprehensive platform for managing 5G networks, featuring network monitoring, security analysis, and xApp orchestration capabilities.
 
-in linux just run ./start.sh
+## 🚀 Features
 
-### `npm start`
+- **5G Network Management**: Comprehensive network monitoring and control
+- **Security Analysis**: Integrated with MobiLLM for intelligent threat detection
+- **xApp Orchestration**: Build, deploy, and manage network applications
+- **Real-time Monitoring**: Live network telemetry and event processing
+- **Web Dashboard**: React-based user interface for network operations
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 📋 Prerequisites
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Node.js 16+ and npm
+- Python 3.8+
+- Docker (for xApp deployment)
+- Kubernetes cluster (optional, for production)
 
-### `npm test`
+## 🛠️ Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 1. Clone the Repository
 
-### `npm run build`
+```bash
+git clone https://github.com/5GSEC/5GNAPP.git
+cd 5GNAPP
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 2. Initialize MobiLLM Submodule
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+# Initialize and update the MobiLLM submodule
+git submodule update --init --recursive
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# Verify MobiLLM is properly linked
+ls server/MobiLLM/
+```
 
+### 3. Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+### 4. Install Backend Dependencies
+
+```bash
+cd server
+pip install -r requirements.txt
+cd ..
+```
+
+### 5. Set Environment Variables
+
+```bash
+# Edit the set_env.sh file with your configuration
+nano set_env.sh
+
+# Make the script executable and run it
+chmod +x set_env.sh
+source set_env.sh
+```
+
+**Note**: The `set_env.sh` file contains template environment variables. Edit it with your actual values before running.
+
+## 🚀 Running the Application
+
+Using the Start Script (Linux/macOS)
+
+```bash
+# Make the script executable
+chmod +x start.sh
+
+# Run the application
+./start.sh
+```
+
+
+## 🌐 Access the Application
+
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:5000](http://localhost:5000)
+
+## 📁 Project Structure
+
+```
+5GNAPP/
+├── src/                 # React frontend source code
+├── server/              # Python backend server
+│   ├── MobiLLM/        # MobiLLM submodule (AI security)
+│   ├── server.py       # Main server file
+│   └── requirements.txt # Python dependencies
+├── xApp/               # xApp deployment directory
+├── package.json        # Node.js dependencies
+├── start.sh           # Startup script
+└── README.md          # This file
+```
 
