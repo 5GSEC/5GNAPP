@@ -22,12 +22,12 @@ class ModelLoader:
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.model_id,
-            padding_side="left",
-            add_eos_token=True,
-            add_bos_token=True,
+            use_fast=True, trust_remote_code=True
         )
         
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+        # self.tokenizer.pad_token = self.tokenizer.eos_token
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
 
         if fourbit and not atebit:
             self.llm = AutoModelForCausalLM.from_pretrained(
@@ -51,13 +51,25 @@ class ModelLoader:
     
     def invoke(self, input: str) -> str:
         self.llm.eval()
+        
+        # chat templating - important
+        messages = [{"role": "user", "content": input}]
+        input = self.tokenizer.apply_chat_template(messages, 
+                                        add_generation_prompt=True, 
+                                        tokenize=False
+                                    )
         with torch.no_grad():
             model_input = self.tokenizer(input, return_tensors="pt").to("cuda")
             generated_tokens = self.llm.generate(
-                **model_input, 
-                max_new_tokens=512, 
+                **model_input,
+                max_new_tokens=384,
+                do_sample=True,
+                temperature=0.7,
+                top_p=0.9,
                 repetition_penalty=1.15,
-                pad_token_id=self.tokenizer.pad_token_id
+                eos_token_id=self.tokenizer.eos_token_id,
+                pad_token_id=self.tokenizer.pad_token_id,
+                min_new_tokens=32 
             )
             # Slice off the input tokens
             new_tokens = generated_tokens[0, model_input['input_ids'].shape[1]:]

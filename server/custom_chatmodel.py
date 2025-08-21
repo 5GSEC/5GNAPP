@@ -37,7 +37,7 @@ class ChatAgenticxLAM(BaseChatModel):
 
     def __init__(self, base_model="Salesforce/xLAM-8x7b-r", **data):
         super().__init__(**data)
-        self._model = ModelLoader(base_model_id=base_model, fourbit=False, atebit=False)
+        self._model = ModelLoader(base_model_id=base_model, fourbit=False, atebit=True)
 
     def _generate(
         self,

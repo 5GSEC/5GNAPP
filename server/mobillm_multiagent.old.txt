@@ -48,7 +48,7 @@ class MobiLLM_Multiagent:
         print('\n [STEP 1:] Instantiating the LLM] \n')
         self.local_model = local_model
         
-        self.llm = instantiate_llm(local_model=local_model, use_hf=True)
+        self.llm = instantiate_llm(local_model=local_model)
 
         print('\n [STEP 1:] Done instantiating the LLM] \n')
         self.thread_id_list = []
@@ -379,106 +379,6 @@ class MobiLLM_Multiagent:
         _block("RESPONSE AGENT END", f"thread_id={state.get('thread_id','?')}")
 
         return state
-    
-    def mobillm_config_tuning_agent_node(self, state: MobiLLMState) -> MobiLLMState:
-        import json, datetime
-
-        # ---------- tiny pretty printer ----------
-        def _block(title: str, body=None, *, maxlen=1200):
-            line = "=" * 22
-            print(f"\n{line} {title} {line}")
-            if body is None:
-                print("<None>")
-                return
-            if isinstance(body, (dict, list)):
-                try:
-                    print(json.dumps(body, indent=2, ensure_ascii=False))
-                except Exception:
-                    print(str(body))
-            else:
-                s = str(body)
-                if len(s) > maxlen:
-                    print(s[:maxlen] + f"... [truncated {len(s) - maxlen} chars]")
-                else:
-                    print(s)
-
-        def _kv(label: str, value):
-            print(f"{label:<24}: {value}")
-
-        _block("CONFIG TUNING START", f"{datetime.datetime.now().isoformat()} | thread_id={state.get('thread_id','?')}")
-
-        actionable      = state.get("actionable", "")
-        action_strategy = state.get("action_strategy", "")
-        action_plan     = state.get("action_plan", "")
-
-        _block("INPUT GATES")
-        _kv("actionable", actionable)
-        _kv("action_strategy", action_strategy)
-        _kv("action_plan_len", len(action_plan) if isinstance(action_plan, str) else 0)
-        _block("INPUT • Action Plan (preview)", action_plan, maxlen=800)
-
-        # Gate checks
-        if actionable.lower() != "yes" or action_strategy != "config tuning" or not action_plan:
-            _block("EARLY EXIT", "No actionable plan provided (requires actionable=='yes', strategy=='config tuning', non-empty action_plan).")
-            return state
-
-        # Build prompt/message to config tuning agent
-        user_msg = f"Action plan:\n{action_plan}"
-        _block("PROMPT (final)", user_msg, maxlen=1200)
-        _kv("Prompt chars", len(user_msg))
-
-        # Invoke the agent
-        call_payload = {"messages": [("user", user_msg)]}
-        call_result = self.config_tuning_agent.invoke(call_payload)
-
-        # Extract model output + finish reason (if available)
-        msg = call_result["messages"][-1]
-        raw_response = getattr(msg, "content", "")
-        finish_reason = None
-        try:
-            finish_reason = msg.response_metadata.get("finish_reason")
-        except Exception:
-            pass
-
-        _block("LLM RAW RESPONSE", raw_response, maxlen=2000)
-        _kv("Finish reason", finish_reason if finish_reason is not None else "<unknown>")
-
-        # Parse JSON
-        try:
-            response = extract_json_from_string(raw_response.strip().replace("\n", ""))
-        except Exception as e:
-            response = None
-            _block("ERROR", f"extract_json_from_string raised: {e}")
-
-        _block("PARSED JSON", response if response is not None else "<parse failed>")
-
-        # Update state from parsed response
-        if response:
-            state["actionable"]     = response.get("actionable", state.get("actionable", "no"))
-            state["outcome"]        = response.get("outcome", "")
-            state["updated_config"] = response.get("updated_config", "")
-        else:
-            # Keep prior 'actionable'/'strategy' values; outcome/updated_config remain unset if parse failed
-            pass
-
-        # Summary
-        _block(
-            "SUMMARY",
-            f"actionable={state.get('actionable','?')} | "
-            f"strategy={state.get('action_strategy','?')} | "
-            f"outcome_len={len(state.get('outcome',''))} | "
-            f"updated_config_len={len(state.get('updated_config',''))}"
-        )
-
-        # Tool calls (if any)
-        state = self.collect_tool_calls(call_result, state)
-        tools = state.get("tools_called", [])
-        _block("TOOLS CALLED", tools)
-
-        _block("CONFIG TUNING END", f"thread_id={state.get('thread_id','?')}")
-
-        return state
-
 
     # def mobillm_security_response_agent_node(self, state: MobiLLMState) -> MobiLLMState:
         
@@ -531,32 +431,32 @@ class MobiLLM_Multiagent:
     #     state = self.collect_tool_calls(call_result, state)
     #     return state
 
-    # def mobillm_config_tuning_agent_node(self, state: MobiLLMState) -> MobiLLMState:
-    #     actionable = state["actionable"]
-    #     action_plan = state["action_plan"]
-    #     action_strategy = state["action_strategy"]
+    def mobillm_config_tuning_agent_node(self, state: MobiLLMState) -> MobiLLMState:
+        actionable = state["actionable"]
+        action_plan = state["action_plan"]
+        action_strategy = state["action_strategy"]
 
-    #     if actionable.lower() != "yes" or action_strategy != "config tuning" or not action_plan:
-    #         print("No actionable plan provided.")
-    #         return state
+        if actionable.lower() != "yes" or action_strategy != "config tuning" or not action_plan:
+            print("No actionable plan provided.")
+            return state
 
-    #     call_result = self.config_tuning_agent.invoke({"messages": [("user", f"Action plan:\n{action_plan}")]})
-    #     raw_response = call_result["messages"][-1].content
+        call_result = self.config_tuning_agent.invoke({"messages": [("user", f"Action plan:\n{action_plan}")]})
+        raw_response = call_result["messages"][-1].content
 
-    #     response = extract_json_from_string(raw_response.strip().replace("\n", ""))
+        response = extract_json_from_string(raw_response.strip().replace("\n", ""))
 
-    #     print('\n\n-------- -------- mobillm_config_tuning_agent_node -------- --------')
-    #     print('action_plan: ', action_plan)
-    #     print('action_strategy: ', action_strategy)
-    #     print('response: ', response)
+        print('\n\n-------- -------- mobillm_config_tuning_agent_node -------- --------')
+        print('action_plan: ', action_plan)
+        print('action_strategy: ', action_strategy)
+        print('response: ', response)
 
-    #     if response:
-    #         state["actionable"] = response["actionable"]
-    #         state["outcome"] = response["outcome"]
-    #         state["updated_config"] = response["updated_config"]
+        if response:
+            state["actionable"] = response["actionable"]
+            state["outcome"] = response["outcome"]
+            state["updated_config"] = response["updated_config"]
 
-    #     state = self.collect_tool_calls(call_result, state)
-    #     return state
+        state = self.collect_tool_calls(call_result, state)
+        return state
 
     def route_after_response_agent(self, state: MobiLLMState) -> str:
         if state["actionable"].strip() == "yes" and state["action_strategy"].strip() == "config tuning":
@@ -573,8 +473,8 @@ class MobiLLM_Multiagent:
         self.thread_id_list.append(thread_id)
         input_state = {"thread_id": thread_id, "query": query, "tools_called": []}
         # config = {"configurable": {"thread_id": thread_id}}
-        # config = {"configurable": {"thread_id": thread_id}, "run_id": thread_id, "run_name": "mobillm_multiagent_gemini", "tags": ["running with gemini"]}
-        config = {"configurable": {"thread_id": thread_id}, "run_id": thread_id, "run_name": "mobillm_multiagent_local", "tags": ["running with mistral local model"]}
+        config = {"configurable": {"thread_id": thread_id}, "run_id": thread_id, "run_name": "mobillm_multiagent_gemini", "tags": ["running with gemini"]}
+        # config = {"configurable": {"thread_id": thread_id}, "run_id": thread_id, "run_name": "mobillm_multiagent_local", "tags": ["running with mistral derived local model"]}
         return self.graph.invoke(input_state, config=config)
 
     def resume(self, command: dict, thread_id: str) -> MobiLLMState:
@@ -593,53 +493,13 @@ class MobiLLM_Multiagent:
         with open(path, "wb") as f:
             f.write(image_data)
 
-    # def collect_tool_calls(self, call_result, state: MobiLLMState):
-    #     if not call_result or "messages" not in call_result.keys():
-    #         return state
-    #     for msg in call_result["messages"]:
-    #         if "tool_calls" in dir(msg):
-    #             state["tools_called"] += msg.tool_calls
-    #     return state
     def collect_tool_calls(self, call_result, state: MobiLLMState):
-        try:
-            from langchain_core.messages import AIMessage, ToolMessage
-        except Exception:
-            AIMessage = ToolMessage = None
-
-        tools = state.get("tools_called", []) or []
-
-        if not call_result or "messages" not in call_result:
-            state["tools_called"] = tools
+        if not call_result or "messages" not in call_result.keys():
             return state
-
-        for m in call_result["messages"]:
-            # 1) AI messages with pending tool calls
-            tc = getattr(m, "tool_calls", None)
-            if tc:
-                for t in tc:
-                    # t may be dict-like or object-like depending on LC version
-                    name = (t.get("name") if isinstance(t, dict) else getattr(t, "name", None)) or "UNKNOWN_TOOL"
-                    tools.append(name)
-
-            # 2) Executed tool messages (observations)
-            if ToolMessage and isinstance(m, ToolMessage):
-                name = getattr(m, "name", None) or getattr(m, "tool", None) or "UNKNOWN_TOOL"
-                tools.append(name)
-
-            # 3) Some backends stuff the tool name in 'additional_kwargs'
-            ak = getattr(m, "additional_kwargs", None)
-            if isinstance(ak, dict) and "tool_name" in ak:
-                tools.append(ak["tool_name"])
-
-            # 4) Fallback: role == 'tool'
-            role = getattr(m, "role", None)
-            if role == "tool":
-                name = getattr(m, "name", None) or getattr(m, "tool", None) or "UNKNOWN_TOOL"
-                tools.append(name)
-
-        state["tools_called"] = tools
+        for msg in call_result["messages"]:
+            if "tool_calls" in dir(msg):
+                state["tools_called"] += msg.tool_calls
         return state
-
 
     def chat(self, query: str) -> str:
         result = self.invoke(f"[chat] {query}")
