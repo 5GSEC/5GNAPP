@@ -13,10 +13,12 @@ import {
   Link    // Used to navigate to routes without reloading the page
 } from "react-router-dom";
 
+
 import Chatbot from './components/Chatbot';
-import { BsIcon, BsIconProvider, HoverContext } from "./bs/bs";
+import { BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
+import NetworkOverview from "./components/NetworkOverview";
 import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, fetchTimeSeriesData, setSimulationMode } from "./backend/fetchUserData";
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
@@ -62,7 +64,7 @@ function XAppsLayout() {
 // ----------------------------------------
 // Global config
 // ----------------------------------------
-const data_simulation = 1;
+const data_simulation = 0;
 const update_interval = 10000;
 
 export async function fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData) {
@@ -122,19 +124,7 @@ function DashboardPage() {
           ueId={hoveredUeId}
         />
       </div>
-      <div className="App">
-        {Object.keys(network).map((bsId, index) => (
-          <BsIcon
-            key={index}
-            bsId={bsId}
-            ueData={network[bsId]["ue"]}
-            bsData={network[bsId]}
-            bsEvent={Object.fromEntries(
-              Object.entries(events).filter(([_, ev]) => ev.cellID === bsId)
-            )}
-          />
-        ))}
-      </div>
+      <NetworkOverview network={network} events={events} />
     </>
   );
 }
