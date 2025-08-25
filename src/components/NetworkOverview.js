@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Card, Typography, Box, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, Select, MenuItem, FormControl } from "@mui/material";
+import { Card, Typography, Box, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, Select, MenuItem, FormControl, Button } from "@mui/material";
 
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import TableChartIcon from '@mui/icons-material/TableChart';
@@ -7,15 +7,19 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ErrorIcon from '@mui/icons-material/Error';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { BsIcon, HoverContext, parseTimestamp, parseStatus } from "../bs/bs";
+import ReactDOM from 'react-dom';
 
 function NetworkOverview({ network, events }) {
   const [viewMode, setViewMode] = useState('table'); // 'icon' or 'table'
   const [ueDeviceTypes, setUeDeviceTypes] = useState({}); // Store UE device types
+  const [showUeDetails, setShowUeDetails] = useState({}); // Track which UEs show details
+  const [ueDetailsPos, setUeDetailsPos] = useState({}); // Track position for details window
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
   return (
-    <Card sx={{ padding: 0, marginTop: "20px", width: "99%", padding: "10px" }}>
+    <Card sx={{ padding: 0, marginTop: "20px", width: "99%", maxWidth: "100%", padding: "10px" }}>
       <Box sx={{ padding: "16px 16px 0 16px" }}>
         <Box sx={{ 
           display: "flex", 
@@ -79,7 +83,8 @@ function NetworkOverview({ network, events }) {
               border: "1px solid #e0e4ef",
               boxShadow: "0 2px 8px rgba(35,48,90,0.04)",
               overflow: "auto",
-              maxHeight: "600px"
+              maxHeight: "600px",
+              overflowX: "auto"
             }}
           >
             {/* Table Header */}
@@ -141,36 +146,38 @@ function NetworkOverview({ network, events }) {
                     expandIcon={<ExpandMoreIcon sx={{ color: '#11182E' }} />}
                     sx={{
                       backgroundColor: 'transparent',
+                      overflow: 'auto',
                       '& .MuiAccordionSummary-content': {
                         margin: 0,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 3
+                        gap: 2,
+                        minWidth: 'max-content'
                       }
                     }}
                   >
                                          {/* BS ID with Base Station Icon and Status */}
                      <Box sx={{ 
-                       minWidth: '200px', 
+                       minWidth: '180px', 
                        fontWeight: 600, 
                        color: statusColor,
                        fontSize: 15,
                        display: 'flex',
                        alignItems: 'center',
-                       gap: 1.2
+                       gap: 1
                      }}>
                        <img 
                          src={require('../assets/bs.png')} 
                          alt="Base Station Icon" 
-                         style={{ width: 24, height: 24, marginRight: 8, verticalAlign: 'middle' }} 
+                         style={{ width: 20, height: 20, marginRight: 6, verticalAlign: 'middle' }} 
                        />
-                       <StatusIcon sx={{ fontSize: 20, color: statusColor, marginRight: 4 }} />
+                       <StatusIcon sx={{ fontSize: 18, color: statusColor, marginRight: 3 }} />
                        BS ID: {bsId}
                      </Box>
                     
                     {/* MCC */}
                     <Box sx={{ 
-                      minWidth: '100px', 
+                      minWidth: '70px', 
                       color: '#666',
                       fontSize: 15
                     }}>
@@ -179,7 +186,7 @@ function NetworkOverview({ network, events }) {
                     
                     {/* MNC */}
                     <Box sx={{ 
-                      minWidth: '100px', 
+                      minWidth: '70px', 
                       color: '#666',
                       fontSize: 15
                     }}>
@@ -197,7 +204,7 @@ function NetworkOverview({ network, events }) {
                     
                     {/* Status */}
                     <Box sx={{ 
-                      minWidth: '120px', 
+                      minWidth: '100px', 
                       color: '#666',
                       fontSize: 15
                     }}>
@@ -215,11 +222,11 @@ function NetworkOverview({ network, events }) {
 
                     {/* Time Created */}    
                     <Box sx={{ 
-                      minWidth: '120px', 
+                      minWidth: '140px', 
                       color: '#666',
                       fontSize: 15
                     }}>
-                      Time Created: {
+                      Time: {
                         (() => {
                           const dateObj = parseTimestamp(bsData.timestamp);
                           return dateObj && !isNaN(dateObj.getTime())
@@ -232,33 +239,32 @@ function NetworkOverview({ network, events }) {
                      
                      {/* UE Count */}
                      <Box sx={{ 
-                       minWidth: '120px', 
+                      //  minWidth: '100px', 
                        color: '#666',
                        fontSize: 15
                      }}>
-                       Connected UEs: {ueCount}
+                       UEs: {ueCount}
                      </Box>
 
                                           {/* Show critical event number and total event number */}
                      <Box sx={{ 
-                       minWidth: '200px', 
-                    //    color: statusColor,
+                       minWidth: '160px', 
                        fontSize: 15
-                         }}>
-                         {(() => {
-                             // Find all events for this BS
-                             const bsEvents = Object.values(events || {}).filter(ev => ev.cellID === bsId);
-                             const totalEvents = bsEvents.length;
-                             const criticalEvents = bsEvents.filter(ev => 
-                             ev.severity === 'Critical'
-                         ).length;
-                         return (
-                             <>
-                                 Events: <span style={{ fontWeight: 600, color: statusColor }}>{criticalEvents}</span> <span style={{ fontWeight: 400, color: '#222' }}>Critical</span> / <span style={{ fontWeight: 600, color: statusColor }}>{totalEvents}</span> <span style={{ fontWeight: 400, color: '#222' }}>Total</span>
-                             </>
-                         );
-                         })()}
-                         </Box>
+                     }}>
+                       {(() => {
+                           // Find all events for this BS
+                           const bsEvents = Object.values(events || {}).filter(ev => ev.cellID === bsId);
+                           const totalEvents = bsEvents.length;
+                           const criticalEvents = bsEvents.filter(ev => 
+                           ev.severity === 'Critical'
+                       ).length;
+                       return (
+                           <>
+                               Events: <span style={{ fontWeight: 600, color: statusColor }}>{criticalEvents}</span> Critical / <span style={{ fontWeight: 600, color: statusColor }}>{totalEvents}</span> Total
+                           </>
+                       );
+                       })()}
+                     </Box>
                   </AccordionSummary>
                   
                   <AccordionDetails sx={{ 
@@ -304,15 +310,18 @@ function NetworkOverview({ network, events }) {
                                 border: '1px solid #e0e4ef',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 3
+                                gap: 3,
+                                fontSize: 15
                               }}>
                                 <Box sx={{ 
-                                  minWidth: '200px', 
+                                  // minWidth: '200px', 
                                   fontWeight: 500, 
                                   color: '#11182E',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: 1
+                                  gap: 1,
+                                  fontSize: 15,
+                                  color: ueStatusColor
                                 }}>
                                   {/* UE Device Icon */}
                                   <img 
@@ -326,7 +335,7 @@ function NetworkOverview({ network, events }) {
                                 </Box>
                                 
                                 {/* UE Device Type Dropdown */}
-                                <Box sx={{ minWidth: '150px' }}>
+                                <Box sx={{ minWidth: '130px', fontSize: 15 }}>
                                   <FormControl size="small" sx={{ minWidth: 120 }}>
                                     <Select
                                       value={ueDeviceTypes[ueId] || 'phone'}
@@ -336,28 +345,28 @@ function NetworkOverview({ network, events }) {
                                       }))}
                                       displayEmpty
                                       sx={{
-                                        fontSize: '14px',
+                                        fontSize: '15px',
                                         '& .MuiSelect-select': {
                                           padding: '4px 8px'
                                         }
                                       }}
                                     >
                                       <MenuItem value="phone">
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 15 }}>
                                           <img 
                                             src={require('../assets/ue-phone.png')} 
                                             alt="Phone" 
-                                            style={{ width: 10, height: 16 }} 
+                                            style={{ width: 14, height: 'auto' }} 
                                           />
                                           Phone
                                         </Box>
                                       </MenuItem>
                                       <MenuItem value="camera">
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 15 }}>
                                           <img 
                                             src={require('../assets/cctv3.png')} 
                                             alt="Camera" 
-                                            style={{ width: 16, height: 16 }} 
+                                            style={{ width: 14, height: 'auto' }} 
                                           />
                                           Camera
                                         </Box>
@@ -366,20 +375,23 @@ function NetworkOverview({ network, events }) {
                                   </FormControl>
                                 </Box>
                                 <Box sx={{ 
-                                  minWidth: '200px', 
-                                  color: '#666'
+                                  // minWidth: '200px', 
+                                  color: '#666',
+                                  fontSize: 15
                                 }}>
                                   IMSI: {ue?.mobile_id || 'N/A'}
                                 </Box>
-                                <Box sx={{ 
-                                  minWidth: '150px', 
-                                  color: '#666'
+                                {/* <Box sx={{ 
+                                  // minWidth: '150px', 
+                                  color: '#666',
+                                  fontSize: 15
                                 }}>
                                   Status: {ue?.state || 'Connected'}
-                                </Box>
+                                </Box> */}
                                 <Box sx={{ 
-                                  minWidth: '200px', 
-                                  color: '#666'
+                                  // minWidth: '200px', 
+                                  color: '#666',
+                                  fontSize: 15
                                 }}>
                                   Last Update: {
                                     (() => {
@@ -391,8 +403,54 @@ function NetworkOverview({ network, events }) {
                                   }
                                 </Box>
                                 {/* Show critical event number and total event number */}
-                                <Box sx={{ minWidth: '220px', color: '#666' }}>
+                                <Box sx={{ minWidth: '220px', color: '#666', fontSize: 15 }}>
                                   Events: <span style={{ fontWeight: 600, color: ueStatusColor }}>{criticalUEEvents}</span> <span style={{ fontWeight: 400, color: '#222' }}>critical</span> / <span style={{ fontWeight: 600, color: ueStatusColor }}>{totalUEEvents}</span> <span style={{ fontWeight: 400, color: '#222' }}>total</span>
+                                </Box>
+                                
+                                {/* Show Details Button */}
+                                <Box sx={{ 
+                                  minWidth: '120px',
+                                  marginLeft: 'auto' // Push button to the right
+                                }}>
+                                  {(() => {
+                                    const ueEvents = Object.values(events || {}).filter(ev => ev.ueID === ueId);
+                                    const hasEvents = ueEvents.length > 0;
+                                    if (!hasEvents) return null;
+                                    return (
+                                      <Button
+                                        variant="outlined"
+                                        size="small"
+                                        startIcon={<VisibilityIcon />}
+                                        onClick={(e) => {
+                                          const rect = e.currentTarget.getBoundingClientRect();
+                                          setUeDetailsPos(prev => ({
+                                            ...prev,
+                                            [ueId]: {
+                                              top: rect.top + window.scrollY - 200,
+                                              left: rect.left - 350
+                                            }
+                                          }));
+                                          setShowUeDetails(prev => ({
+                                            ...prev,
+                                            [ueId]: !prev[ueId]
+                                          }));
+                                        }}
+                                        sx={{
+                                          fontSize: '12px',
+                                          padding: '4px 8px',
+                                          minWidth: 'auto',
+                                          borderColor: '#11182E',
+                                          color: '#11182E',
+                                          '&:hover': {
+                                            borderColor: '#2d3c6b',
+                                            backgroundColor: 'rgba(17, 24, 46, 0.04)'
+                                          }
+                                        }}
+                                      >
+                                        Events
+                                      </Button>
+                                    );
+                                  })()}
                                 </Box>
                               </Box>
                             );
@@ -410,6 +468,134 @@ function NetworkOverview({ network, events }) {
             })}
           </div>
         </Box>
+      )}
+      
+      {/* UE Details Modal */}
+      {Object.keys(showUeDetails).map((ueId) => 
+        showUeDetails[ueId] && ueDetailsPos[ueId] && ReactDOM.createPortal(
+          <Box
+            key={ueId}
+            className="ue-details-modal"
+            sx={{
+              position: 'absolute',
+              top: ueDetailsPos[ueId].top - 10,
+              left: ueDetailsPos[ueId].left,
+              background: "#f8fafd",
+              maxHeight: 400,
+              overflowY: "auto",
+              borderRadius: 2,
+              p: 2,
+              zIndex: 9999,
+              border: '1px solid #e0e4ef',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              minWidth: '300px',
+              maxWidth: '500px'
+            }}
+          >
+            {/* Header with UE ID and Close Button */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              mb: 2,
+              pb: 1,
+              borderBottom: '1px solid #e0e4ef'
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#11182E' }}>
+                UE Events: {ueId}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => setShowUeDetails(prev => ({ ...prev, [ueId]: false }))}
+                sx={{ color: '#666' }}
+              >
+                ×
+              </IconButton>
+            </Box>
+            
+            {/* Events Section */}
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#11182E', mb: 1 }}>
+                Events ({(() => {
+                  const ueEvents = Object.values(events || {}).filter(ev => ev.ueID === ueId);
+                  return ueEvents.length;
+                })()})
+              </Typography>
+              
+              {(() => {
+                const ueEvents = Object.values(events || {}).filter(ev => ev.ueID === ueId);
+                if (ueEvents.length === 0) {
+                  return (
+                    <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
+                      No events found for this UE
+                    </Typography>
+                  );
+                }
+                
+                return ueEvents.map((event, index) => (
+                  <Box key={index} sx={{ 
+                    mb: 1, 
+                    p: 1, 
+                    backgroundColor: '#fff', 
+                    borderRadius: 1,
+                    border: '1px solid #e0e4ef'
+                  }}>
+                    <Box sx={{ mb: 0.5 }}>
+                      <Typography variant="body2" component="span" sx={{ fontWeight: 600 }}>
+                        Event {index + 1}:
+                      </Typography>{" "}
+                      <Typography variant="body2" component="span">
+                        {event.name || 'Unnamed Event'}
+                      </Typography>
+                    </Box>
+                    
+                    {event.description && (
+                      <Box sx={{ mb: 0.5 }}>
+                        <Typography variant="body2" component="span" sx={{ fontWeight: 600 }}>
+                          Description:
+                        </Typography>{" "}
+                        <Typography variant="body2" component="span">
+                          {event.description}
+                        </Typography>
+                      </Box>
+                    )}
+                    
+                    {event.severity && (
+                      <Box sx={{ mb: 0.5 }}>
+                        <Typography variant="body2" component="span" sx={{ fontWeight: 600 }}>
+                          Severity:
+                        </Typography>{" "}
+                        <Typography variant="body2" component="span" sx={{ 
+                          color: event.severity === 'Critical' ? '#d32f2f' : 
+                                 event.severity === 'Warning' ? '#ed6c02' : '#2e7d32'
+                        }}>
+                          {event.severity}
+                        </Typography>
+                      </Box>
+                    )}
+                    
+                    {event.timestamp && (
+                      <Box sx={{ mb: 0.5 }}>
+                        <Typography variant="body2" component="span" sx={{ fontWeight: 600 }}>
+                          Timestamp:
+                        </Typography>{" "}
+                        <Typography variant="body2" component="span">
+                          {(() => {
+                            const dateObj = parseTimestamp(event.timestamp);
+                            return dateObj && !isNaN(dateObj.getTime())
+                              ? dateObj.toLocaleString()
+                              : "N/A";
+                          })()}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ));
+              })()}
+            </Box>
+          </Box>,
+          document.body
+        )
       )}
     </Card>
   );
