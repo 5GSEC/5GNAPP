@@ -338,11 +338,24 @@ function NetworkOverview({ network, events }) {
                                   color: ueStatusColor
                                 }}>
                                   {/* UE Device Icon */}
-                                  <img 
-                                    src={ueDeviceTypes[ueId] === 'camera' ? require('../assets/cctv3.png') : require('../assets/ue-phone.png')}
-                                    alt="UE Device Icon" 
-                                    style={{ width: 16, height: 'auto', marginRight: 4 }} 
-                                  />
+                                  {(() => {
+                                    const iconMap = {
+                                      camera: require('../assets/cctv-camera.png'),
+                                      tablet: require('../assets/tablet.png'),
+                                      drone: require('../assets/drone.png'),
+                                      wearable: require('../assets/smartwatch.png'),
+                                      phone: require('../assets/smartphone.png')
+                                    };
+                                    const type = ueDeviceTypes[ueId] || 'phone';
+                                    const iconSrc = iconMap[type] || iconMap['phone'];
+                                    return (
+                                      <img
+                                        src={iconSrc}
+                                        alt="UE Device Icon"
+                                        style={{ width: 20, height: 'auto', marginRight: 2 }}
+                                      />
+                                    );
+                                  })()}
                                   {/* UE Status Icon */}
                                   <UeStatusIcon sx={{ fontSize: 18, color: ueStatusColor }} />
                                   UE ID: {ueId}
@@ -368,21 +381,51 @@ function NetworkOverview({ network, events }) {
                                       <MenuItem value="phone">
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 15 }}>
                                           <img 
-                                            src={require('../assets/ue-phone.png')} 
+                                            src={require('../assets/smartphone.png')} 
                                             alt="Phone" 
                                             style={{ width: 14, height: 'auto' }} 
                                           />
                                           Phone
                                         </Box>
                                       </MenuItem>
+                                      <MenuItem value="tablet">
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 15 }}>
+                                          <img 
+                                            src={require('../assets/tablet.png')} 
+                                            alt="Tablet" 
+                                            style={{ width: 16, height: 'auto' }} 
+                                          />
+                                          Tablet
+                                        </Box>
+                                      </MenuItem>
                                       <MenuItem value="camera">
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 15 }}>
                                           <img 
-                                            src={require('../assets/cctv3.png')} 
+                                            src={require('../assets/cctv-camera.png')} 
                                             alt="Camera" 
-                                            style={{ width: 14, height: 'auto' }} 
+                                            style={{ width: 16, height: 'auto' }} 
                                           />
                                           Camera
+                                        </Box>
+                                      </MenuItem>
+                                      <MenuItem value="drone">
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 15 }}>
+                                          <img 
+                                            src={require('../assets/drone.png')} 
+                                            alt="Drone" 
+                                            style={{ width: 16, height: 'auto' }} 
+                                          />
+                                          Drone
+                                        </Box>
+                                      </MenuItem>
+                                      <MenuItem value="wearable">
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 15 }}>
+                                          <img 
+                                            src={require('../assets/smartwatch.png')} 
+                                            alt="wearable" 
+                                            style={{ width: 16, height: 'auto' }} 
+                                          />
+                                          Wearable
                                         </Box>
                                       </MenuItem>
                                     </Select>
