@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Card, Typography, Box, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, Select, MenuItem, FormControl, Button } from "@mui/material";
+import { Card, Typography, Box, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, Select, MenuItem, FormControl, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import TableChartIcon from '@mui/icons-material/TableChart';
@@ -8,7 +8,19 @@ import ErrorIcon from '@mui/icons-material/Error';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import InfoIcon from '@mui/icons-material/Info';
+import CloseIcon from '@mui/icons-material/Close';
 import { BsIcon, HoverContext, parseTimestamp, parseStatus } from "../bs/bs";
+import { 
+  parseUERRCState, 
+  parseUENASState, 
+  parseUERRCSecState, 
+  parseUERRCCipherAlg,
+  parseUERRCIntegrityAlg,
+  parseUENASCipherAlg,
+  parseUENASIntegrityAlg,
+  metadataFields 
+} from "../ue/ue";
 import ReactDOM from 'react-dom';
 
 function NetworkOverview({ network, events }) {
@@ -16,6 +28,8 @@ function NetworkOverview({ network, events }) {
   const [ueDeviceTypes, setUeDeviceTypes] = useState({}); // Store UE device types
   const [showUeDetails, setShowUeDetails] = useState({}); // Track which UEs show details
   const [ueDetailsPos, setUeDetailsPos] = useState({}); // Track position for details window
+  const [showUeMetadata, setShowUeMetadata] = useState({}); // Track which UEs show metadata
+  const [ueMetadataPos, setUeMetadataPos] = useState({}); // Track position for metadata window
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
 
   return (
@@ -246,7 +260,7 @@ function NetworkOverview({ network, events }) {
                        UEs: {ueCount}
                      </Box>
 
-                                          {/* Show critical event number and total event number */}
+                    {/* Show critical event number and total event number */}
                      <Box sx={{ 
                        minWidth: '160px', 
                        fontSize: 15
@@ -412,45 +426,82 @@ function NetworkOverview({ network, events }) {
                                   minWidth: '120px',
                                   marginLeft: 'auto' // Push button to the right
                                 }}>
-                                  {(() => {
-                                    const ueEvents = Object.values(events || {}).filter(ev => ev.ueID === ueId);
-                                    const hasEvents = ueEvents.length > 0;
-                                    if (!hasEvents) return null;
-                                    return (
-                                      <Button
-                                        variant="outlined"
-                                        size="small"
-                                        startIcon={<VisibilityIcon />}
-                                        onClick={(e) => {
-                                          const rect = e.currentTarget.getBoundingClientRect();
-                                          setUeDetailsPos(prev => ({
-                                            ...prev,
-                                            [ueId]: {
-                                              top: rect.top + window.scrollY - 200,
-                                              left: rect.left - 350
-                                            }
-                                          }));
-                                          setShowUeDetails(prev => ({
-                                            ...prev,
-                                            [ueId]: !prev[ueId]
-                                          }));
-                                        }}
-                                        sx={{
-                                          fontSize: '12px',
-                                          padding: '4px 8px',
-                                          minWidth: 'auto',
-                                          borderColor: '#11182E',
-                                          color: '#11182E',
-                                          '&:hover': {
-                                            borderColor: '#2d3c6b',
-                                            backgroundColor: 'rgba(17, 24, 46, 0.04)'
+                                  <Box sx={{ display: 'flex', gap: 1 }}>
+                                    {/* Details Button */}
+                                    <Button
+                                      variant="outlined"
+                                      size="small"
+                                      startIcon={<VisibilityIcon />}
+                                      onClick={(e) => {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        setUeMetadataPos(prev => ({
+                                          ...prev,
+                                          [ueId]: {
+                                            top: rect.top + window.scrollY - 200,
+                                            left: rect.left - 350
                                           }
-                                        }}
-                                      >
-                                        Events
-                                      </Button>
-                                    );
-                                  })()}
+                                        }));
+                                        setShowUeMetadata(prev => ({
+                                          ...prev,
+                                          [ueId]: !prev[ueId]
+                                        }));
+                                      }}
+                                      sx={{
+                                        fontSize: '12px',
+                                        padding: '4px 8px',
+                                        minWidth: 'auto',
+                                        borderColor: '#11182E',
+                                        color: '#11182E',
+                                        '&:hover': {
+                                          borderColor: '#2d3c6b',
+                                          backgroundColor: 'rgba(17, 24, 46, 0.04)'
+                                        }
+                                      }}
+                                    >
+                                      Details
+                                    </Button>
+
+                                    {/* Events Button */}
+                                    {(() => {
+                                      const ueEvents = Object.values(events || {}).filter(ev => ev.ueID === ueId);
+                                      const hasEvents = ueEvents.length > 0;
+                                      if (!hasEvents) return null;
+                                      return (
+                                        <Button
+                                          variant="outlined"
+                                          size="small"
+                                          startIcon={<InfoIcon/>}
+                                          onClick={(e) => {
+                                            const rect = e.currentTarget.getBoundingClientRect();
+                                            setUeDetailsPos(prev => ({
+                                              ...prev,
+                                              [ueId]: {
+                                                top: rect.top + window.scrollY - 200,
+                                                left: rect.left - 350
+                                              }
+                                            }));
+                                            setShowUeDetails(prev => ({
+                                              ...prev,
+                                              [ueId]: !prev[ueId]
+                                            }));
+                                          }}
+                                          sx={{
+                                            fontSize: '12px',
+                                            padding: '4px 8px',
+                                            minWidth: 'auto',
+                                            borderColor: '#11182E',
+                                            color: '#11182E',
+                                            '&:hover': {
+                                              borderColor: '#2d3c6b',
+                                              backgroundColor: 'rgba(17, 24, 46, 0.04)'
+                                            }
+                                          }}
+                                        >
+                                          Events
+                                        </Button>
+                                      );
+                                    })()}
+                                  </Box>
                                 </Box>
                               </Box>
                             );
@@ -593,6 +644,165 @@ function NetworkOverview({ network, events }) {
                 ));
               })()}
             </Box>
+          </Box>,
+          document.body
+        )
+      )}
+      
+      {/* UE Metadata Modal */}
+      {Object.keys(showUeMetadata).map((ueId) => 
+        showUeMetadata[ueId] && ueMetadataPos[ueId] && ReactDOM.createPortal(
+          <Box
+            key={ueId}
+            className="ue-metadata-modal"
+            sx={{
+              position: 'fixed',
+              top: '60%',
+              left: '60%',
+              transform: 'translate(-40%, -50%)',
+              background: "#f8fafd",
+              padding: '16px',
+              border: '1px solid #e0e4ef',
+              borderRadius: 2,
+              width: '1000px',
+              height: '450px',
+              overflow: 'auto',
+              zIndex: 9999,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            }}
+          >
+            {/* Header with UE ID and Close Button */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              mb: 2,
+              pb: 1,
+              borderBottom: '1px solid #e0e4ef'
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: '#11182E' }}>
+                UE Metadata: {ueId}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => setShowUeMetadata(prev => ({ ...prev, [ueId]: false }))}
+                sx={{ color: '#666' }}
+              >
+                ×
+              </IconButton>
+            </Box>
+            
+            {/* UE Metadata Table */}
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    {[
+                      "gnb_cu_ue_f1ap_id",
+                      "rnti",
+                      "s_tmsi",
+                      "rrc_cipher_alg",
+                      "rrc_integrity_alg",
+                      "nas_cipher_alg",
+                      "nas_integrity_alg",
+                    ].map((label) => (
+                      <TableCell key={label} sx={{ fontWeight: "bold", backgroundColor: "#e8f0fe", color: "#11182E" }}>
+                        {label}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    {(() => {
+                      // Find UE data from network
+                      const ueData = network[Object.keys(network).find(bsId => network[bsId].ue && network[bsId].ue[ueId])]?.ue[ueId];
+                      
+                      return [
+                        "gnb_cu_ue_f1ap_id",
+                        "rnti",
+                        "s_tmsi",
+                        "rrc_cipher_alg",
+                        "rrc_integrity_alg",
+                        "nas_cipher_alg",
+                        "nas_integrity_alg",
+                      ].map((label) => {
+                        let value = ueData?.[label];
+                        if (label === "rrc_cipher_alg") {
+                          value = value !== undefined && value !== null && value !== "" ? parseUERRCCipherAlg(value) : "N/A";
+                        } else if (label === "rrc_integrity_alg") {
+                          value = value !== undefined && value !== null && value !== "" ? parseUERRCIntegrityAlg(value) : "N/A";
+                        } else if (label === "nas_cipher_alg") {
+                          value = value !== undefined && value !== null && value !== "" ? parseUENASCipherAlg(value) : "N/A";
+                        } else if (label === "nas_integrity_alg") {
+                          value = value !== undefined && value !== null && value !== "" ? parseUENASIntegrityAlg(value) : "N/A";
+                        } else {
+                          value = value !== undefined && value !== null && value !== "" ? value : "N/A";
+                        }
+                        return <TableCell key={label}>{value}</TableCell>;
+                      });
+                    })()}
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {/* MobiFlow Telemetry Section */}
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginTop: 1, marginBottom: 1 }}>
+              MobiFlow Telemetry
+            </Typography>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    {metadataFields.map((fld) => (
+                      <TableCell key={fld} sx={{ fontWeight: "bold", backgroundColor: "#e8f0fe", color: "#11182E" }}>
+                        {fld}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {(() => {
+                    // Find UE data from network
+                    const ueData = network[Object.keys(network).find(bsId => network[bsId].ue && network[bsId].ue[ueId])]?.ue[ueId];
+                    
+                    if (!ueData || !ueData.mobiflow || ueData.mobiflow.length === 0) {
+                      return (
+                        <TableRow>
+                          <TableCell colSpan={metadataFields.length} sx={{ textAlign: 'center', color: '#666', fontStyle: 'italic' }}>
+                            No telemetry data available
+                          </TableCell>
+                        </TableRow>
+                      );
+                    }
+                    
+                    // Display MobiFlow telemetry data using the same format as ue.jsx
+                    return ueData.mobiflow.map((item, index) => (
+                      <TableRow key={index}>
+                        {metadataFields.map((fld) => (
+                          <TableCell key={fld}>
+                            {(() => {
+                              if (fld === "rrc_state" && item[fld]) {
+                                return parseUERRCState(item[fld]);
+                              } else if (fld === "nas_state" && item[fld]) {
+                                return parseUENASState(item[fld]);
+                              } else if (fld === "rrc_sec_state" && item[fld]) {
+                                return parseUERRCSecState(item[fld]);
+                              } else if (item[fld] !== undefined && item[fld] !== null && item[fld] !== "") {
+                                return item[fld];
+                              } else {
+                                return "N/A";
+                              }
+                            })()}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ));
+                  })()}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Box>,
           document.body
         )

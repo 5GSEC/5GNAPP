@@ -594,4 +594,18 @@ const UeIcon = ({ ueData, ueId, ueEvent, isHovered, click, setHoveredUeId, setIs
   );
 };
 
+// Export parsing functions for use in other components
+export {
+  parseTimestamp,
+  parseUEStates,
+  parseUERRCState,
+  parseUENASState,
+  parseUERRCSecState,
+  parseUERRCCipherAlg,
+  parseUERRCIntegrityAlg,
+  parseUENASCipherAlg,
+  parseUENASIntegrityAlg,
+  metadataFields
+};
+
 export default UeIcon;
