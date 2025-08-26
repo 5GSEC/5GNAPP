@@ -116,6 +116,25 @@ function NetworkOverview({ network, events }) {
                 Base Station Information
               </Typography>
             </Box> */}
+
+            {Object.keys(network).length === 0 && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "30px",
+                  color: "#888",
+                  padding: 4
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 0 }}>
+                  No base station connected
+                </Typography>
+              </Box>
+            )}
+            
             
             {/* BS Rows with Expandable UE Details */}
             {Object.keys(network).map((bsId, index) => {
@@ -124,7 +143,7 @@ function NetworkOverview({ network, events }) {
               const ueCount = Object.keys(ueData).length;
               
               // Calculate BS status based on events
-              const bsEvents = Object.values(events || {}).filter(ev => ev.cellID === bsId);
+              const bsEvents = Object.values(events || {}).filter(ev => ev.cellID === bsId && ev.active === true);
               const totalEvents = bsEvents.length;
               const criticalEvents = bsEvents.filter(ev => 
                 ev.severity === 'Critical' 
@@ -170,7 +189,7 @@ function NetworkOverview({ network, events }) {
                       }
                     }}
                   >
-                                         {/* BS ID with Base Station Icon and Status */}
+                    {/* BS ID with Base Station Icon and Status */}
                      <Box sx={{ 
                        minWidth: '180px', 
                        fontWeight: 600, 
@@ -267,7 +286,7 @@ function NetworkOverview({ network, events }) {
                      }}>
                        {(() => {
                            // Find all events for this BS
-                           const bsEvents = Object.values(events || {}).filter(ev => ev.cellID === bsId);
+                           const bsEvents = Object.values(events || {}).filter(ev => ev.cellID === bsId && ev.active === true);
                            const totalEvents = bsEvents.length;
                            const criticalEvents = bsEvents.filter(ev => 
                            ev.severity === 'Critical'
