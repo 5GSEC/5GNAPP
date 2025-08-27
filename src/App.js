@@ -19,7 +19,7 @@ import { BsIconProvider, HoverContext } from "./bs/bs";
 import CenterBar from "./centerBar/centerBar";
 import MenuNavBar from "./menubar/MenuNavBar";
 import NetworkOverview from "./components/NetworkOverview";
-import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, fetchTimeSeriesData, setSimulationMode } from "./backend/fetchUserData";
+import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, fetchTimeSeriesData } from "./backend/fetchUserData";
 import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
@@ -64,7 +64,6 @@ function XAppsLayout() {
 // ----------------------------------------
 // Global config
 // ----------------------------------------
-const data_simulation = 0;
 const update_interval = 10000;
 
 export async function fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData) {
@@ -98,8 +97,6 @@ function DashboardPage() {
     const interval = setInterval(() => {
       fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData);
     }, update_interval);
-    if (data_simulation === 1)
-      setSimulationMode();
     fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData);
 
     return () => clearInterval(interval);

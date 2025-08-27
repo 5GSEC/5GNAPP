@@ -6,7 +6,8 @@ echo "Setting up 5GNAPP and MobiLLM xApp environment..."
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Set the xApp root path
+# Set the environment variables
+export SIMULATION_MODE="false"
 export XAPP_ROOT_PATH=<PATH_TO_XAPP>
 export GOOGLE_API_KEY=<GOOGLE_API_KEY>
 export OAI_RAN_CU_CONFIG_PATH=<PATH_TO_OAI_RAN_CU_CONFIG>

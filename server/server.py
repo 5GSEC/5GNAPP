@@ -2,11 +2,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from flask import Flask # pip install flask
 from flask import request, jsonify
 
-from MobiLLM import sdl_apis
-from MobiLLM import mitre_apis
-# from MobiLLM.mobillm import MobiLLMAgent
-from MobiLLM.mobillm_multiagent import MobiLLM_Multiagent
-from MobiLLM import global_vars
+from MobiLLM.tools import sdl_apis, mitre_apis
+from MobiLLM.service import MobiLLMService
+from MobiLLM.settings import Settings
 
 # Gemini SDK
 from google import genai
@@ -27,15 +25,9 @@ import threading
 app = Flask(__name__)
 CORS(app) # for remote access
 
-@app.route('/setSimulationMode', methods=['POST'])
-def set_simultion_mode():
-    global_vars.simulation_mode = True
-    return {"message": "Simulation Mode Set"}, 200
-
 @app.route('/fetchServiceStatus', methods=['GET'])
 def fetch_service_status():
     ''' Fetch the status of the SE-RAN services '''
-    global simulation_mode
     return sdl_apis.fetch_service_status_osc()
 
 
@@ -226,8 +218,15 @@ def llm_config_route():
     if model_name.startswith("models/"):
         model_name = model_name.split("/", 1)[1]          # -> "gemini-1.5-flash-latest"
     global mobillm_agent
-    # mobillm_agent = MobiLLMAgent(google_api_key=llm_config['api_key'],  gemini_llm_model=model_name)
-    mobillm_agent = MobiLLM_Multiagent(google_api_key=llm_config['api_key'],  gemini_llm_model=model_name)
+    settings = Settings()
+    if model_name.startswith("gemini"):
+        settings.local_model = None
+        settings.google_api_key = llm_config['api_key']
+        settings.gemini_model = model_name
+    else:
+        settings.local_model = model_name # TODO: support local models
+
+    mobillm_agent = MobiLLMService(settings)
 
     return jsonify({"status": "ok"}), 200
 
@@ -309,12 +308,8 @@ def get_compliance_data():
 def __tools_init__():
     """
     Initialize the server.
-    Load the MITRE FAISS DB if it exists.
     """
-    # Load the MITRE FAISS DB from global variable
-    print("[Init] Starting MITRE FAISS DB initialization...")
-    global_vars.mitre_faiss_db = mitre_apis.load_or_create_mitre_fight_faiss_index()
-    print("[Init] MITRE FAISS DB loaded.")
+    pass
 
 if __name__ == "__main__":
     # Start init work immediately in background

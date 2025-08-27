@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # set environment variables
-./set_env.sh
+source set_env.sh
 
 # start the frontend
 npm start&
