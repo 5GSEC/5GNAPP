@@ -3,7 +3,7 @@
   text-align: center;
   justify-content: center;
   align-items: flex-start;
-  height: 80vh;
+  min-height: 35vh;
   width: 100%;
   gap: 200px;
   padding-top: 180px;

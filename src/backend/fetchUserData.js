@@ -180,27 +180,6 @@ export function fetchServiceStatus(setService) {
     });
 }
 
-export function setSimulationMode() {
-  fetch("http://localhost:8080/setSimulationMode", {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      // console.log('Simulation mode set result:', data);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-}
-
 export function sendLLMResumeCommand(payload) {
   return fetch("http://localhost:8080/mobillm/sendLLMResumeCommand", {
     method: "POST",

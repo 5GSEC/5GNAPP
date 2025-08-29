@@ -5,15 +5,8 @@
 
 import React, { useState, useEffect, useRef } from "react"; 
 import { Typography, Button, Box } from "@mui/material";
-import { fetchRulesText, saveRulesText } from "../backend/fetchUserData"; // NEW: import helpers
+import { fetchRulesText, saveRulesText, deployXapp } from "../backend/fetchUserData"; // NEW: import deployXapp
 
-/* ──────────────────────────────────────────────
-   1)  xApp meta-info – stub, replace later
-────────────────────────────────────────────── */
-const fetchMobieXpertStatus = async () => {
-  // TODO: replace with real backend call
-  return { version: "v1.0.0", lastDeployed: "2025-04-20 14:30" };
-};
 
 /* ───── generate contextual hint for errors ───── */
 const getHintForError = (msg) => {
@@ -29,24 +22,18 @@ const getHintForError = (msg) => {
    3)  Page component
 ────────────────────────────────────────────── */
 function MobieXpertPage() {
-  /* xApp status */
-  const [status, setStatus] = useState(null);
-
   /* rules.pbest editor */
   const [rulesText, setRulesText] = useState("");    // textarea content
   const [loadingRules, setLoadingRules] = useState(true);
   const [loadError, setLoadError] = useState("");     // ← NEW: error message
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
+  const [deploying, setDeploying] = useState(false);  // NEW: deploy state
+  const [deployMsg, setDeployMsg] = useState("");     // NEW: deploy message
 
 
   // reference to clear the timer(ID, for 5s delay message)
   const hideTimer = useRef(null);
-
-  /* fetch meta-info once */
-  useEffect(() => {
-    fetchMobieXpertStatus().then(setStatus);
-  }, []);
 
   /* fetch rules.pbest once */
   useEffect(() => {
@@ -83,6 +70,33 @@ function MobieXpertPage() {
     }
   };
 
+  // NEW: handleDeploy function for deploying the MobieXpert xApp
+  const handleDeploy = async () => {
+    setDeploying(true);
+    setDeployMsg("");
+
+    // clear any existing timer
+    if (hideTimer.current) {
+      clearTimeout(hideTimer.current);
+      hideTimer.current = null;
+    }
+
+    try {
+      await deployXapp("MobieXpert xApp");
+      setDeployMsg("✅ MobieXpert xApp deployed successfully!");
+
+      // initiate a new timer to hide the message
+      hideTimer.current = setTimeout(() => {
+        setDeployMsg("");
+        hideTimer.current = null;
+      }, 5000);
+    } catch (error) {
+      setDeployMsg("❌ Deploy failed: " + error.message);
+    } finally {
+      setDeploying(false);
+    }
+  };
+
 
   useEffect(() => {
     return () => {
@@ -102,31 +116,6 @@ return (
       <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
         MobieXpert xApp Settings
       </Typography>
-
-      {status ? (
-        <Box sx={{ mt: 0, mb: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#11182E", minWidth: 110 }}>
-              Version:
-            </Typography>
-            <Typography variant="body2" sx={{ ml: 1 }}>
-              {status.version}
-            </Typography>
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#11182E", minWidth: 110 }}>
-              Last Deployed:
-            </Typography>
-            <Typography variant="body2" sx={{ ml: 1 }}>
-              {status.lastDeployed}
-            </Typography>
-          </Box>
-        </Box>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          Loading xApp status…
-        </Typography>
-      )}
 
       {loadError && (
         <>
@@ -185,28 +174,54 @@ return (
               resize: "both"
             }}
           />
-          <Box mt={1}>
+          <Box mt={1} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             <Button
               variant="contained"
-              color="primary"
+              size="small"
+              sx={{
+                fontSize: "0.75rem",
+                backgroundColor: "#11182E",
+                color: "#fff",
+                '&:hover': {
+                  backgroundColor: "#0E1326",
+                },
+                px: 3, py: 1
+              }}
               onClick={handleSave}
               disabled={saving}
-              sx={{ px: 3, py: 1 }}
             >
               {saving ? "Saving…" : "Save"}
+            </Button>
+            <Button
+              disabled={deploying}
+              variant="contained"
+              size="small"
+              sx={{
+                fontSize: "0.75rem",
+                backgroundColor: "#4E6A66",
+                color: "#fff",
+                '&:hover': {
+                  backgroundColor: "#435A57",
+                },
+                px: 3, py: 1
+              }}
+              onClick={handleDeploy}
+            >
+              {deploying ? "Deploying…" : "Deploy"}
             </Button>
             {saveMsg && (
               <Typography variant="body2" sx={{ ml: 2, display: "inline" }}>
                 {saveMsg}
               </Typography>
             )}
+            {deployMsg && (
+              <Typography variant="body2" sx={{ ml: 2, display: "inline" }}>
+                {deployMsg}
+              </Typography>
+            )}
           </Box>
         </>
       )}
-
-      <Button disabled sx={{ mt: 4 }}>
-        Deploy (update coming soon)
-      </Button>
     </div>
   </Box>
 );

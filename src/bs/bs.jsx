@@ -7,14 +7,14 @@ import { Box } from '@mui/material';
 
 const HoverContext = createContext();
 
-function parseTimestamp(raw) {
+export function parseTimestamp(raw) {
   if (!raw) return null;
   const n = Number(raw);
   if (isNaN(n)) return null;
   return n < 1e12 ? new Date(n * 1000) : new Date(n);
 }
 
-function parseStatus(status) {
+export function parseStatus(status) {
   if (!status) return null;
   if (status == 1)
     return "Connected";
