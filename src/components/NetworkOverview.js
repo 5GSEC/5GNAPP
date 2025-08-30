@@ -154,7 +154,12 @@ function NetworkOverview({ network, events }) {
               let statusColor = '#2e7d32'; // Green
               let StatusIcon = CheckCircleIcon;
               
-              if (criticalEvents > 0) {
+              // If BS is disconnected, override with gray color
+              if (bsData.status != 1) {
+                bsStatus = 'disconnected';
+                statusColor = '#9e9e9e'; // Gray
+                StatusIcon = InfoIcon;
+              } else if (criticalEvents > 0) {
                 bsStatus = 'critical';
                 statusColor = '#d32f2f'; // Red
                 StatusIcon = ErrorIcon;
@@ -172,7 +177,19 @@ function NetworkOverview({ network, events }) {
                     boxShadow: 'none',
                     borderBottom: '1px solid #e0e4ef',
                     backgroundColor: index % 2 === 0 ? "#fff" : "#f8fafd",
-                    '&:hover': { backgroundColor: "#e0e4ef" }
+                    '&:hover': { backgroundColor: "#e0e4ef" },
+                    // Apply grey overlay for disconnected base stations
+                    ...(bsData.status != 1 && {
+                      '& .MuiAccordionSummary-root': {
+                        opacity: 0.6,
+                        filter: 'grayscale(30%)',
+                        backgroundColor: 'rgba(128, 128, 128, 0.05)'
+                      },
+                      '& .MuiAccordionDetails-root': {
+                        opacity: 0.6,
+                        filter: 'grayscale(30%)'
+                      }
+                    })
                   }}
                 >
                   <AccordionSummary
@@ -202,9 +219,9 @@ function NetworkOverview({ network, events }) {
                        <img 
                          src={require('../assets/bs.png')} 
                          alt="Base Station Icon" 
-                         style={{ width: 20, height: 20, marginRight: 6, verticalAlign: 'middle' }} 
+                         style={{ width: 24, height: 24, marginRight: 3, verticalAlign: 'middle' }} 
                        />
-                       <StatusIcon sx={{ fontSize: 18, color: statusColor, marginRight: 3 }} />
+                       <StatusIcon sx={{ fontSize: 18, color: statusColor, marginRight: 1 }} />
                        BS ID: {bsId}
                      </Box>
                     
