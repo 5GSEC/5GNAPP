@@ -10,6 +10,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import InfoIcon from '@mui/icons-material/Info';
 import CloseIcon from '@mui/icons-material/Close';
+import LanguageIcon from '@mui/icons-material/Language';
 import { BsIcon, HoverContext, parseTimestamp, parseStatus } from "../bs/bs";
 import { 
   parseUERRCState, 
@@ -41,10 +42,15 @@ function NetworkOverview({ network, events }) {
           alignItems: "center",
           marginBottom: "16px"
         }}>
-          <Typography variant="h6" component="h2" sx={{ 
-            fontWeight: 600, 
-            color: "#333"
-          }}>
+          <Typography variant="h6" sx={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: 0, display: "flex", alignItems: "center" }}>
+          <span style={{ display: "flex", alignItems: "center", marginRight: 8 }}>
+            {
+              (() => {
+                // You can replace with any other icon as needed
+                return <LanguageIcon sx={{ fontSize: 26, color: "#23305a", mr: 0.5 }} />;
+              })()
+            }
+          </span>
             Network Overview
           </Typography>
           <Box sx={{ display: "flex", gap: 1 }}>

@@ -124,11 +124,21 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
   return (
     <Card sx={{ padding: 0, margin: "0px auto", width: "100%" }}>
       <CardContent>
-        {/* Title with reduced font size */}
-        <Typography variant="h6" sx={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: 2 }}>
+        {/* Title with icon before the text */}
+        <Typography variant="h6" sx={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: 2, display: "flex", alignItems: "center" }}>
+          <span style={{ display: "flex", alignItems: "center", marginRight: 8 }}>
+            {
+              (() => {
+                // You can replace with any other icon as needed
+                const AppsIcon = require('@mui/icons-material/Apps').default;
+                return <AppsIcon sx={{ fontSize: 24, color: "#23305a", mr: 0.5 }} />;
+              })()
+            }
+          </span>
           Service Control Panel
         </Typography>
         {/* DataGrid Table */}
+
         <Box sx={{ height: 250, width: "100%" }}>
           <DataGrid
             rows={rows}

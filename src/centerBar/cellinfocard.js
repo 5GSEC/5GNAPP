@@ -74,7 +74,15 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
     <Card sx={{ width: "100%", height: "100%", marginBottom: 0 }}>
       <CardContent>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+        <Typography variant="h6" sx={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: 2, display: "flex", alignItems: "center" }}>
+          <span style={{ display: "flex", alignItems: "center", marginRight: 8 }}>
+            {
+              (() => {
+                // You can replace with any other icon as needed
+                return <CellTowerIcon sx={{ fontSize: 28, color: "#23305a", mr: 0.5 }} />;
+              })()
+            }
+          </span>
             Network Summary
           </Typography>
           {/* <Typography variant="subtitle2" color="text.secondary" sx={{ display: "block"}}>
