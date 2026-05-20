@@ -24,6 +24,11 @@ import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPa
 import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
 import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
 import CompliancePage from "./pages/CompliancePage"; // NEW: dedicated file for CompliancePage
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 
 /* ──────────────────────────────────────────────
    NEW: xApps child pages (very small placeholders)
@@ -80,7 +85,7 @@ export async function fetchAllData(setNetwork, setEvent, setService, setTimeSeri
 // ----------------------------------------
 // Dashboard page (path="/dashboard")
 // ----------------------------------------
-function DashboardPage() {
+function DashboardPage({ isDarkMode, onToggleColorMode }) {
   const [network, setNetwork] = useState({});
   const [services, setService] = useState({});
   const [events, setEvent] = useState({});
@@ -103,7 +108,29 @@ function DashboardPage() {
           <p className="dashboard-eyebrow">5G Native Security Operations</p>
           <h1 className="dashboard-title">SE-RAN AISecOps Dashboard</h1>
         </div>
-        <span className="dashboard-status">Live RAN telemetry</span>
+        <div className="dashboard-actions" aria-label="Dashboard actions">
+          <span className="dashboard-status">Live RAN telemetry</span>
+          <button className="dashboard-icon-button" type="button" aria-label="Notifications" title="Notifications">
+            <NotificationsNoneOutlinedIcon fontSize="small" />
+          </button>
+          <button className="dashboard-icon-button" type="button" aria-label="FAQ and support" title="FAQ and support">
+            <HelpOutlineOutlinedIcon fontSize="small" />
+          </button>
+          <button
+            className="dashboard-theme-toggle"
+            type="button"
+            aria-label="Switch color mode"
+            aria-pressed={isDarkMode}
+            title="Switch color mode"
+            onClick={onToggleColorMode}
+          >
+            <LightModeOutlinedIcon className={!isDarkMode ? "theme-icon-active" : ""} fontSize="small" />
+            <DarkModeOutlinedIcon className={isDarkMode ? "theme-icon-active" : ""} fontSize="small" />
+          </button>
+          <button className="dashboard-profile-button" type="button" aria-label="User profile" title="User profile">
+            <AccountCircleOutlinedIcon fontSize="small" />
+          </button>
+        </div>
       </header>
       {/* <h3 className="subheader">You cannot secure what you cannot see</h3> */}
       <div style={{ height: "2em" }} />
@@ -195,16 +222,26 @@ function GenAIProvider({ children }) {
    Root component – main <Routes> updated
 ────────────────────────────────────────────── */
 function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   return (
     <GenAIProvider>
       <BsIconProvider>
         <BrowserRouter>
-          <div className="container" style={{ display: "flex" }}>
+          <div className={`container ${isDarkMode ? "theme-dark" : ""}`} style={{ display: "flex" }}>
             <MenuNavBar />
             <div className="content" style={{ flex: 1 }}> 
               <Routes>
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <DashboardPage
+                      isDarkMode={isDarkMode}
+                      onToggleColorMode={() => setIsDarkMode((currentMode) => !currentMode)}
+                    />
+                  }
+                />
                 <Route path="/issues" element={<IssuesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/compliance" element={<CompliancePage />} />
