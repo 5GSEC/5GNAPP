@@ -40,12 +40,6 @@ function XAppsIndex() {
   );
 }
 
-/* REMOVED: inline MobieXpertPage stub – now imported from its own file */
-// function MobieXpertPage() {
-//   return <h3 style={{ padding: 20 }}>MobieXpert xApp Settings (stub)</h3>;
-// }
-
-
 function MobiflowAuditorPage() {
   return <h3 style={{ padding: 20 }}>Mobiflow Auditor Settings (stub)</h3>;
 }
@@ -104,7 +98,13 @@ function DashboardPage() {
 
   return (
     <>
-      <h2 className="header">SE-RAN AISecOps Dashboard</h2>
+      <header className="dashboard-header">
+        <div>
+          <p className="dashboard-eyebrow">5G Native Security Operations</p>
+          <h1 className="dashboard-title">SE-RAN AISecOps Dashboard</h1>
+        </div>
+        <span className="dashboard-status">Live RAN telemetry</span>
+      </header>
       {/* <h3 className="subheader">You cannot secure what you cannot see</h3> */}
       <div style={{ height: "2em" }} />
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
