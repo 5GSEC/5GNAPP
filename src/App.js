@@ -264,7 +264,7 @@ function App() {
                   element={<div style={{ padding: 20 }}>Page Not Found</div>}
                 />
               </Routes>
-              <Chatbot />   {/* NEW: added chatbot panel (stub for now) */}
+              <Chatbot isDarkMode={isDarkMode} />   {/* NEW: added chatbot panel (stub for now) */}
             </div>
           </div>
         </BrowserRouter>

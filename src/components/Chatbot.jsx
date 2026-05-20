@@ -17,11 +17,23 @@ import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import PersonIcon from '@mui/icons-material/Person';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 
-export default function Chatbot() {
+export default function Chatbot({ isDarkMode }) {
   const [open, setOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
+  const panelBg = isDarkMode ? 'rgba(7, 21, 40, 0.94)' : 'rgba(255,255,255,0.85)';
+  const headerBg = isDarkMode
+    ? 'linear-gradient(90deg, #071528 0%, #102844 100%)'
+    : 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)';
+  const bodyText = isDarkMode ? '#dbe8f7' : '#11182E';
+  const mutedText = isDarkMode ? '#9bb0c9' : '#667085';
+  const borderColor = isDarkMode ? 'rgba(143, 190, 245, 0.24)' : 'rgba(200,200,200,0.3)';
+  const userBubbleBg = isDarkMode ? '#234f8a' : '#23305a';
+  const botBubbleBg = isDarkMode ? '#0d2038' : '#f3f6fa';
+  const inputBg = isDarkMode ? '#08182d' : '#ffffff';
+  const accentColor = isDarkMode ? '#8fbfff' : '#11182E';
 
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem('mobillm_chat_history');
@@ -95,11 +107,12 @@ export default function Chatbot() {
             size="large"
             onClick={toggleOpen}
             sx={{
-              background: 'rgba(17,24,46,0.85)', // #11182E with opacity
+              background: isDarkMode ? 'rgba(35, 79, 138, 0.92)' : 'rgba(17,24,46,0.85)',
               color: '#fff',
-              boxShadow: 3,
+              boxShadow: isDarkMode ? '0 10px 24px rgba(0, 0, 0, 0.38)' : 3,
               backdropFilter: 'blur(6px)',
-              '&:hover': { backgroundColor: '#2d3c6b' },
+              border: isDarkMode ? '1px solid rgba(143, 190, 245, 0.35)' : '1px solid transparent',
+              '&:hover': { backgroundColor: isDarkMode ? '#2f66ad' : '#2d3c6b' },
             }}
           >
             <ChatBubbleOutlineIcon fontSize="large" />
@@ -119,9 +132,10 @@ export default function Chatbot() {
             flexDirection: 'column',
             borderRadius: 4,
             overflow: 'hidden',
-            background: 'rgba(255,255,255,0.85)',
+            background: panelBg,
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(200,200,200,0.3)',
+            border: `1px solid ${borderColor}`,
+            boxShadow: isDarkMode ? '0 18px 48px rgba(0, 0, 0, 0.46)' : undefined,
           }}
         >
           {/* Header */}
@@ -130,24 +144,24 @@ export default function Chatbot() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)',
+              background: headerBg,
               color: 'primary.contrastText',
               px: 2,
               py: 1.2,
-              borderBottom: '1px solid #e3e3e3',
+              borderBottom: `1px solid ${borderColor}`,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <SmartToyIcon sx={{ fontSize: 28, color: 'white' }} />
+              <SupportAgentIcon sx={{ fontSize: 28, color: accentColor }} />
               <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'white' }}>
                 MobiLLM Chat
               </Typography>
             </Box>
             <Box>
-              <IconButton size="small" onClick={handleClearHistory} sx={{ color: 'white' }} title="Clear chat history">
+              <IconButton size="small" onClick={handleClearHistory} sx={{ color: 'white', '&:hover': { backgroundColor: 'rgba(255,255,255,0.12)' } }} title="Clear chat history">
                 <DeleteOutlineIcon />
               </IconButton>
-              <IconButton size="small" onClick={toggleOpen} sx={{ color: 'white' }}>
+              <IconButton size="small" onClick={toggleOpen} sx={{ color: 'white', '&:hover': { backgroundColor: 'rgba(255,255,255,0.12)' } }}>
                 <CloseIcon />
               </IconButton>
             </Box>
@@ -158,7 +172,7 @@ export default function Chatbot() {
               flex: 1,
               p: 2,
               overflowY: 'auto',
-              bgcolor: 'transparent',
+              bgcolor: isDarkMode ? 'rgba(0, 10, 25, 0.42)' : 'transparent',
               display: 'flex',
               flexDirection: 'column',
               gap: 1.5,
@@ -176,27 +190,31 @@ export default function Chatbot() {
               >
                 <Avatar
                   sx={{
-                    bgcolor: msg.sender === 'user' ? '#11182E' : '#23305a',
+                    bgcolor: msg.sender === 'user' ? userBubbleBg : botBubbleBg,
+                    color: msg.sender === 'user' ? '#ffffff' : accentColor,
+                    border: isDarkMode && msg.sender !== 'user' ? `1px solid ${borderColor}` : 'none',
                     width: 32,
                     height: 32,
                   }}
                 >
                   {msg.sender === 'user'
                     ? <PersonIcon sx={{ color: 'white' }} />
-                    : <SmartToyIcon sx={{ color: 'white' }} />}
+                    : <SupportAgentIcon sx={{ color: msg.sender === 'user' ? 'white' : accentColor }} />}
                 </Avatar>
                 <Box
                   sx={{
-                    bgcolor: msg.sender === 'user' ? '#23305a' : '#f3f6fa',
-                    color: msg.sender === 'user' ? '#fff' : '#11182E',
+                    bgcolor: msg.sender === 'user' ? userBubbleBg : botBubbleBg,
+                    color: msg.sender === 'user' ? '#fff' : bodyText,
                     px: 2,
                     py: 1,
                     borderRadius: 2,
                     maxWidth: '75%',
                     whiteSpace: 'pre-line',
                     fontSize: 15,
-                    boxShadow: 1,
-                    border: msg.sender === 'user' ? '1px solid #11182E' : '1px solid #e0e4ef',
+                    boxShadow: isDarkMode ? '0 4px 12px rgba(0, 0, 0, 0.24)' : 1,
+                    border: msg.sender === 'user'
+                      ? `1px solid ${isDarkMode ? 'rgba(143, 190, 245, 0.28)' : '#11182E'}`
+                      : `1px solid ${isDarkMode ? borderColor : '#e0e4ef'}`,
                   }}
                 >
                   {msg.text}
@@ -205,21 +223,22 @@ export default function Chatbot() {
             ))}
             {isBotTyping && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                <Avatar sx={{ bgcolor: '#23305a', width: 32, height: 32 }}>
-                  <SmartToyIcon sx={{ color: 'white' }} />
+                <Avatar sx={{ bgcolor: botBubbleBg, color: accentColor, border: isDarkMode ? `1px solid ${borderColor}` : 'none', width: 32, height: 32 }}>
+                  <SupportAgentIcon sx={{ color: accentColor }} />
                 </Avatar>
                 <Box
                   sx={{
-                    bgcolor: '#f3f6fa',
-                    color: '#11182E',
+                    bgcolor: botBubbleBg,
+                    color: bodyText,
                     px: 2,
                     py: 1,
                     borderRadius: 2,
                     fontSize: 15,
-                    boxShadow: 1,
+                    boxShadow: isDarkMode ? '0 4px 12px rgba(0, 0, 0, 0.24)' : 1,
+                    border: isDarkMode ? `1px solid ${borderColor}` : 'none',
                   }}
                 >
-                  <CircularProgress size={18} sx={{ mr: 1, color: '#11182E' }} /> MobiLLM is thinking...
+                  <CircularProgress size={18} sx={{ mr: 1, color: accentColor }} /> MobiLLM is thinking...
                 </Box>
               </Box>
             )}
@@ -232,8 +251,8 @@ export default function Chatbot() {
                 display: 'flex',
                 alignItems: 'center',
                 p: 1.2,
-                borderTop: '1px solid #23305a',
-                bgcolor: '#f3f6fa',
+                borderTop: `1px solid ${borderColor}`,
+                bgcolor: isDarkMode ? '#071528' : '#f3f6fa',
                 gap: 1,
             }}
           >
@@ -246,14 +265,24 @@ export default function Chatbot() {
               onKeyDown={handleKeyDown}
               sx={{
                 flex: 1,
-                bgcolor: 'white',
+                bgcolor: inputBg,
                 borderRadius: 2,
-                '& .MuiOutlinedInput-root': { pr: 0 },
+                '& .MuiOutlinedInput-root': {
+                  pr: 0,
+                  color: bodyText,
+                },
+                '& .MuiInputBase-input::placeholder': {
+                  color: mutedText,
+                  opacity: 1,
+                },
                 '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#11182E',
+                  borderColor: isDarkMode ? 'rgba(143, 190, 245, 0.35)' : '#11182E',
+                },
+                '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: isDarkMode ? '#8fbfff' : '#2d3c6b',
                 },
                 '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#11182E',
+                  borderColor: isDarkMode ? '#8fbfff' : '#11182E',
                   borderWidth: 2,
                 },
               }}
@@ -262,14 +291,18 @@ export default function Chatbot() {
             <Button
               variant="contained"
               sx={{
-                backgroundColor: '#11182E',
+                backgroundColor: isDarkMode ? '#234f8a' : '#11182E',
                 color: '#fff',
                 minWidth: 0,
                 px: 2,
                 borderRadius: 2,
                 boxShadow: 1,
                 '&:hover': {
-                  backgroundColor: '#2d3c6b',
+                  backgroundColor: isDarkMode ? '#2f66ad' : '#2d3c6b',
+                },
+                '&.Mui-disabled': {
+                  backgroundColor: isDarkMode ? 'rgba(143, 190, 245, 0.18)' : undefined,
+                  color: isDarkMode ? 'rgba(219, 232, 247, 0.45)' : undefined,
                 },
               }}
               endIcon={<SendIcon />}
