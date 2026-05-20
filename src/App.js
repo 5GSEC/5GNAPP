@@ -243,7 +243,7 @@ function App() {
                     />
                   }
                 />
-                <Route path="/issues" element={<IssuesPage />} />
+                <Route path="/issues" element={<IssuesPage isDarkMode={isDarkMode} />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/compliance" element={<CompliancePage />} />
 

@@ -71,7 +71,7 @@ async function fetchEvents(setEvent) {
   }
 }
 
-function IssuesPage() {
+function IssuesPage({ isDarkMode }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [bevent, setEvent] = useState({});
   const [insightOpen, setInsightOpen] = useState(false);
@@ -106,6 +106,22 @@ function IssuesPage() {
   const [editableConfig, setEditableConfig] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [showDiffView, setShowDiffView] = useState(false);
+  const titleColor = isDarkMode ? "#f3f8ff" : "#182235";
+  const eyebrowColor = isDarkMode ? "#89a4c5" : "#5a6b80";
+  const subtitleColor = isDarkMode ? "#b8cce4" : "#536274";
+  const dividerColor = isDarkMode ? "rgba(143, 172, 207, 0.26)" : "#d9e1ec";
+  const panelBg = isDarkMode ? "#071528" : "#ffffff";
+  const tableBg = isDarkMode ? "#08182d" : "#f3f6fa";
+  const rowBg = isDarkMode ? "#0d2038" : "#ffffff";
+  const rowAltBg = isDarkMode ? "#0a1b31" : "#f8fafd";
+  const rowHoverBg = isDarkMode ? "rgba(71, 137, 213, 0.14)" : "#e0e4ef";
+  const borderColor = isDarkMode ? "rgba(123, 161, 207, 0.24)" : "#e0e4ef";
+  const gridTextColor = isDarkMode ? "#dbe8f7" : "#11182E";
+  const mutedTextColor = isDarkMode ? "#9bb0c9" : "#536274";
+  const inputBg = isDarkMode ? "#08182d" : "#ffffff";
+  const headerBg = isDarkMode
+    ? "linear-gradient(90deg, #0d2038 0%, #14345c 100%)"
+    : "linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)";
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -236,12 +252,12 @@ function IssuesPage() {
           variant="contained"
           size="small"
           sx={{
-            backgroundColor: '#23305a',
+            backgroundColor: isDarkMode ? '#234f8a' : '#23305a',
             color: '#fff',
-            borderColor: '#11182E',
+            borderColor: isDarkMode ? 'rgba(143, 190, 245, 0.3)' : '#11182E',
             '&:hover': {
-              backgroundColor: '#2d3c6b',
-              borderColor: '#11182E',
+              backgroundColor: isDarkMode ? '#2f66ad' : '#2d3c6b',
+              borderColor: isDarkMode ? '#8fbfff' : '#11182E',
             },
           }}
           onClick={() => handleInsightClick(params.row)}
@@ -255,17 +271,65 @@ function IssuesPage() {
 
   return (
     <>
-      <Grid container spacing={3} sx={{ padding: "20px" }}>
+      <Grid container spacing={3} sx={{ padding: "10px" }}>
         <Grid size={12}>
-          <Typography variant="h4" gutterBottom>
-            Issues
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            Security Threats and Anomalies Detected
-          </Typography>
+          <Box
+            component="header"
+            sx={{
+              borderBottom: `1px solid ${dividerColor}`,
+              pb: 1.75,
+            }}
+          >
+            <Typography
+              component="p"
+              sx={{
+                color: eyebrowColor,
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                lineHeight: 1.2,
+                mb: 0.75,
+                textTransform: "uppercase",
+              }}
+            >
+              5G Native Security Operations
+            </Typography>
+            <Typography
+              component="h1"
+              variant="h4"
+              sx={{
+                color: titleColor,
+                fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                fontSize: "clamp(1.45rem, 2.1vw, 2rem)",
+                fontWeight: 760,
+                letterSpacing: 0,
+                lineHeight: 1.12,
+                mb: 0.75,
+              }}
+            >
+              Issues
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: subtitleColor,
+                fontSize: "0.95rem",
+                fontWeight: 500,
+                lineHeight: 1.4,
+              }}
+            >
+              Security Threats and Anomalies Detected
+            </Typography>
+          </Box>
         </Grid>
         <Grid size={12}>
-          <Card>
+          <Card
+            sx={{
+              backgroundColor: panelBg,
+              border: isDarkMode ? `1px solid ${borderColor}` : "1px solid transparent",
+              boxShadow: isDarkMode ? "0 10px 24px rgba(0, 0, 0, 0.34)" : undefined,
+            }}
+          >
             <CardContent>
               <FormControl
                 sx={{
@@ -273,17 +337,22 @@ function IssuesPage() {
                   mb: 2,
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
-                    bgcolor: 'white',
+                    bgcolor: inputBg,
+                    color: gridTextColor,
                     '& fieldset': {
-                      borderColor: '#e0e4ef',
+                      borderColor,
                     },
                     '&:hover fieldset': {
-                      borderColor: '#2d3c6b',
+                      borderColor: isDarkMode ? '#8fbfff' : '#2d3c6b',
                     },
                     '&.Mui-focused fieldset': {
-                      borderColor: '#11182E',
+                      borderColor: isDarkMode ? '#8fbfff' : '#11182E',
                       borderWidth: 2,
                     },
+                  },
+                  '& input::placeholder': {
+                    color: mutedTextColor,
+                    opacity: 1,
                   },
                 }}
                 variant="outlined"
@@ -294,12 +363,12 @@ function IssuesPage() {
                   placeholder="Search…"
                   sx={{
                     flexGrow: 1,
-                    color: '#11182E',
+                    color: gridTextColor,
                     fontWeight: 500,
-                    '& input': { color: '#11182E' },
+                    '& input': { color: gridTextColor },
                   }}
                   startAdornment={
-                    <InputAdornment position="start" sx={{ color: "#23305a" }}>
+                    <InputAdornment position="start" sx={{ color: isDarkMode ? "#8fbfff" : "#23305a" }}>
                       <SearchRoundedIcon fontSize="small" />
                     </InputAdornment>
                   }
@@ -315,10 +384,10 @@ function IssuesPage() {
                   height: 600,
                   width: "100%",
                   marginTop: "16px",
-                  background: "#f3f6fa",
+                  background: tableBg,
                   borderRadius: 8,
-                  border: "1px solid #e0e4ef",
-                  boxShadow: "0 2px 8px rgba(35,48,90,0.04)",
+                  border: `1px solid ${borderColor}`,
+                  boxShadow: isDarkMode ? "0 2px 10px rgba(0,0,0,0.26)" : "0 2px 8px rgba(35,48,90,0.04)",
                 }}
               >
                 <DataGrid
@@ -337,39 +406,62 @@ function IssuesPage() {
                   disableColumnResize
                   density="compact"
                   sx={{
-                    bgcolor: "#f3f6fa",
+                    bgcolor: tableBg,
                     border: "none",
-                    color: "#11182E",
+                    color: gridTextColor,
                     fontSize: 15,
                     '& .MuiDataGrid-columnHeaders': {
-                      background: 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)',
+                      background: headerBg,
                       color: '#fff',
                       fontWeight: 'bold',
                       fontSize: 16,
                       borderTopLeftRadius: 8,
                       borderTopRightRadius: 8,
+                      borderColor: borderColor
+                    },
+                    '& .MuiDataGrid-columnHeader': {
+                      outline: 'none',
+                    },
+                    '& .MuiDataGrid-columnSeparator': {
+                      color: isDarkMode ? 'rgba(143, 190, 245, 0.28)' : 'rgba(224, 228, 239, 0.8)',
                     },
                     '& .MuiDataGrid-row': {
-                      bgcolor: "#fff",
-                      '&.even': { bgcolor: "#f8fafd" },
-                      '&:hover': { bgcolor: "#e0e4ef" },
+                      bgcolor: rowBg,
+                      color: gridTextColor,
+                      '&.even': { bgcolor: rowAltBg },
+                      '&:hover': { bgcolor: rowHoverBg },
                       '&.inactive': {
-                        opacity: 0.4,
-                        bgcolor: "#f5f5f5 !important",
-                        '&:hover': { bgcolor: "#e8e8e8 !important" },
-                        '&.even': { bgcolor: "#f0f0f0 !important" },
-                        '&.odd': { bgcolor: "#f5f5f5 !important" },
+                        opacity: isDarkMode ? 0.45 : 0.4,
+                        bgcolor: `${isDarkMode ? '#071528' : '#f5f5f5'} !important`,
+                        '&:hover': { bgcolor: `${isDarkMode ? 'rgba(71, 137, 213, 0.10)' : '#e8e8e8'} !important` },
+                        '&.even': { bgcolor: `${isDarkMode ? '#08182d' : '#f0f0f0'} !important` },
+                        '&.odd': { bgcolor: `${isDarkMode ? '#071528' : '#f5f5f5'} !important` },
                       },
                     },
                     '& .MuiDataGrid-cell': {
-                      borderBottom: '1px solid #e0e4ef',
+                      borderBottom: `1px solid ${borderColor}`,
+                      color: gridTextColor,
                     },
                     '& .MuiCheckbox-root': {
-                      color: '#11182E !important',
+                      color: `${isDarkMode ? '#8fbfff' : '#11182E'} !important`,
                     },
                     '& .MuiDataGrid-footerContainer': {
-                      background: '#f3f6fa',
-                      borderTop: '1px solid #e0e4ef',
+                      background: tableBg,
+                      borderTop: `1px solid ${borderColor}`,
+                      color: gridTextColor,
+                    },
+                    '& .MuiTablePagination-root, & .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                      color: gridTextColor,
+                    },
+                    '& .MuiTablePagination-selectIcon, & .MuiDataGrid-sortIcon, & .MuiDataGrid-menuIconButton': {
+                      color: isDarkMode ? '#b8cce4' : '#536274',
+                    },
+                    '& .MuiIconButton-root.Mui-disabled': {
+                      color: isDarkMode ? 'rgba(184, 204, 228, 0.32)' : undefined,
+                    },
+                    '& .MuiDataGrid-overlay': {
+                      backgroundColor: tableBg,
+                      color: mutedTextColor,
                     },
                   }}
                 />
@@ -393,10 +485,10 @@ function IssuesPage() {
           display: "flex",
           flexDirection: "column",
           borderRadius: 4,
-          boxShadow: 6,
-          background: "rgba(255,255,255,0.95)",
+          boxShadow: isDarkMode ? "0 18px 48px rgba(0, 0, 0, 0.46)" : 6,
+          background: isDarkMode ? "rgba(7, 21, 40, 0.96)" : "rgba(255,255,255,0.95)",
           backdropFilter: "blur(8px)",
-          border: "1px solid rgba(200,200,200,0.3)",
+          border: `1px solid ${isDarkMode ? "rgba(143, 190, 245, 0.24)" : "rgba(200,200,200,0.3)"}`,
           resize: "both",           // <-- add this
           overflow: "auto",         // <-- and this
         }}
@@ -406,36 +498,59 @@ function IssuesPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)',
+              background: headerBg,
               color: 'primary.contrastText',
               px: 2,
               py: 1.2,
-              borderBottom: '1px solid #e3e3e3',
+              borderBottom: `1px solid ${borderColor}`,
           }}
         >
           <SmartToyIcon sx={{ fontSize: 28, color: 'white' }} />
           <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "white" }}>
             MobiLLM Insight
           </Typography>
-          <IconButton size="small" onClick={() => setInsightOpen(false)} sx={{ color: "white" }}>
+          <IconButton size="small" onClick={() => setInsightOpen(false)} sx={{ color: "white", '&:hover': { backgroundColor: 'rgba(255,255,255,0.12)' } }}>
             <CloseIcon />
           </IconButton>
         </Box>
-        <Box sx={{ flex: 1, p: 2, overflowY: "auto" }}>
+        <Box
+          sx={{
+            flex: 1,
+            p: 2,
+            overflowY: "auto",
+            backgroundColor: isDarkMode ? "rgba(0, 10, 25, 0.28)" : "transparent",
+            color: gridTextColor,
+          }}
+        >
           {!insightRow && (
-              <Typography>No data selected.</Typography>
+              <Typography sx={{ color: gridTextColor }}>No data selected.</Typography>
             )}
             {insightRow && genaiLoading && (
-              <Typography color="text.secondary">MobiLLM is analyzing the event...</Typography>
+              <Typography sx={{ color: mutedTextColor }}>MobiLLM is analyzing the event...</Typography>
             )}
             {insightRow && genaiError && (
               <Typography color="error">Error: {genaiError}</Typography>
             )}
             {insightRow && !genaiLoading && !genaiError && (
-              <Box sx={{ fontSize: 15, color: "text.primary" }}>
+              <Box
+                sx={{
+                  color: gridTextColor,
+                  fontSize: 15,
+                  lineHeight: 1.55,
+                  '& p': { marginTop: 0 },
+                  '& h1, & h2, & h3': { color: titleColor },
+                  '& ul, & ol': { paddingLeft: 3 },
+                  '& code': {
+                    backgroundColor: isDarkMode ? 'rgba(143, 190, 245, 0.12)' : 'rgba(17, 24, 46, 0.06)',
+                    borderRadius: '4px',
+                    color: isDarkMode ? '#d8eaff' : '#182235',
+                    padding: '1px 4px',
+                  },
+                }}
+              >
                 <ReactMarkdown
                   components={{
-                    strong: ({node, ...props}) => <Typography component="span" sx={{ fontWeight: 'bold', color: '#11182E', display: 'inline' }} {...props} />
+                    strong: ({node, ...props}) => <Typography component="span" sx={{ fontWeight: 'bold', color: titleColor, display: 'inline' }} {...props} />
                   }}
                 >
                   {genaiResponse[rowIdToThreadId[insightRow.id]]}
@@ -448,14 +563,14 @@ function IssuesPage() {
                 <Button
                   sx={{
                     ml: 2,
-                    backgroundColor: '#11182E',
+                    backgroundColor: isDarkMode ? '#234f8a' : '#11182E',
                     color: '#fff',
                     minWidth: 0,
                     px: 2,
                     borderRadius: 2,
                     boxShadow: 1,
                     '&:hover': {
-                      backgroundColor: '#2d3c6b',
+                      backgroundColor: isDarkMode ? '#2f66ad' : '#2d3c6b',
                     },
                   }}
                   variant="contained"
@@ -473,7 +588,7 @@ function IssuesPage() {
               </>
             )}
         </Box>
-        <Box sx={{ p: 1, borderTop: "1px solid #eee", textAlign: "right" }}>
+        <Box sx={{ p: 1, borderTop: `1px solid ${borderColor}`, textAlign: "right", backgroundColor: isDarkMode ? "#071528" : "#f8fafd" }}>
           <Button
             onClick={() => {
               // Clear GenAI state for this row/thread
@@ -493,17 +608,17 @@ function IssuesPage() {
               }
             }}
             sx={{
-              backgroundColor: '#fff',
-              color: '#11182E',
+              backgroundColor: isDarkMode ? "rgba(20, 48, 84, 0.72)" : '#fff',
+              color: isDarkMode ? "#d8eaff" : '#11182E',
               minWidth: 0,
               px: 2,
               borderRadius: 2,
-              boxShadow: 1,
-              border: '1px solid #11182E',
+              boxShadow: isDarkMode ? "none" : 1,
+              border: `1px solid ${isDarkMode ? "rgba(143, 190, 245, 0.58)" : "#11182E"}`,
               mr: 1,
               '&:hover': {
-                backgroundColor: '#e0e4ef',
-                color: '#11182E',
+                backgroundColor: isDarkMode ? "rgba(35, 79, 138, 0.72)" : '#e0e4ef',
+                color: isDarkMode ? "#ffffff" : '#11182E',
               },
             }}
             variant="outlined"
@@ -513,14 +628,14 @@ function IssuesPage() {
           <Button 
             onClick={() => setInsightOpen(false)} 
             sx={{
-              backgroundColor: '#11182E',
+              backgroundColor: isDarkMode ? '#234f8a' : '#11182E',
               color: '#fff',
               minWidth: 0,
               px: 2,
               borderRadius: 2,
               boxShadow: 1,
               '&:hover': {
-                backgroundColor: '#2d3c6b',
+                backgroundColor: isDarkMode ? '#2f66ad' : '#2d3c6b',
               },
             }}
             variant="outlined">
@@ -541,29 +656,38 @@ function IssuesPage() {
           maxWidth: '75vw',
           zIndex: 2000,
           borderRadius: 4,
-          boxShadow: 6,
-          background: "rgba(255,255,255,0.95)",
+          boxShadow: isDarkMode ? "0 18px 48px rgba(0, 0, 0, 0.46)" : 6,
+          background: isDarkMode ? "rgba(7, 21, 40, 0.96)" : "rgba(255,255,255,0.95)",
           backdropFilter: "blur(8px)",
-          border: "1px solid rgba(200,200,200,0.3)",
+          border: `1px solid ${isDarkMode ? "rgba(143, 190, 245, 0.24)" : "rgba(200,200,200,0.3)"}`,
         }
       }}
     >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", fontSize: 24 }}>
-        <AutoAwesomeIcon sx={{ color: "#11182E", fontSize: 32, mr: 1 }} />
+      <DialogTitle
+        sx={{
+          alignItems: "center",
+          borderBottom: `1px solid ${borderColor}`,
+          color: titleColor,
+          display: "flex",
+          fontSize: 24,
+          fontWeight: 750,
+        }}
+      >
+        <AutoAwesomeIcon sx={{ color: isDarkMode ? "#8fbfff" : "#11182E", fontSize: 32, mr: 1 }} />
         RAN Configuration Update Review
       </DialogTitle>
       {/* Show prompt only if not loading and no response yet */}
       {!actionLoading && insightRow && !genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
-        <Typography sx={{ px: 3, pt: 1, pb: 1, color: "text.secondary" }}>
+        <Typography sx={{ px: 3, pt: 1, pb: 1, color: mutedTextColor }}>
           {genaiInterruptPrompt[rowIdToThreadId[insightRow.id]] || "Please review and edit the proposed RAN configuration below. Approve to apply, or deny to reject the changes."}
         </Typography>
       )}
-      <DialogContent>
+      <DialogContent sx={{ backgroundColor: isDarkMode ? "rgba(0, 10, 25, 0.22)" : "transparent", color: gridTextColor }}>
         {/* Loading spinner */}
         {actionLoading && (
           <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 120 }}>
-            <Typography color="text.secondary" sx={{ mr: 2 }}>Executing actions...You may exit this dialog now and check the results later.</Typography>
-            <span className="MuiCircularProgress-root MuiCircularProgress-indeterminate" style={{ width: 32, height: 32, display: "inline-block", borderWidth: 3, borderStyle: "solid", borderRadius: "50%", borderColor: "#11182E transparent #11182E transparent", animation: "mui-spin 1s linear infinite" }} />
+            <Typography sx={{ color: mutedTextColor, mr: 2 }}>Executing actions...You may exit this dialog now and check the results later.</Typography>
+            <span className="MuiCircularProgress-root MuiCircularProgress-indeterminate" style={{ width: 32, height: 32, display: "inline-block", borderWidth: 3, borderStyle: "solid", borderRadius: "50%", borderColor: `${isDarkMode ? "#8fbfff" : "#11182E"} transparent ${isDarkMode ? "#8fbfff" : "#11182E"} transparent`, animation: "mui-spin 1s linear infinite" }} />
             <style>
               {`@keyframes mui-spin { 100% { transform: rotate(360deg); } }`}
             </style>
@@ -572,7 +696,7 @@ function IssuesPage() {
         {/* Show response output if available */}
         {!actionLoading && insightRow && genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
           <Box sx={{ px: 2, py: 2 }}>
-            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, display: "flex", alignItems: "center" }}>
+            <Typography variant="h5" sx={{ color: titleColor, fontWeight: "bold", mb: 2, display: "flex", alignItems: "center" }}>
               {/* Choose icon based on response content */}
               {genaiActionResponse[rowIdToThreadId[insightRow.id]].toLowerCase().includes("error") ? (
                 <ErrorIcon color="error" sx={{ mr: 1, fontSize: 32 }} />
@@ -584,7 +708,7 @@ function IssuesPage() {
               )}
               Action Outcome
             </Typography>
-            <Typography sx={{ whiteSpace: "pre-line", color: "text.primary", fontSize: 18 }}>
+            <Typography sx={{ whiteSpace: "pre-line", color: gridTextColor, fontSize: 18 }}>
               {genaiActionResponse[rowIdToThreadId[insightRow.id]]}
             </Typography>
           </Box>
@@ -595,14 +719,14 @@ function IssuesPage() {
             <Button
               variant="outlined"
               sx={{
-                backgroundColor: '#11182E',
+                backgroundColor: isDarkMode ? '#234f8a' : '#11182E',
                 color: '#fff',
                 minWidth: 0,
                 px: 2,
                 borderRadius: 2,
                 boxShadow: 1,
                 '&:hover': {
-                  backgroundColor: '#2d3c6b',
+                  backgroundColor: isDarkMode ? '#2f66ad' : '#2d3c6b',
                 },
               }}
               onClick={() => setShowDiffView(prev => !prev)}
@@ -611,18 +735,18 @@ function IssuesPage() {
             </Button>
             {showDiffView ? (
               <Box sx={{
-                border: '1px solid #e0e4ef',
+                border: `1px solid ${borderColor}`,
                 borderRadius: 2,
-                background: '#f8fafd',
+                background: isDarkMode ? '#08182d' : '#f8fafd',
                 p: 2,
                 mb: 2,
-                boxShadow: 1,
+                boxShadow: isDarkMode ? "0 4px 14px rgba(0, 0, 0, 0.26)" : 1,
               }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="subtitle2" sx={{ color: '#23305a', fontWeight: 600 }}>
+                <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
+                  <Typography variant="subtitle2" sx={{ color: isDarkMode ? "#8fbfff" : '#23305a', flex: 1, fontWeight: 600 }}>
                     Original Config
                   </Typography>
-                  <Typography variant="subtitle2" sx={{ color: '#23305a', fontWeight: 600 }}>
+                  <Typography variant="subtitle2" sx={{ color: isDarkMode ? "#8fbfff" : '#23305a', flex: 1, fontWeight: 600 }}>
                     Updated Config
                   </Typography>
                 </Box>
@@ -638,23 +762,66 @@ function IssuesPage() {
                   styles={{
                     variables: {
                       light: {
-                        diffViewerBackground: '#f8fafd',
-                        addedBackground: '#e6ffed',
-                        removedBackground: '#ffeef0',
-                        wordAddedBackground: '#acf2bd',
-                        wordRemovedBackground: '#fdb8c0',
+                        diffViewerBackground: isDarkMode ? '#08182d' : '#f8fafd',
+                        diffViewerColor: isDarkMode ? '#dbe8f7' : '#11182E',
+                        addedBackground: isDarkMode ? 'rgba(53, 212, 139, 0.26)' : '#e6ffed',
+                        addedColor: isDarkMode ? '#dbe8f7' : '#11182E',
+                        addedGutterColor: isDarkMode ? '#5f748a' : '#212529',
+                        removedBackground: isDarkMode ? 'rgba(255, 111, 135, 0.28)' : '#ffeef0',
+                        removedColor: isDarkMode ? '#dbe8f7' : '#11182E',
+                        removedGutterColor: isDarkMode ? '#5f748a' : '#212529',
+                        wordAddedBackground: isDarkMode ? 'rgba(53, 212, 139, 0.48)' : '#acf2bd',
+                        wordRemovedBackground: isDarkMode ? 'rgba(255, 111, 135, 0.52)' : '#fdb8c0',
+                        gutterBackground: isDarkMode ? '#071528' : '#f8fafd',
+                        gutterColor: isDarkMode ? '#9bb0c9' : '#536274',
+                        codeFoldGutterBackground: isDarkMode ? '#071528' : '#f8fafd',
+                        codeFoldBackground: isDarkMode ? '#0d2038' : '#f8fafd',
+                        emptyLineBackground: isDarkMode ? '#08182d' : '#f8fafd',
                       },
+                    },
+                    diffContainer: {
+                      tableLayout: 'fixed',
+                      width: '100%',
+                    },
+                    splitView: {
+                      width: '100%',
+                    },
+                    line: {
+                      width: '100%',
+                    },
+                    contentText: {
+                      color: gridTextColor,
+                      overflowWrap: 'anywhere',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    },
+                    content: {
+                      backgroundColor: isDarkMode ? '#08182d' : '#f8fafd',
+                      maxWidth: 0,
+                      overflow: 'hidden',
+                      width: 'calc(50% - 24px)',
                     },
                     lineNumber: {
                       minWidth: '24px',
                       width: '24px',
                       padding: '0 4px',
                       fontSize: 12,
+                      color: mutedTextColor,
                     },
                     gutter: {
                       minWidth: '24px',
                       width: '24px',
                       padding: '0 4px',
+                      backgroundColor: isDarkMode ? '#071528' : undefined,
+                    },
+                    emptyGutter: {
+                      backgroundColor: isDarkMode ? '#071528' : '#f8fafd',
+                    },
+                    emptyLine: {
+                      backgroundColor: isDarkMode ? '#08182d' : '#f8fafd',
+                    },
+                    marker: {
+                      backgroundColor: isDarkMode ? '#08182d' : undefined,
                     },
                   }}
                 />
@@ -669,9 +836,31 @@ function IssuesPage() {
                 value={editableConfig}
                 onChange={e => setEditableConfig(e.target.value)}
                 variant="outlined"
-                sx={{ mt: 2, fontFamily: "monospace" }}
+                sx={{
+                  mt: 2,
+                  fontFamily: "monospace",
+                  '& .MuiInputLabel-root': {
+                    color: mutedTextColor,
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': {
+                    color: isDarkMode ? '#8fbfff' : '#11182E',
+                  },
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: inputBg,
+                    color: gridTextColor,
+                    '& fieldset': {
+                      borderColor,
+                    },
+                    '&:hover fieldset': {
+                      borderColor: isDarkMode ? '#8fbfff' : '#2d3c6b',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: isDarkMode ? '#8fbfff' : '#11182E',
+                    },
+                  },
+                }}
                 InputProps={{
-                  style: { fontFamily: "monospace" }
+                  style: { fontFamily: "monospace", color: gridTextColor }
                 }}
               />
             )}
@@ -680,19 +869,19 @@ function IssuesPage() {
       </DialogContent>
       {/* Hide actions if loading or response is shown */}
       {!actionLoading && insightRow && !genaiActionResponse[rowIdToThreadId[insightRow.id]] && (
-        <DialogActions>
+        <DialogActions sx={{ backgroundColor: isDarkMode ? "#071528" : "#f8fafd", borderTop: `1px solid ${borderColor}`, px: 3, py: 2 }}>
           <Button
             color="error"
             variant="contained"
             sx={{
-              backgroundColor: '#641B25',
+              backgroundColor: isDarkMode ? '#8c2f3d' : '#641B25',
               color: '#fff',
               minWidth: 0,
               px: 2,
               borderRadius: 2,
               boxShadow: 1,
               '&:hover': {
-                backgroundColor: '#56161F',
+                backgroundColor: isDarkMode ? '#a83a4a' : '#56161F',
               },
             }}
             onClick={async () => {
@@ -717,14 +906,14 @@ function IssuesPage() {
             color="primary"
             variant="contained"
             sx={{
-              backgroundColor: '#11182E',
+              backgroundColor: isDarkMode ? '#234f8a' : '#11182E',
               color: '#fff',
               minWidth: 0,
               px: 2,
               borderRadius: 2,
               boxShadow: 1,
               '&:hover': {
-                backgroundColor: '#2d3c6b',
+                backgroundColor: isDarkMode ? '#2f66ad' : '#2d3c6b',
               },
             }}
             onClick={async () => {
@@ -761,14 +950,14 @@ function IssuesPage() {
             color="primary"
             variant="contained"
             sx={{
-              backgroundColor: '#11182E',
+              backgroundColor: isDarkMode ? '#1d6b5d' : '#11182E',
               color: '#fff',
               minWidth: 0,
               px: 2,
               borderRadius: 2,
               boxShadow: 1,
               '&:hover': {
-                backgroundColor: '#2d3c6b',
+                backgroundColor: isDarkMode ? '#248270' : '#2d3c6b',
               },
             }}
             onClick={async () => {
