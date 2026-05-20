@@ -146,9 +146,10 @@ function DashboardPage({ isDarkMode, onToggleColorMode }) {
           timeSeriesData={timeSeriesData}
           bsId={hoveredBsId}
           ueId={hoveredUeId}
+          isDarkMode={isDarkMode}
         />
       </div>
-      <NetworkOverview network={network} events={events} />
+      <NetworkOverview network={network} events={events} isDarkMode={isDarkMode} />
     </>
   );
 }
@@ -222,7 +223,7 @@ function GenAIProvider({ children }) {
    Root component – main <Routes> updated
 ────────────────────────────────────────────── */
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   return (
     <GenAIProvider>

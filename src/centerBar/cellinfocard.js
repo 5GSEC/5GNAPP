@@ -28,7 +28,7 @@ function parseTimestamp(raw) {
   return n < 1e12 ? new Date(n * 1000) : new Date(n);
 }
 
-function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, setTimeSeriesData, timeSeriesData }) {
+function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, setTimeSeriesData, timeSeriesData, isDarkMode }) {
   const theme = useTheme();
   const [timeSeries, setTimeSeries] = useState({
     activeCells: [],
@@ -52,11 +52,53 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
     });
   }, [timeSeriesData]);
 
+  const panelSx = {
+    width: "100%",
+    height: "100%",
+    marginBottom: 0,
+    backgroundColor: isDarkMode ? "#071528" : "#ffffff",
+    color: isDarkMode ? "#e8f1ff" : "inherit",
+    border: isDarkMode ? "1px solid rgba(123, 161, 207, 0.28)" : "1px solid transparent",
+    boxShadow: isDarkMode ? "0 10px 24px rgba(0, 0, 0, 0.34)" : undefined,
+  };
+
+  const titleColor = isDarkMode ? "#f3f8ff" : "inherit";
+  const iconColor = isDarkMode ? "#8fbfff" : "#23305a";
+  const bodyTextColor = isDarkMode ? "#dbe8f7" : "inherit";
+  const mutedTextColor = isDarkMode ? "#9bb0c9" : "text.secondary";
+  const metricCardSx = {
+    minHeight: 180,
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    flex: 1,
+    backgroundColor: isDarkMode ? "#08182d" : "#ffffff",
+    borderColor: isDarkMode ? "rgba(123, 161, 207, 0.24)" : "rgba(0, 0, 0, 0.12)",
+    color: bodyTextColor,
+  };
+  const trendCardSx = {
+    mt: 0.5,
+    px: 1.5,
+    py: 0,
+    borderRadius: 2,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: isDarkMode
+      ? "linear-gradient(180deg, rgba(18, 44, 78, 0.96), rgba(10, 27, 49, 0.96))"
+      : "#f8fafd",
+    border: isDarkMode ? "1px solid rgba(143, 190, 245, 0.22)" : "1px solid transparent",
+    boxShadow: isDarkMode ? "inset 0 1px 0 rgba(255, 255, 255, 0.04)" : 0,
+    minHeight: 30,
+    minWidth: 0,
+  };
+
   const iconMap = {
-    "Active Cells": <CellTowerIcon fontSize="small" sx={{ mr: 1 }} />,
-    "Active UEs": <SmartphoneIcon fontSize="small" sx={{ mr: 1 }} />,
-    "Critical Events": <WarningAmberIcon fontSize="small" sx={{ mr: 1, color: "red" }} />,
-    "Total Events": <AssessmentIcon fontSize="small" sx={{ mr: 1 }} />,
+    "Active Cells": <CellTowerIcon fontSize="small" sx={{ mr: 1, color: iconColor }} />,
+    "Active UEs": <SmartphoneIcon fontSize="small" sx={{ mr: 1, color: iconColor }} />,
+    "Critical Events": <WarningAmberIcon fontSize="small" sx={{ mr: 1, color: isDarkMode ? "#ff8f8f" : "red" }} />,
+    "Total Events": <AssessmentIcon fontSize="small" sx={{ mr: 1, color: iconColor }} />,
   };
 
   const dataKeys = {
@@ -71,15 +113,15 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
   );
 
   return (
-    <Card sx={{ width: "100%", height: "100%", marginBottom: 0 }}>
+    <Card sx={panelSx}>
       <CardContent>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-        <Typography variant="h6" sx={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: 2, display: "flex", alignItems: "center" }}>
+        <Typography variant="h6" sx={{ color: titleColor, fontSize: "1.25rem", fontWeight: "bold", marginBottom: 2, display: "flex", alignItems: "center" }}>
           <span style={{ display: "flex", alignItems: "center", marginRight: 8 }}>
             {
               (() => {
                 // You can replace with any other icon as needed
-                return <CellTowerIcon sx={{ fontSize: 28, color: "#23305a", mr: 0.5 }} />;
+                return <CellTowerIcon sx={{ fontSize: 28, color: iconColor, mr: 0.5 }} />;
               })()
             }
           </span>
@@ -91,17 +133,18 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
           <Button
             variant="outlined"
             size="small"
-            startIcon={<RefreshIcon sx={{ color: '#11182E' }} />}
+            startIcon={<RefreshIcon sx={{ color: isDarkMode ? "#d8eaff" : "#11182E" }} />}
             onClick={() => fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData)}
             sx={{
-              borderColor: '#11182E',
-              color: '#11182E',
+              borderColor: isDarkMode ? "rgba(143, 190, 245, 0.58)" : '#11182E',
+              color: isDarkMode ? "#d8eaff" : '#11182E',
+              backgroundColor: isDarkMode ? "rgba(20, 48, 84, 0.72)" : "transparent",
               fontWeight: 'bold',
               '&:hover': {
-                backgroundColor: '#f3f6fa',
-                borderColor: '#2d3c6b',
-                color: '#2d3c6b',
-                '& .MuiSvgIcon-root': { color: '#2d3c6b' },
+                backgroundColor: isDarkMode ? "rgba(35, 79, 138, 0.72)" : '#f3f6fa',
+                borderColor: isDarkMode ? "#9dccff" : '#2d3c6b',
+                color: isDarkMode ? "#ffffff" : '#2d3c6b',
+                '& .MuiSvgIcon-root': { color: isDarkMode ? "#ffffff" : '#2d3c6b' },
               },
             }}
           >
@@ -137,26 +180,19 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                 }}>
                   <Card
                     variant="outlined"
-                    sx={{
-                      minHeight: 180,
-                      width: '100%',
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      flex: 1
-                    }}
+                    sx={metricCardSx}
                   >
                     <CardContent>
                       <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                         {iconMap[label]}
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        <Typography variant="subtitle2" sx={{ color: bodyTextColor, fontWeight: 600 }}>
                           {label}
                         </Typography>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                      <Typography variant="h6" sx={{ color: titleColor, fontWeight: "bold" }}>
                         {latest[key]}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color={mutedTextColor}>
                         No data
                       </Typography>
                     </CardContent>
@@ -214,23 +250,16 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
               }}>
                 <Card
                   variant="outlined"
-                  sx={{
-                    minHeight: 180,
-                    width: '100%',
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    flex: 1
-                  }}
+                  sx={metricCardSx}
                 >
                   <CardContent sx={{ paddingBottom: "8px" }}>
                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                       {iconMap[label]}
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      <Typography variant="subtitle2" sx={{ color: bodyTextColor, fontWeight: 600 }}>
                         {label}
                       </Typography>
                     </Box>
-                    <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                    <Typography variant="h6" sx={{ color: titleColor, fontWeight: "bold" }}>
                       {latest[key]}
                     </Typography>
                     <LineChart
@@ -258,6 +287,9 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                         // Set area fill to a lighter, semi-transparent version of trendColor
                         "& .MuiAreaElement-root": {
                           fill: trendColor ? `${trendColor}22` : "rgba(0,0,0,0.10)", // 13% opacity if hex, fallback to light gray
+                        },
+                        "& .MuiChartsAxis-root text": {
+                          fill: isDarkMode ? "#9bb0c9" : undefined,
                         },
                         // "& .MuiChartsAxisHighlight-root": {
                         //   strokeDasharray: 0,
@@ -302,33 +334,21 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                     />
                     {/* Smart trend card below the chart */}
                     <Box
-                      sx={{
-                        mt: 0.5,
-                        px: 1.5,
-                        py: 0,
-                        borderRadius: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "#f8fafd",
-                        boxShadow: 0,
-                        minHeight: 30,
-                        minWidth: 0,
-                      }}
+                      sx={trendCardSx}
                     >
                       {(() => {
                         // Clamp percent for display
                         const displayPercent = Math.abs(percent).toFixed(0);
 
                         // Choose color and icon
-                        let color = '#919BB0' // "#888";
+                        let color = isDarkMode ? '#9bb0c9' : '#919BB0';
                         let icon = null;
 
                         // Apply special trend color only for "Critical Events" or "Total Events"
                         const isEvent = key === "criticalEvents" || key === "totalEvents";
                         if (isEvent) {
                           if (trend === "up") {
-                            color = '#B2281D'; // "#d32f2f"; // improved green (Material UI green[700])
+                            color = isDarkMode ? '#ff6f87' : '#B2281D';
                             icon = (
                               <TrendingUpIcon
                                 sx={{
@@ -340,7 +360,7 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                               />
                             );
                           } else if (trend === "down") {
-                            color = '#6FBA5F'; // "#388e3c"; // improved red (Material UI red[700])
+                            color = isDarkMode ? '#35d48b' : '#6FBA5F';
                             icon = (
                               <TrendingDownIcon
                                 sx={{
@@ -352,7 +372,7 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                               />
                             );
                           } else {
-                            color = "#888";
+                            color = isDarkMode ? '#9bb0c9' : "#888";
                             icon = (
                               <TrendingFlatIcon
                                 sx={{
@@ -366,7 +386,7 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
                           }
                         } else {
                           // For all other items, always use #888 and neutral icon
-                          color = "#888";
+                          color = isDarkMode ? '#9bb0c9' : "#888";
                           icon = (
                             trend === "up" ? (
                               <TrendingUpIcon

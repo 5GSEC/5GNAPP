@@ -45,7 +45,7 @@ const StatusIndicator = styled.span`
   margin-right: 8px;
 `;
 
-function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, network, events, services, bsId, ueId, timeSeriesData }) {
+function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, network, events, services, bsId, ueId, timeSeriesData, isDarkMode }) {
   // Banner message and visibility
   const [bannerMessage, setBannerMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -145,6 +145,7 @@ function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, networ
             handleBuild={handleBuild}
             handleDeploy={handleDeploy}
             handleUndeploy={handleUndeploy}
+            isDarkMode={isDarkMode}
           />
         </Box>
 
@@ -159,6 +160,7 @@ function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, networ
             setEvent={setEvent}
             setService={setService}
             setTimeSeriesData={setTimeSeriesData}
+            isDarkMode={isDarkMode}
           />
         </Box>
       </Box>
