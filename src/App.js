@@ -104,7 +104,7 @@ function DashboardPage() {
 
   return (
     <>
-      <h2 className="header">5GNAPP - 5G-Native Management Platform</h2>
+      <h2 className="header">SE-RAN AISecOps Dashboard</h2>
       {/* <h3 className="subheader">You cannot secure what you cannot see</h3> */}
       <div style={{ height: "2em" }} />
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
