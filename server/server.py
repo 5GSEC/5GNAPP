@@ -122,6 +122,13 @@ llm_config = {
 
 mobillm_agent = None
 
+# test init mobillm agent
+settings = Settings()
+settings.gemini_model = "gemini-2.5-flash"
+settings.local_model = None
+settings.google_api_key = os.getenv("GOOGLE_API_KEY")
+mobillm_agent = MobiLLMService(Settings())
+
 @app.route('/mobillm/chat', methods=['POST'])
 def mobillm_chat():
     """
