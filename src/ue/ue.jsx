@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ReactDOM from 'react-dom';
+import { parseTimestamp } from '../utils/time';
 
 const fieldsToRender = [
     "name",
@@ -46,27 +47,6 @@ const fieldRenderNames = {
     // "reserved_field_2",
     // "reserved_field_3"
   ];
-
-function parseTimestamp(raw) {
-  if (!raw) return null;
-
-  const tsString = String(raw);        // Convert the raw value to string
-  const tsNum = parseInt(tsString, 10); // Convert to integer
-
-  if (tsString.length === 13) {
-    // 13-digit likely "ms" timestamp
-    
-    return new Date(tsNum);
-  } else if (tsString.length === 10) {
-    // 10-digit likely "s" timestamp
-    
-    return new Date(tsNum * 1000);
-
-  } else {
-    // Otherwise, we might handle differently or just return null
-    return null;
-  }
-}
 
 function parseUEStates(ueData) {
   if (!ueData || !ueData.mobiflow || ueData.mobiflow.length === 0) return "Unknown";

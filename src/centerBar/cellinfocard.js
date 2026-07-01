@@ -16,20 +16,15 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import { LineChart } from "@mui/x-charts/LineChart";
-import { fetchAllData } from '../App';
+import { fetchAllData } from '../backend/fetchUserData';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 
-function parseTimestamp(raw) {
-  if (!raw) return null;
-  const n = Number(raw);
-  if (isNaN(n)) return null;
-  return n < 1e12 ? new Date(n * 1000) : new Date(n);
-}
-
-function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, setTimeSeriesData, timeSeriesData, isDarkMode }) {
+function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setService, setTimeSeriesData, timeSeriesData }) {
   const theme = useTheme();
+  const c = theme.custom;
+  const isDarkMode = theme.palette.mode === "dark";
   const [timeSeries, setTimeSeries] = useState({
     activeCells: [],
     totalUEs: [],
@@ -56,16 +51,16 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
     width: "100%",
     height: "100%",
     marginBottom: 0,
-    backgroundColor: isDarkMode ? "#071528" : "#ffffff",
+    backgroundColor: c.bgPanel,
     color: isDarkMode ? "#e8f1ff" : "inherit",
-    border: isDarkMode ? "1px solid rgba(123, 161, 207, 0.28)" : "1px solid transparent",
-    boxShadow: isDarkMode ? "0 10px 24px rgba(0, 0, 0, 0.34)" : undefined,
+    border: isDarkMode ? `1px solid ${c.border}` : "1px solid transparent",
+    boxShadow: isDarkMode ? c.panelShadow : undefined,
   };
 
-  const titleColor = isDarkMode ? "#f3f8ff" : "inherit";
-  const iconColor = isDarkMode ? "#8fbfff" : "#23305a";
-  const bodyTextColor = isDarkMode ? "#dbe8f7" : "inherit";
-  const mutedTextColor = isDarkMode ? "#9bb0c9" : "text.secondary";
+  const titleColor = isDarkMode ? c.textTitle : "inherit";
+  const iconColor = c.accent;
+  const bodyTextColor = isDarkMode ? c.textPrimary : "inherit";
+  const mutedTextColor = isDarkMode ? c.textMuted : "text.secondary";
   const metricCardSx = {
     minHeight: 180,
     width: "100%",
@@ -73,8 +68,8 @@ function ActiveCellInfo({ network, events, bsId, setNetwork, setEvent, setServic
     flexDirection: "column",
     justifyContent: "space-between",
     flex: 1,
-    backgroundColor: isDarkMode ? "#08182d" : "#ffffff",
-    borderColor: isDarkMode ? "rgba(123, 161, 207, 0.24)" : "rgba(0, 0, 0, 0.12)",
+    backgroundColor: isDarkMode ? c.bgSurface : "#ffffff",
+    borderColor: isDarkMode ? c.border : "rgba(0, 0, 0, 0.12)",
     color: bodyTextColor,
   };
   const trendCardSx = {

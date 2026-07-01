@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Card, Typography, Box, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, Select, MenuItem, FormControl, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Card, Typography, Box, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, Select, MenuItem, FormControl, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, useTheme } from "@mui/material";
 
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import TableChartIcon from '@mui/icons-material/TableChart';
@@ -30,7 +30,10 @@ import {
 } from "../ue/ue";
 import ReactDOM from 'react-dom';
 
-function NetworkOverview({ network, events, isDarkMode }) {
+function NetworkOverview({ network, events }) {
+  const theme = useTheme();
+  const c = theme.custom;
+  const isDarkMode = theme.palette.mode === "dark";
   const [viewMode, setViewMode] = useState('table'); // 'icon' or 'table'
   const [ueDeviceTypes, setUeDeviceTypes] = useState({}); // Store UE device types
   const [showUeDetails, setShowUeDetails] = useState({}); // Track which UEs show details
@@ -38,17 +41,17 @@ function NetworkOverview({ network, events, isDarkMode }) {
   const [showUeMetadata, setShowUeMetadata] = useState({}); // Track which UEs show metadata
   const [ueMetadataPos, setUeMetadataPos] = useState({}); // Track position for metadata window
   const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
-  const panelBg = isDarkMode ? "#071528" : "#ffffff";
-  const surfaceBg = isDarkMode ? "#08182d" : "#f3f6fa";
-  const elevatedBg = isDarkMode ? "#0d2038" : "#ffffff";
-  const altRowBg = isDarkMode ? "#0a1b31" : "#f8fafd";
-  const borderColor = isDarkMode ? "rgba(123, 161, 207, 0.24)" : "#e0e4ef";
-  const titleColor = isDarkMode ? "#f3f8ff" : "#11182E";
-  const bodyColor = isDarkMode ? "#dbe8f7" : "#666";
-  const mutedColor = isDarkMode ? "#9bb0c9" : "#888";
-  const iconColor = isDarkMode ? "#8fbfff" : "#23305a";
-  const hoverBg = isDarkMode ? "rgba(71, 137, 213, 0.14)" : "#e0e4ef";
-  const activeControlBg = isDarkMode ? "rgba(71, 137, 213, 0.22)" : "rgba(25, 118, 210, 0.08)";
+  const panelBg = c.bgPanel;
+  const surfaceBg = c.bgSurface;
+  const elevatedBg = c.bgElevated;
+  const altRowBg = c.bgAlt;
+  const borderColor = c.border;
+  const titleColor = c.textTitle;
+  const bodyColor = c.textPrimary;
+  const mutedColor = c.textFaint;
+  const iconColor = c.accent;
+  const hoverBg = c.rowHover;
+  const activeControlBg = c.controlActiveBg;
   const inactiveControlColor = isDarkMode ? "#8fa7c4" : "#666";
   const tableHeaderBg = isDarkMode ? "#102844" : "#e8f0fe";
   const buttonSx = {
@@ -242,21 +245,21 @@ function NetworkOverview({ network, events, isDarkMode }) {
               
               // Determine BS status and styling
               let bsStatus = 'healthy';
-              let statusColor = isDarkMode ? '#35d48b' : '#2e7d32'; // Green
+              let statusColor = c.success; // Green
               let StatusIcon = CheckCircleIcon;
               
               // If BS is disconnected, override with gray color
               if (bsData.status != 1) {
                 bsStatus = 'disconnected';
-                statusColor = '#9e9e9e'; // Gray
+                statusColor = c.neutral; // Gray
                 StatusIcon = InfoIcon;
               } else if (criticalEvents > 0) {
                 bsStatus = 'critical';
-                statusColor = '#d32f2f'; // Red
+                statusColor = c.error; // Red
                 StatusIcon = ErrorIcon;
               } else if (totalEvents > 0) {
                 bsStatus = 'warning';
-                statusColor = '#ed6c02'; // Orange
+                statusColor = c.warning; // Orange
                 StatusIcon = WarningIcon;
               }
               
@@ -429,14 +432,14 @@ function NetworkOverview({ network, events, isDarkMode }) {
                             const criticalUEEvents = ueEvents.filter(ev => ev.severity === 'Critical').length;
                             
                             // Determine UE status and styling
-                            let ueStatusColor = isDarkMode ? '#35d48b' : '#2e7d32'; // Green
+                            let ueStatusColor = c.success; // Green
                             let UeStatusIcon = CheckCircleIcon;
                             
                             if (criticalUEEvents > 0) {
-                              ueStatusColor = '#d32f2f'; // Red
+                              ueStatusColor = c.error; // Red
                               UeStatusIcon = ErrorIcon;
                             } else if (totalUEEvents > 0) {
-                              ueStatusColor = '#ed6c02'; // Orange
+                              ueStatusColor = c.warning; // Orange
                               UeStatusIcon = WarningIcon;
                             }
                             
@@ -740,8 +743,8 @@ function NetworkOverview({ network, events, isDarkMode }) {
                           Severity:
                         </Typography>{" "}
                         <Typography variant="body2" component="span" sx={{ 
-                          color: event.severity === 'Critical' ? '#d32f2f' : 
-                                 event.severity === 'Warning' ? '#ed6c02' : isDarkMode ? '#35d48b' : '#2e7d32'
+                          color: event.severity === 'Critical' ? c.error : 
+                                 event.severity === 'Warning' ? c.warning : c.success
                         }}>
                           {event.severity}
                         </Typography>

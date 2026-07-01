@@ -10,7 +10,9 @@ import {
   Fade,
   Avatar,
   CircularProgress,
+  useTheme,
 } from '@mui/material';
+import { sendChatMessage } from '../backend/fetchUserData';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
@@ -19,21 +21,22 @@ import PersonIcon from '@mui/icons-material/Person';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 
-export default function Chatbot({ isDarkMode }) {
+export default function Chatbot() {
+  const theme = useTheme();
+  const c = theme.custom;
+  const isDarkMode = theme.palette.mode === "dark";
   const [open, setOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
   const panelBg = isDarkMode ? 'rgba(7, 21, 40, 0.94)' : 'rgba(255,255,255,0.85)';
-  const headerBg = isDarkMode
-    ? 'linear-gradient(90deg, #071528 0%, #102844 100%)'
-    : 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)';
-  const bodyText = isDarkMode ? '#dbe8f7' : '#11182E';
-  const mutedText = isDarkMode ? '#9bb0c9' : '#667085';
+  const headerBg = c.chatHeaderGradient;
+  const bodyText = c.textPrimary;
+  const mutedText = c.textMuted;
   const borderColor = isDarkMode ? 'rgba(143, 190, 245, 0.24)' : 'rgba(200,200,200,0.3)';
-  const userBubbleBg = isDarkMode ? '#234f8a' : '#23305a';
-  const botBubbleBg = isDarkMode ? '#0d2038' : '#f3f6fa';
-  const inputBg = isDarkMode ? '#08182d' : '#ffffff';
-  const accentColor = isDarkMode ? '#8fbfff' : '#11182E';
+  const userBubbleBg = isDarkMode ? c.primaryMain : c.accent;
+  const botBubbleBg = isDarkMode ? c.bgElevated : c.bgSurface;
+  const inputBg = c.bgInput;
+  const accentColor = c.accentStrong;
 
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem('mobillm_chat_history');
@@ -76,13 +79,7 @@ export default function Chatbot({ isDarkMode }) {
     setIsBotTyping(true);
 
     try {
-      const res = await fetch("http://localhost:8080/mobillm/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Chat error');
+      const data = await sendChatMessage(text);
       setMessages(prev => [...prev, { sender: 'bot', text: data.output }]);
     } catch (e) {
       setMessages(prev => [...prev, { sender: 'bot', text: 'Error: could not get reply' }]);

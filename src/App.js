@@ -1,275 +1,45 @@
 /******************************************************
- * App.js  – 5GNAPP main router (updated with xApps sub‑routes)
+ * App.js  – 5GNAPP application shell (providers + layout)
  ******************************************************/
 
 import "./App.css";
-import React, { useState, useEffect, useContext, createContext } from "react";
-import { 
-  BrowserRouter, 
-  Routes, 
-  Route, 
-  Navigate, 
-  Outlet, // Used to render nested route components inside a parent route
-  Link    // Used to navigate to routes without reloading the page
-} from "react-router-dom";
+import React from "react";
+import { BrowserRouter } from "react-router-dom";
 
-
-import Chatbot from './components/Chatbot';
-import { BsIconProvider, HoverContext } from "./bs/bs";
-import CenterBar from "./centerBar/centerBar";
+import Chatbot from "./components/Chatbot";
+import { BsIconProvider } from "./bs/bs";
 import MenuNavBar from "./menubar/MenuNavBar";
-import NetworkOverview from "./components/NetworkOverview";
-import { fetchSdlData, fetchServiceStatus, fetchSdlEventData, fetchTimeSeriesData } from "./backend/fetchUserData";
-import IssuesPage from "./pages/IssuesPage"; // NEW: dedicated file for IssuesPage
-import MobieXpertPage from "./pages/MobieXpertPage"; // NEW: dedicated file for MobieXpert
-import MobiLLMPage from "./pages/MobiLLMPage"; // NEW: dedicated file for MobiLLM
-import CompliancePage from "./pages/CompliancePage"; // NEW: dedicated file for CompliancePage
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
-import HelpOutlineOutlinedIcon from "@mui/icons-material/HelpOutlineOutlined";
-import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
-import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import AppRoutes from "./routes";
+import { GenAIProvider } from "./contexts/GenAIContext";
+import { ColorModeProvider, useColorMode } from "./contexts/ColorModeContext";
 
-/* ──────────────────────────────────────────────
-   NEW: xApps child pages (very small placeholders)
-   In a real project they can live in /src/pages/xapps/
-────────────────────────────────────────────── */
-function XAppsIndex() {
-  return (
-    <p style={{ padding: 20 }}>
-      Select an xApp on the left, or visit<br />
-      <Link to="mobiexpert">/xapps/mobiexpert</Link>&nbsp;or&nbsp;
-      {/* <Link to="mobiflow-auditor">/xapps/mobiflow-auditor</Link>. */}
-      <Link to="mobillm">/xapps/mobillm</Link>.
-    </p>
-  );
-}
-
-function MobiflowAuditorPage() {
-  return <h3 style={{ padding: 20 }}>Mobiflow Auditor Settings (stub)</h3>;
-}
-
-/* Parent layout for /xapps – keeps sidebar and renders children via <Outlet /> */
-function XAppsLayout() {
-  return (
-    <div style={{ padding: "0 20px 20px", boxSizing: "border-box", width: "100%" }}>
-      <Outlet />
-    </div>
-  );
-}
-
-
-
-// ----------------------------------------
-// Global config
-// ----------------------------------------
-const update_interval = 10000;
-
-export async function fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData) {
-  fetchServiceStatus(setService);
-  try {
-    // ensure fetch order in API calls
-    const sdlData = await fetchSdlData();
-    setNetwork(sdlData);
-
-    const sdlEventData = await fetchSdlEventData();
-    setEvent(sdlEventData);
-
-    const timeSeriesData = await fetchTimeSeriesData();
-    setTimeSeriesData(timeSeriesData);
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
-}
-
-// ----------------------------------------
-// Dashboard page (path="/dashboard")
-// ----------------------------------------
-function DashboardPage({ isDarkMode, onToggleColorMode }) {
-  const [network, setNetwork] = useState({});
-  const [services, setService] = useState({});
-  const [events, setEvent] = useState({});
-  const [timeSeriesData, setTimeSeriesData] = useState({});
-  const { hoveredBsId, hoveredUeId } = useContext(HoverContext);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData);
-    }, update_interval);
-    fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData);
-
-    return () => clearInterval(interval);
-  }, []);
+/* Layout shell – reads the color mode so the container can toggle the
+   dashboard chrome (`.theme-dark`) styles defined in App.css. */
+function AppShell() {
+  const { isDarkMode } = useColorMode();
 
   return (
-    <>
-      <header className="dashboard-header">
-        <div>
-          <p className="dashboard-eyebrow">5G Native Security Operations</p>
-          <h1 className="dashboard-title">SE-RAN AISecOps Dashboard</h1>
-        </div>
-        <div className="dashboard-actions" aria-label="Dashboard actions">
-          <span className="dashboard-status">Live RAN telemetry</span>
-          <button className="dashboard-icon-button" type="button" aria-label="Notifications" title="Notifications">
-            <NotificationsNoneOutlinedIcon fontSize="small" />
-          </button>
-          <button className="dashboard-icon-button" type="button" aria-label="FAQ and support" title="FAQ and support">
-            <HelpOutlineOutlinedIcon fontSize="small" />
-          </button>
-          <button
-            className="dashboard-theme-toggle"
-            type="button"
-            aria-label="Switch color mode"
-            aria-pressed={isDarkMode}
-            title="Switch color mode"
-            onClick={onToggleColorMode}
-          >
-            <LightModeOutlinedIcon className={!isDarkMode ? "theme-icon-active" : ""} fontSize="small" />
-            <DarkModeOutlinedIcon className={isDarkMode ? "theme-icon-active" : ""} fontSize="small" />
-          </button>
-          <button className="dashboard-profile-button" type="button" aria-label="User profile" title="User profile">
-            <AccountCircleOutlinedIcon fontSize="small" />
-          </button>
-        </div>
-      </header>
-      {/* <h3 className="subheader">You cannot secure what you cannot see</h3> */}
-      <div style={{ height: "2em" }} />
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
-        <CenterBar
-          setNetwork={setNetwork}
-          setEvent={setEvent}
-          setService={setService}
-          setTimeSeriesData={setTimeSeriesData}
-          network={network}
-          events={events}
-          services={services}
-          timeSeriesData={timeSeriesData}
-          bsId={hoveredBsId}
-          ueId={hoveredUeId}
-          isDarkMode={isDarkMode}
-        />
+    <div className={`container ${isDarkMode ? "theme-dark" : ""}`} style={{ display: "flex" }}>
+      <MenuNavBar />
+      <div className="content" style={{ flex: 1 }}>
+        <AppRoutes />
+        <Chatbot />
       </div>
-      <NetworkOverview network={network} events={events} isDarkMode={isDarkMode} />
-    </>
-  );
-}
-
-// ----------------------------------------
-// Profile (path="/profile")
-// ----------------------------------------
-function ProfilePage() {
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2>Profile Page</h2>
-      <p>Placeholder for the Profile page.</p>
     </div>
   );
 }
 
-
-// ----------------------------------------
-// Settings (path="/settings")
-// ----------------------------------------
-function SettingsPage() {
-  return (
-    <div style={{ padding: "20px" }}>
-      <h2>Settings Page</h2>
-      <p>Placeholder for the Settings page.</p>
-    </div>
-  );
-}
-
-// Create context for GenAI state
-export const GenAIContext = createContext();
-
-// GenAI Context Provider component
-function GenAIProvider({ children }) {
-  const [genaiResponse, setGenaiResponse] = useState({});
-  const [genaiInterrupted, setgenaiInterrupted] = useState({});
-  const [genaiInterruptPrompt, setgenaiInterruptPrompt] = useState({});
-  const [genaiActionStrategy, setgenaiActionStrategy] = useState({});
-  const [genaiUpdatedConfig, setgenaiUpdatedConfig] = useState({});
-  const [genaiOriginalConfig, setgenaiOriginalConfig] = useState({});
-  const [genaiActionResponse, setgenaiActionResponse] = useState({});
-  const [rowIdToThreadId, setRowIdToThreadId] = useState({});
-
-  const genaiState = {
-    genaiResponse,
-    setGenaiResponse,
-    genaiInterrupted,
-    setgenaiInterrupted,
-    genaiInterruptPrompt,
-    setgenaiInterruptPrompt,
-    genaiActionStrategy,
-    setgenaiActionStrategy,
-    genaiUpdatedConfig,
-    setgenaiUpdatedConfig,
-    genaiOriginalConfig,
-    setgenaiOriginalConfig,
-    genaiActionResponse,
-    setgenaiActionResponse,
-    rowIdToThreadId,
-    setRowIdToThreadId,
-  };
-
-  return (
-    <GenAIContext.Provider value={genaiState}>
-      {children}
-    </GenAIContext.Provider>
-  );
-}
-
-/* ──────────────────────────────────────────────
-   Root component – main <Routes> updated
-────────────────────────────────────────────── */
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
   return (
-    <GenAIProvider>
-      <BsIconProvider>
-        <BrowserRouter>
-          <div className={`container ${isDarkMode ? "theme-dark" : ""}`} style={{ display: "flex" }}>
-            <MenuNavBar />
-            <div className="content" style={{ flex: 1 }}> 
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <DashboardPage
-                      isDarkMode={isDarkMode}
-                      onToggleColorMode={() => setIsDarkMode((currentMode) => !currentMode)}
-                    />
-                  }
-                />
-                <Route path="/issues" element={<IssuesPage isDarkMode={isDarkMode} />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/compliance" element={<CompliancePage />} />
-
-                {/* /xapps parent + nested children */}
-                <Route path="/xapps" element={<XAppsLayout />}>
-                  <Route index element={<XAppsIndex />} /> {/* /xapps */}
-                  {/* import‑based MobieXpert page */}
-                  <Route path="mobiexpert" element={<MobieXpertPage />} />
-                  {/* still stubbed inline */}
-                  <Route path="mobiflow-auditor" element={<MobiflowAuditorPage />} />
-                  {/* NEW: dedicated MobiLLM page */}
-                  <Route path="mobillm" element={<MobiLLMPage />} />
-                  <Route path="*" element={<div style={{ padding: 20 }}>xApp Not Found</div>} />
-                </Route>
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route
-                  path="*"
-                  element={<div style={{ padding: 20 }}>Page Not Found</div>}
-                />
-              </Routes>
-              <Chatbot isDarkMode={isDarkMode} />   {/* NEW: added chatbot panel (stub for now) */}
-            </div>
-          </div>
-        </BrowserRouter>
-      </BsIconProvider>
-    </GenAIProvider>
+    <ColorModeProvider>
+      <GenAIProvider>
+        <BsIconProvider>
+          <BrowserRouter>
+            <AppShell />
+          </BrowserRouter>
+        </BsIconProvider>
+      </GenAIProvider>
+    </ColorModeProvider>
   );
 }
 

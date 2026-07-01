@@ -35,14 +35,12 @@
   color: #61dafb;
 }
 
+/* Background is theme-driven via MUI CssBaseline (palette.background.default).
+   The `.theme-dark` class remains on the container so the dashboard header
+   chrome below can switch styles with the color mode. */
 .container {
   display: flex;
   min-height: 120vh;
-  background-color: #f4f6f8;
-}
-
-.container.theme-dark {
-  background-color: #000a19;
 }
 
 /* Content styles */

@@ -4,15 +4,9 @@ import UeIcon from '../ue/ue';
 import bsIcon from '../assets/bs.png';
 import { format } from 'date-fns';
 import { Box } from '@mui/material';
+import { parseTimestamp } from '../utils/time';
 
 const HoverContext = createContext();
-
-export function parseTimestamp(raw) {
-  if (!raw) return null;
-  const n = Number(raw);
-  if (isNaN(n)) return null;
-  return n < 1e12 ? new Date(n * 1000) : new Date(n);
-}
 
 export function parseStatus(status) {
   if (!status) return null;
@@ -128,4 +122,4 @@ const BsIconProvider = ({ children }) => {
   );
 };
 
-export { everyOtherDegree, BsIcon, BsIconProvider, HoverContext };
+export { everyOtherDegree, BsIcon, BsIconProvider, HoverContext, parseTimestamp };

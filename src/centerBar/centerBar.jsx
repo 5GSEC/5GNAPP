@@ -1,51 +1,12 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import { fetchServiceStatus } from "../backend/fetchUserData";
 import { deployXapp, undeployXapp, buildXapp } from '../backend/fetchUserData';
-import refreshIcond from '../assets/refresh.png';
 import './centerBar.css'; // Import the external CSS file for the banner, animations, etc.
-import { FaArrowRight } from 'react-icons/fa'; // Import an icon from react-icons
 import { Box } from "@mui/material";
 import ServiceGrid from './servicegrid'; // Adjust the path based on the file location
 import ActiveCellInfo from './cellinfocard'; // Adjust the path based on the file location
 
-
-/**
- * Wrapper: main layout container.
- * We add 'padding-top' to avoid overlap if the banner was at top,
- * but since we place the banner at bottom, you could remove it if not needed.
- */
-const Wrapper = styled.div`
-  width: 100%;
-  display: flex;
-  gap: 1em;
-  padding-top: 0em;
-`;
-
-/**
- * Container: card-like boxes to display different sections.
- */
-const Container = styled.div`
-  padding: 1em;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-family: 'Inter', sans-serif;
-`;
-
-/**
- * StatusIndicator: a small colored dot indicating service state.
- */
-const StatusIndicator = styled.span`
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: ${props => (props.status === 'Running' ? 'green' : 'red')};
-  margin-right: 8px;
-`;
-
-function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, network, events, services, bsId, ueId, timeSeriesData, isDarkMode }) {
+function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, network, events, services, bsId, ueId, timeSeriesData }) {
   // Banner message and visibility
   const [bannerMessage, setBannerMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -145,7 +106,6 @@ function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, networ
             handleBuild={handleBuild}
             handleDeploy={handleDeploy}
             handleUndeploy={handleUndeploy}
-            isDarkMode={isDarkMode}
           />
         </Box>
 
@@ -160,7 +120,6 @@ function CenterBar({ setNetwork, setService, setEvent, setTimeSeriesData, networ
             setEvent={setEvent}
             setService={setService}
             setTimeSeriesData={setTimeSeriesData}
-            isDarkMode={isDarkMode}
           />
         </Box>
       </Box>

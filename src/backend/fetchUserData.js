@@ -1,9 +1,11 @@
+import { apiUrl } from "../config";
+
+const JSON_HEADERS = { "Content-Type": "application/json" };
+
 export function fetchUserData(setEvent) {
-  fetch("http://localhost:8080/fetchUserData", {
+  fetch(apiUrl("/fetchUserData"), {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    }
+    headers: JSON_HEADERS,
   })
     .then(response => {
       if (!response.ok) {
@@ -20,11 +22,9 @@ export function fetchUserData(setEvent) {
 }
 
 export function fetchSdlData() {
-  return fetch("http://localhost:8080/fetchSdlData", {
+  return fetch(apiUrl("/fetchSdlData"), {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    }
+    headers: JSON_HEADERS,
   })
     .then(response => {
       if (!response.ok) {
@@ -36,11 +36,9 @@ export function fetchSdlData() {
 
 
 export function fetchSdlEventData() {
-  return fetch("http://localhost:8080/fetchSdlEventData", {
+  return fetch(apiUrl("/fetchSdlEventData"), {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    }
+    headers: JSON_HEADERS,
   })
     .then(response => {
       if (!response.ok) {
@@ -51,11 +49,9 @@ export function fetchSdlEventData() {
 }
 
 export function fetchTimeSeriesData() {
-  return fetch("http://localhost:8080/fetchTimeSeriesData", {
+  return fetch(apiUrl("/fetchTimeSeriesData"), {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    }
+    headers: JSON_HEADERS,
   })
     .then(response => {
       if (!response.ok) {
@@ -65,12 +61,34 @@ export function fetchTimeSeriesData() {
     });
 }
 
+/**
+ * Orchestrates the periodic dashboard data refresh. Kept here (rather than in a
+ * component) so both the dashboard and the cell info card can reuse it without
+ * creating circular imports.
+ */
+export async function fetchAllData(setNetwork, setEvent, setService, setTimeSeriesData) {
+  fetchServiceStatus(setService);
+  try {
+    // ensure fetch order in API calls
+    const sdlData = await fetchSdlData();
+    setNetwork(sdlData);
+
+    const sdlEventData = await fetchSdlEventData();
+    setEvent(sdlEventData);
+
+    const timeSeriesData = await fetchTimeSeriesData();
+    setTimeSeriesData(timeSeriesData);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
 
 // Return a promise from deployXapp
 export function deployXapp(xappName) {
-  return fetch("http://localhost:8080/deployXapp", {
+  return fetch(apiUrl("/deployXapp"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_HEADERS,
     body: JSON.stringify({ xapp_name: xappName })
   })
     .then(response => {
@@ -100,9 +118,9 @@ export function deployXapp(xappName) {
 
 export function buildXapp(xappName) {
   // IMPORTANT: return the Promise so caller can await it
-  return fetch("http://localhost:8080/buildXapp", {
+  return fetch(apiUrl("/buildXapp"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_HEADERS,
     body: JSON.stringify({ xapp_name: xappName })
   })
     .then(response => {
@@ -134,9 +152,9 @@ export function buildXapp(xappName) {
 
 // Return a promise from undeployXapp
 export function undeployXapp(xappName) {
-  return fetch("http://localhost:8080/unDeployXapp", {
+  return fetch(apiUrl("/unDeployXapp"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_HEADERS,
     body: JSON.stringify({ xapp_name: xappName })
   })
     .then(response => {
@@ -160,11 +178,9 @@ export function undeployXapp(xappName) {
 }
 
 export function fetchServiceStatus(setService) {
-  fetch("http://localhost:8080/fetchServiceStatus", {
+  fetch(apiUrl("/fetchServiceStatus"), {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    }
+    headers: JSON_HEADERS,
   })
     .then(response => {
       if (!response.ok) {
@@ -181,9 +197,9 @@ export function fetchServiceStatus(setService) {
 }
 
 export function sendLLMResumeCommand(payload) {
-  return fetch("http://localhost:8080/mobillm/sendLLMResumeCommand", {
+  return fetch(apiUrl("/mobillm/sendLLMResumeCommand"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_HEADERS,
     body: JSON.stringify(payload)
   })
     .then(response => {
@@ -210,7 +226,7 @@ export function sendLLMResumeCommand(payload) {
 /* -------------------------------------------
    NEW: MobieXpert rules.pbest helpers
 ------------------------------------------- */
-const RULES_API = "http://localhost:8080/api/mobieexpert/rules";
+const RULES_API = apiUrl("/api/mobieexpert/rules");
 
 
 export function fetchRulesText() {
@@ -237,9 +253,9 @@ export function saveRulesText(newText) {
  * Returns a promise resolving to { base_station_count, ue_count }.
  */
 export function fetchChatSummary() {
-  return fetch("http://localhost:8080/chat/summary", {
+  return fetch(apiUrl("/chat/summary"), {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_HEADERS,
   })
     .then(response => {
       if (!response.ok) {
@@ -253,9 +269,9 @@ export function fetchChatSummary() {
  * Interface to chat with the MobiLLM Agent
 */
 export function mobiLLMChat() {
-  return fetch("http://localhost:8080/mobillm/chat", {
+  return fetch(apiUrl("/mobillm/chat"), {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_HEADERS,
   })
     .then(response => {
       if (!response.ok) {
@@ -266,9 +282,9 @@ export function mobiLLMChat() {
 }
 
 export function getComplianceData() {
-  return fetch("http://localhost:8080/getComplianceData", {
+  return fetch(apiUrl("/getComplianceData"), {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers: JSON_HEADERS,
   })
     .then(response => {
       if (!response.ok) {
@@ -276,4 +292,60 @@ export function getComplianceData() {
       }
       return response.json();
     });
+}
+
+/**
+ * Runs the MobiLLM security analysis for a single event prompt.
+ * @param {string} message
+ */
+export function fetchSecurityAnalysis(message) {
+  return fetch(apiUrl("/mobillm/security_analysis"), {
+    method: "POST",
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ message }),
+  }).then(async (res) => {
+    const data = await res.json();
+    return { res, data };
+  });
+}
+
+/**
+ * Sends a chat message to the MobiLLM agent.
+ * @param {string} message
+ */
+export function sendChatMessage(message) {
+  return fetch(apiUrl("/mobillm/chat"), {
+    method: "POST",
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ message }),
+  }).then(async (res) => {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Chat error");
+    return data;
+  });
+}
+
+/** Fetches the current MobiLLM/LLM configuration. */
+export function getLLMConfig() {
+  return fetch(apiUrl("/llm/config")).then((res) => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  });
+}
+
+/** Saves the MobiLLM/LLM configuration. */
+export function saveLLMConfig(payload) {
+  return fetch(apiUrl("/llm/config"), {
+    method: "POST",
+    headers: JSON_HEADERS,
+    body: JSON.stringify(payload),
+  }).then((res) => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json().catch(() => ({}));
+  });
+}
+
+/** Fetches the list of available LLM models. */
+export function getLLMModels() {
+  return fetch(apiUrl("/llm/models")).then((res) => res.json());
 }

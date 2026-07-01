@@ -1,6 +1,6 @@
 import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { Box, Typography, Button, Card, CardContent } from "@mui/material";
+import { Box, Typography, Button, Card, CardContent, useTheme } from "@mui/material";
 
 // StatusIndicator component for visual indicators
 const StatusIndicator = ({ status, isDarkMode }) => {
@@ -36,29 +36,32 @@ const StatusIndicator = ({ status, isDarkMode }) => {
   );
 };
 
-function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy, isDarkMode }) {
+function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy }) {
+  const theme = useTheme();
+  const c = theme.custom;
+  const isDarkMode = theme.palette.mode === "dark";
   const panelSx = {
     padding: 0,
     margin: "0px auto",
     width: "100%",
-    backgroundColor: isDarkMode ? "#071528" : "#ffffff",
+    backgroundColor: c.bgPanel,
     color: isDarkMode ? "#e8f1ff" : "inherit",
-    border: isDarkMode ? "1px solid rgba(123, 161, 207, 0.28)" : "1px solid transparent",
-    boxShadow: isDarkMode ? "0 10px 24px rgba(0, 0, 0, 0.34)" : undefined,
+    border: isDarkMode ? `1px solid ${c.border}` : "1px solid transparent",
+    boxShadow: isDarkMode ? c.panelShadow : undefined,
   };
 
-  const titleColor = isDarkMode ? "#f3f8ff" : "inherit";
-  const iconColor = isDarkMode ? "#8fbfff" : "#23305a";
+  const titleColor = isDarkMode ? c.textTitle : "inherit";
+  const iconColor = c.accent;
   const serviceIconColor = isDarkMode ? "#9db8d8" : "black";
-  const gridTextColor = isDarkMode ? "#dbe8f7" : "#1d2633";
-  const gridMutedColor = isDarkMode ? "#9bb0c9" : "#536274";
+  const gridTextColor = isDarkMode ? c.textPrimary : "#1d2633";
+  const gridMutedColor = c.textMuted;
 
   const gridSx = {
     borderColor: isDarkMode ? "rgba(123, 161, 207, 0.26)" : "rgba(224, 224, 224, 1)",
     color: gridTextColor,
-    backgroundColor: isDarkMode ? "#08182d" : "#ffffff",
+    backgroundColor: isDarkMode ? c.bgSurface : "#ffffff",
     "& .MuiDataGrid-columnHeaders": {
-      backgroundColor: isDarkMode ? "#0d2038" : "#f7f9fc",
+      backgroundColor: isDarkMode ? c.bgElevated : c.bgHeaderRow,
       color: isDarkMode ? "#cfe0f5" : "#263447",
       borderBottomColor: isDarkMode ? "rgba(123, 161, 207, 0.28)" : "rgba(224, 224, 224, 1)",
     },
@@ -76,34 +79,34 @@ function ServiceGrid({ services, handleBuild, handleDeploy, handleUndeploy, isDa
       borderColor: isDarkMode ? "rgba(123, 161, 207, 0.2)" : undefined,
     },
     "& .MuiDataGrid-virtualScroller": {
-      backgroundColor: isDarkMode ? "#08182d" : "#ffffff",
+      backgroundColor: isDarkMode ? c.bgSurface : "#ffffff",
     },
     "& .MuiDataGrid-overlay": {
       color: gridMutedColor,
-      backgroundColor: isDarkMode ? "#08182d" : "#ffffff",
+      backgroundColor: isDarkMode ? c.bgSurface : "#ffffff",
     },
   };
 
   const buttonStyles = {
     build: {
-      backgroundColor: isDarkMode ? "#234f8a" : "#11182E",
+      backgroundColor: c.primaryMain,
       color: "#fff",
       "&:hover": {
-        backgroundColor: isDarkMode ? "#2f66ad" : "#0E1326",
+        backgroundColor: isDarkMode ? c.primaryHover : "#0E1326",
       },
     },
     deploy: {
-      backgroundColor: isDarkMode ? "#1d6b5d" : "#4E6A66",
+      backgroundColor: c.successBtn,
       color: "#fff",
       "&:hover": {
-        backgroundColor: isDarkMode ? "#248270" : "#435A57",
+        backgroundColor: c.successBtnHover,
       },
     },
     stop: {
-      backgroundColor: isDarkMode ? "#8c2f3d" : "#641B25",
+      backgroundColor: c.dangerBtn,
       color: "#fff",
       "&:hover": {
-        backgroundColor: isDarkMode ? "#a83a4a" : "#56161F",
+        backgroundColor: c.dangerBtnHover,
       },
     },
   };

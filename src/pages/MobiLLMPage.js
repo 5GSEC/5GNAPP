@@ -10,21 +10,40 @@ import {
   FormControl,
   Select,
   Alert,
+  useTheme,
 } from "@mui/material";
+import { getLLMConfig, saveLLMConfig, getLLMModels } from "../backend/fetchUserData";
 
 export default function MobiLLMPage() {
+  const theme = useTheme();
+  const c = theme.custom;
   const [apiKey, setApiKey]       = useState("");
   const [model, setModel]         = useState("");
   const [status, setStatus]       = useState("");
   const [modelList, setModelList] = useState([]);
 
+  const fieldSx = {
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: c.border,
+    },
+    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: c.accentStrong,
+      borderWidth: 2,
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: c.accentStrong,
+      borderWidth: 2,
+    },
+  };
+
+  const labelSx = {
+    color: c.textPrimary,
+    '&.Mui-focused': { color: c.accentStrong },
+  };
+
   // 1) Load existing config
   useEffect(() => {
-    fetch("http://localhost:8080/llm/config")
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
+    getLLMConfig()
       .then(cfg => {
         setApiKey(cfg.api_key || "");
         setModel(cfg.model   || "");
@@ -40,43 +59,18 @@ export default function MobiLLMPage() {
       setModelList([]);
       return;
     }
-
-    // fetch("http://localhost:8080/llm/models")
-    //   .then(res => {
-    //     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    //     return res.json();
-    //   })
-    //   .then(data => {
-    //     // If config not set, backend returns { error: "..."}; ignore that
-    //     if (Array.isArray(data.models)) {
-    //       setModelList(data.models);
-    //     } else {
-    //       console.warn("Model list error:", data.error);
-    //       setModelList([]);
-    //     }
-    //   })
-    //   .catch(err => {
-    //     console.error("Model list load failed:", err);
-    //     setModelList([]);
-    //   });
   }, [apiKey]);
 
   // 3) Save settings (POST config) and re-fetch models
   const handleSave = async () => {
     setStatus("");
     try {
-      const res = await fetch("http://localhost:8080/llm/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ api_key: apiKey, model }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await saveLLMConfig({ api_key: apiKey, model });
       setStatus("Settings saved");
 
       // Immediately reload models under the new key
       if (apiKey) {
-        const mres  = await fetch("http://localhost:8080/llm/models");
-        const mdata = await mres.json();
+        const mdata = await getLLMModels();
         if (Array.isArray(mdata.models)) {
           setModelList(mdata.models);
         }
@@ -94,13 +88,7 @@ export default function MobiLLMPage() {
       </Typography>
 
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel
-          htmlFor="api-key"
-          sx={{
-            color: '#11182E',
-            '&.Mui-focused': { color: '#11182E' }
-          }}
-        >
+        <InputLabel htmlFor="api-key" sx={labelSx}>
           
         </InputLabel>
         <TextField
@@ -112,29 +100,15 @@ export default function MobiLLMPage() {
           placeholder="Enter your API key"
           variant="outlined"
           fullWidth
-          sx={{
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#e0e4ef',
-            },
-            '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#11182E',
-              borderWidth: 2,
-            },
-          }}
+          sx={fieldSx}
           InputLabelProps={{
-            style: { color: '#11182E' }
+            style: { color: c.textPrimary }
           }}
         />
       </FormControl>
 
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel
-          id="model-label"
-          sx={{
-            color: '#11182E',
-            '&.Mui-focused': { color: '#11182E' }
-          }}
-        >
+        <InputLabel id="model-label" sx={labelSx}>
           Model
         </InputLabel>
         <Select
@@ -144,15 +118,7 @@ export default function MobiLLMPage() {
           label="Model"
           onChange={e => setModel(e.target.value)}
           disabled={modelList.length === 0}
-          sx={{
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#e0e4ef',
-            },
-            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#11182E',
-              borderWidth: 2,
-            },
-          }}
+          sx={fieldSx}
         >
           {modelList.length === 0 ? (
             <MenuItem value="">
@@ -175,10 +141,10 @@ export default function MobiLLMPage() {
           px: 3,
           py: 1,
           mt: 1,
-          backgroundColor: '#11182E',
+          backgroundColor: c.primaryMain,
           color: '#fff',
           '&:hover': {
-            backgroundColor: '#2d3c6b',
+            backgroundColor: c.primaryHover,
           },
         }}
       >

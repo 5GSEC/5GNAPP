@@ -12,6 +12,7 @@ import {
   FaUserCircle
 } from "react-icons/fa";
 import logo from "../assets/SE-RAN-icon-3D-wide.png";
+import { darkTokens as t } from "../theme/tokens";
 
 function MenuNavBar() {
   /* -------------------------------------------------
@@ -37,7 +38,7 @@ function MenuNavBar() {
   const linkBaseStyle = {
     alignItems: "center",
     borderRadius: "6px",
-    color: "#b8cce4",
+    color: t.textSecondary,
     display: "flex",
     fontSize: "0.94rem",
     fontWeight: 600,
@@ -52,8 +53,8 @@ function MenuNavBar() {
   /* `active` link = bold + accent colour */
   const activeLink = {
     backgroundColor: "rgba(143, 190, 245, 0.14)",
-    boxShadow: "inset 3px 0 0 #8fbfff",
-    color: "#f3f8ff",
+    boxShadow: `inset 3px 0 0 ${t.accent}`,
+    color: t.textTitle,
     fontWeight: 750
   };
 
@@ -65,7 +66,7 @@ function MenuNavBar() {
 
   const subLinkBaseStyle = {
     ...linkBaseStyle,
-    color: "#9bb0c9",
+    color: t.textMuted,
     fontSize: "0.88rem",
     fontWeight: 600,
     minHeight: "32px",
@@ -77,7 +78,7 @@ function MenuNavBar() {
     minHeight: "80px",
     margin: "20px -10px 0",
     opacity: 0.92,
-    backgroundColor: "#071528",
+    backgroundColor: t.bgPanel,
     backgroundImage: `
       radial-gradient(circle at 16% 42%, rgba(37, 165, 255, 0.95) 0 2px, transparent 3px),
       radial-gradient(circle at 42% 30%, rgba(37, 165, 255, 0.75) 0 2px, transparent 3px),
@@ -99,7 +100,7 @@ function MenuNavBar() {
     borderTop: "1px solid rgba(143, 190, 245, 0.18)",
     // borderRadius: "8px",
     boxShadow: "0 8px 22px rgba(0, 0, 0, 0.32)",
-    color: "#f3f8ff",
+    color: t.textTitle,
     display: "flex",
     gap: "12px",
     margin: "0",
@@ -110,7 +111,7 @@ function MenuNavBar() {
     <div
       style={{
         width: "200px",
-        backgroundColor: "#071528",
+        backgroundColor: t.bgPanel,
         height: "100vh",
         boxSizing: "border-box",
         display: "flex",
@@ -141,7 +142,7 @@ function MenuNavBar() {
           style={{
             listStyleType: "none",
             padding: 0,
-            color: "#b8cce4",
+            color: t.textSecondary,
             fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
             letterSpacing: 0,
             margin: 0,
@@ -277,14 +278,14 @@ function MenuNavBar() {
           <FaUserCircle size={30} color="#06172b" />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ color: "#f3f8ff", fontSize: "0.78rem", fontWeight: 750, lineHeight: 1.25 }}>
+          <div style={{ color: t.textTitle, fontSize: "0.78rem", fontWeight: 750, lineHeight: 1.25 }}>
             System Admin
           </div>
-          <div style={{ color: "#9bb0c9", fontSize: "0.66rem", fontWeight: 650, marginTop: "4px" }}>
+          <div style={{ color: t.textMuted, fontSize: "0.66rem", fontWeight: 650, marginTop: "4px" }}>
             Super Admin
           </div>
         </div>
-        <FaChevronDown size={13} color="#9bb0c9" />
+        <FaChevronDown size={13} color={t.textMuted} />
       </div>
     </div>
   );

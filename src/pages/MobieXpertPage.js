@@ -4,7 +4,7 @@
  ******************************************************/
 
 import React, { useState, useEffect, useRef } from "react"; 
-import { Typography, Button, Box } from "@mui/material";
+import { Typography, Button, Box, useTheme } from "@mui/material";
 import { fetchRulesText, saveRulesText, deployXapp } from "../backend/fetchUserData"; // NEW: import deployXapp
 
 
@@ -22,6 +22,8 @@ const getHintForError = (msg) => {
    3)  Page component
 ────────────────────────────────────────────── */
 function MobieXpertPage() {
+  const theme = useTheme();
+  const c = theme.custom;
   /* rules.pbest editor */
   const [rulesText, setRulesText] = useState("");    // textarea content
   const [loadingRules, setLoadingRules] = useState(true);
@@ -119,7 +121,7 @@ return (
 
       {loadError && (
         <>
-          <Typography variant="body2" sx={{ color: "tomato", fontWeight: "bold" }}>
+          <Typography variant="body2" sx={{ color: c.error, fontWeight: "bold" }}>
             {loadError}
           </Typography>
           {errorHint && (
@@ -180,10 +182,10 @@ return (
               size="small"
               sx={{
                 fontSize: "0.75rem",
-                backgroundColor: "#11182E",
+                backgroundColor: c.primaryMain,
                 color: "#fff",
                 '&:hover': {
-                  backgroundColor: "#0E1326",
+                  backgroundColor: c.primaryHover,
                 },
                 px: 3, py: 1
               }}
@@ -198,10 +200,10 @@ return (
               size="small"
               sx={{
                 fontSize: "0.75rem",
-                backgroundColor: "#4E6A66",
+                backgroundColor: c.successBtn,
                 color: "#fff",
                 '&:hover': {
-                  backgroundColor: "#435A57",
+                  backgroundColor: c.successBtnHover,
                 },
                 px: 3, py: 1
               }}

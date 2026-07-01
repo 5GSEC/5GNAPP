@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Grid, Card, CardContent } from "@mui/material";
+import { Typography, Grid, Card, CardContent, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { getComplianceData } from "../backend/fetchUserData";
 import CheckIcon from '@mui/icons-material/Check';
 
 function CompliancePage() {
+  const theme = useTheme();
+  const c = theme.custom;
+  const isDarkMode = theme.palette.mode === "dark";
   const [rows, setRows] = useState([]);
   const [columns, setColumns] = useState([]);
 
@@ -46,7 +49,7 @@ function CompliancePage() {
                       }}
                       title={params.value || ''}
                     >
-                      <CheckIcon style={{ color: "green", fontSize: "1.3em", marginRight: 8 }} aria-label="checkmark" role="img" />
+                      <CheckIcon color="success" style={{ fontSize: "1.3em", marginRight: 8 }} aria-label="checkmark" role="img" />
                       {params.value}
                     </div>
                   );
@@ -102,16 +105,16 @@ function CompliancePage() {
           </Typography>
         </Grid>
         <Grid item size={12}>
-          <Card>
+          <Card sx={{ backgroundColor: c.bgPanel, border: isDarkMode ? `1px solid ${c.border}` : "1px solid transparent", boxShadow: isDarkMode ? c.panelShadow : undefined }}>
             <CardContent>
               <div
                 style={{
                   height: 700,
                   width: "100%",
-                  background: "#f3f6fa",
+                  background: c.bgSurface,
                   borderRadius: 8,
-                  border: "1px solid #e0e4ef",
-                  boxShadow: "0 2px 8px rgba(35,48,90,0.04)",
+                  border: `1px solid ${c.border}`,
+                  boxShadow: isDarkMode ? "0 2px 10px rgba(0,0,0,0.26)" : "0 2px 8px rgba(35,48,90,0.04)",
                 }}
               >
                 <DataGrid
@@ -128,12 +131,12 @@ function CompliancePage() {
                   disableColumnResize
                   density="compact"
                   sx={{
-                    bgcolor: "#f3f6fa",
+                    bgcolor: c.bgSurface,
                     border: "none",
-                    color: "#11182E",
+                    color: c.textPrimary,
                     fontSize: 15,
                     '& .MuiDataGrid-columnHeaders': {
-                      background: 'linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)',
+                      background: c.headerGradient,
                       color: '#fff',
                       fontWeight: 'bold',
                       fontSize: 16,
@@ -141,19 +144,25 @@ function CompliancePage() {
                       borderTopRightRadius: 8,
                     },
                     '& .MuiDataGrid-row': {
-                      bgcolor: "#fff",
-                      '&.even': { bgcolor: "#f8fafd" },
-                      '&:hover': { bgcolor: "#e0e4ef" },
+                      bgcolor: c.bgElevated,
+                      color: c.textPrimary,
+                      '&.even': { bgcolor: c.bgAlt },
+                      '&:hover': { bgcolor: c.rowHover },
                     },
                     '& .MuiDataGrid-cell': {
-                      borderBottom: '1px solid #e0e4ef',
+                      borderBottom: `1px solid ${c.border}`,
+                      color: c.textPrimary,
                     },
                     '& .MuiCheckbox-root': {
-                      color: '#11182E !important',
+                      color: `${c.accentStrong} !important`,
                     },
                     '& .MuiDataGrid-footerContainer': {
-                      background: '#f3f6fa',
-                      borderTop: '1px solid #e0e4ef',
+                      background: c.bgSurface,
+                      borderTop: `1px solid ${c.border}`,
+                      color: c.textPrimary,
+                    },
+                    '& .MuiTablePagination-root, & .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                      color: c.textPrimary,
                     },
                   }}
                 />

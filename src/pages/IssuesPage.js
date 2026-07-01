@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   Typography, Grid, Card, CardContent, FormControl, InputAdornment, OutlinedInput, Button,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";
-import { Paper, Slide, IconButton, Box } from "@mui/material";
+import { Paper, Slide, IconButton, Box, useTheme } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { Warning, Error, Info, SearchRounded as SearchRoundedIcon } from "@mui/icons-material";
-import { fetchSdlEventData, sendLLMResumeCommand } from "../backend/fetchUserData";
+import { fetchSdlEventData, sendLLMResumeCommand, fetchSecurityAnalysis } from "../backend/fetchUserData";
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ReactMarkdown from 'react-markdown';
@@ -15,21 +15,8 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
 import DiffViewer from 'react-diff-viewer';
-import { GenAIContext } from "../App";
-
-
-function parseTimestamp(raw) {
-  if (!raw) return null;
-  const tsString = String(raw);
-  const tsNum = parseInt(tsString, 10);
-  if (tsString.length === 13) {
-    return new Date(tsNum);
-  } else if (tsString.length === 10) {
-    return new Date(tsNum * 1000);
-  } else {
-    return null;
-  }
-}
+import { GenAIContext } from "../contexts/GenAIContext";
+import { parseTimestamp } from "../utils/time";
 
 // Function to build prompt template for genAI threat analysis
 // const buildGenAIPrompt = (row) => `
@@ -71,7 +58,10 @@ async function fetchEvents(setEvent) {
   }
 }
 
-function IssuesPage({ isDarkMode }) {
+function IssuesPage() {
+  const theme = useTheme();
+  const c = theme.custom;
+  const isDarkMode = theme.palette.mode === "dark";
   const [searchQuery, setSearchQuery] = useState("");
   const [bevent, setEvent] = useState({});
   const [insightOpen, setInsightOpen] = useState(false);
@@ -106,22 +96,20 @@ function IssuesPage({ isDarkMode }) {
   const [editableConfig, setEditableConfig] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [showDiffView, setShowDiffView] = useState(false);
-  const titleColor = isDarkMode ? "#f3f8ff" : "#182235";
-  const eyebrowColor = isDarkMode ? "#89a4c5" : "#5a6b80";
-  const subtitleColor = isDarkMode ? "#b8cce4" : "#536274";
-  const dividerColor = isDarkMode ? "rgba(143, 172, 207, 0.26)" : "#d9e1ec";
-  const panelBg = isDarkMode ? "#071528" : "#ffffff";
-  const tableBg = isDarkMode ? "#08182d" : "#f3f6fa";
-  const rowBg = isDarkMode ? "#0d2038" : "#ffffff";
-  const rowAltBg = isDarkMode ? "#0a1b31" : "#f8fafd";
-  const rowHoverBg = isDarkMode ? "rgba(71, 137, 213, 0.14)" : "#e0e4ef";
-  const borderColor = isDarkMode ? "rgba(123, 161, 207, 0.24)" : "#e0e4ef";
-  const gridTextColor = isDarkMode ? "#dbe8f7" : "#11182E";
-  const mutedTextColor = isDarkMode ? "#9bb0c9" : "#536274";
-  const inputBg = isDarkMode ? "#08182d" : "#ffffff";
-  const headerBg = isDarkMode
-    ? "linear-gradient(90deg, #0d2038 0%, #14345c 100%)"
-    : "linear-gradient(90deg, #11182E 60%, #2d3c6b 100%)";
+  const titleColor = c.textTitle;
+  const eyebrowColor = c.textEyebrow;
+  const subtitleColor = c.textSecondary;
+  const dividerColor = c.divider;
+  const panelBg = c.bgPanel;
+  const tableBg = c.bgSurface;
+  const rowBg = c.bgElevated;
+  const rowAltBg = c.bgAlt;
+  const rowHoverBg = c.rowHover;
+  const borderColor = c.border;
+  const gridTextColor = c.textPrimary;
+  const mutedTextColor = c.textMuted;
+  const inputBg = c.bgInput;
+  const headerBg = c.headerGradient;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -154,12 +142,7 @@ function IssuesPage({ isDarkMode }) {
         setGenaiResponse(prev => ({ ...prev, [rowIdToThreadId[insightRow.id]]: "" }));
         try {
           const prompt = buildGenAIPrompt(insightRow);
-          const res = await fetch("http://localhost:8080/mobillm/security_analysis", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: prompt }),
-          });
-          const data = await res.json();
+          const { res, data } = await fetchSecurityAnalysis(prompt);
           const threadId = data.thread_id; // fallback if thread_id missing
           setRowIdToThreadId(prev => ({ ...prev, [insightRow.id]: threadId })); // update thread ID mapping
           if (!res.ok) throw new Error(data.error || "Chat error");
