@@ -1,11 +1,13 @@
 import React from "react";
+import { Box, Typography } from "@mui/material";
+import PageHeader from "../components/PageHeader";
 
 function SettingsPage() {
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Settings Page</h2>
-      <p>Placeholder for the Settings page.</p>
-    </div>
+    <Box sx={{ p: 3 }}>
+      <PageHeader title="Settings" />
+      <Typography sx={{ mt: 3 }}>Placeholder for the Settings page.</Typography>
+    </Box>
   );
 }
 

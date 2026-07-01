@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from "react"; 
 import { Typography, Button, Box, useTheme } from "@mui/material";
 import { fetchRulesText, saveRulesText, deployXapp } from "../backend/fetchUserData"; // NEW: import deployXapp
+import PageHeader from "../components/PageHeader";
 
 
 /* ───── generate contextual hint for errors ───── */
@@ -115,9 +116,8 @@ return (
   <Box sx={{ p: 3, width: "80%" }}>
     {/* Header / fixed top area */}
     <Box flexShrink={0}>
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
-        MobieXpert xApp Settings
-      </Typography>
+      <PageHeader title="MobieXpert xApp Settings" />
+      <Box sx={{ mb: 2 }} />
 
       {loadError && (
         <>

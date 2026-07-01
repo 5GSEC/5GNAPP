@@ -17,6 +17,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import DiffViewer from 'react-diff-viewer';
 import { GenAIContext } from "../contexts/GenAIContext";
 import { parseTimestamp } from "../utils/time";
+import PageHeader from "../components/PageHeader";
 
 // Function to build prompt template for genAI threat analysis
 // const buildGenAIPrompt = (row) => `
@@ -97,9 +98,6 @@ function IssuesPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showDiffView, setShowDiffView] = useState(false);
   const titleColor = c.textTitle;
-  const eyebrowColor = c.textEyebrow;
-  const subtitleColor = c.textSecondary;
-  const dividerColor = c.divider;
   const panelBg = c.bgPanel;
   const tableBg = c.bgSurface;
   const rowBg = c.bgElevated;
@@ -256,54 +254,7 @@ function IssuesPage() {
     <>
       <Grid container spacing={3} sx={{ padding: "10px" }}>
         <Grid size={12}>
-          <Box
-            component="header"
-            sx={{
-              borderBottom: `1px solid ${dividerColor}`,
-              pb: 1.75,
-            }}
-          >
-            <Typography
-              component="p"
-              sx={{
-                color: eyebrowColor,
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                lineHeight: 1.2,
-                mb: 0.75,
-                textTransform: "uppercase",
-              }}
-            >
-              5G Native Security Operations
-            </Typography>
-            <Typography
-              component="h1"
-              variant="h4"
-              sx={{
-                color: titleColor,
-                fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-                fontSize: "clamp(1.45rem, 2.1vw, 2rem)",
-                fontWeight: 760,
-                letterSpacing: 0,
-                lineHeight: 1.12,
-                mb: 0.75,
-              }}
-            >
-              Issues
-            </Typography>
-            <Typography
-              variant="subtitle1"
-              sx={{
-                color: subtitleColor,
-                fontSize: "0.95rem",
-                fontWeight: 500,
-                lineHeight: 1.4,
-              }}
-            >
-              Security Threats and Anomalies Detected
-            </Typography>
-          </Box>
+          <PageHeader title="Issues" subtitle="Security Threats and Anomalies Detected" />
         </Grid>
         <Grid size={12}>
           <Card

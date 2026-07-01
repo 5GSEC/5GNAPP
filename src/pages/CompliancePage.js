@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Grid, Card, CardContent, useTheme } from "@mui/material";
+import { Grid, Card, CardContent, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { getComplianceData } from "../backend/fetchUserData";
 import CheckIcon from '@mui/icons-material/Check';
+import PageHeader from "../components/PageHeader";
 
 function CompliancePage() {
   const theme = useTheme();
@@ -97,12 +98,10 @@ function CompliancePage() {
     <>
       <Grid container spacing={3} sx={{ padding: "20px" }}>
         <Grid item size={12}>
-          <Typography variant="h4" gutterBottom>
-            Compliance
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            SE-RAN ensures the 3GPP & NIST security requirements and compliance for RAN and UEs.
-          </Typography>
+          <PageHeader
+            title="Compliance"
+            subtitle="SE-RAN ensures the 3GPP & NIST security requirements and compliance for RAN and UEs."
+          />
         </Grid>
         <Grid item size={12}>
           <Card sx={{ backgroundColor: c.bgPanel, border: isDarkMode ? `1px solid ${c.border}` : "1px solid transparent", boxShadow: isDarkMode ? c.panelShadow : undefined }}>

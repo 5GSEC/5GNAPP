@@ -1,5 +1,7 @@
 import React from "react";
 import { Link, Outlet } from "react-router-dom";
+import { Box } from "@mui/material";
+import PageHeader from "../../components/PageHeader";
 
 /* Parent layout for /xapps – keeps sidebar and renders children via <Outlet />. */
 export function XAppsLayout() {
@@ -21,7 +23,11 @@ export function XAppsIndex() {
 }
 
 export function MobiflowAuditorPage() {
-  return <h3 style={{ padding: 20 }}>Mobiflow Auditor Settings (stub)</h3>;
+  return (
+    <Box sx={{ p: 3 }}>
+      <PageHeader title="Mobiflow Auditor Settings" subtitle="Stub" />
+    </Box>
+  );
 }
 
 export default XAppsLayout;

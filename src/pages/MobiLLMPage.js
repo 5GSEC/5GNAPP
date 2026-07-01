@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Typography,
   TextField,
   Button,
   MenuItem,
@@ -13,6 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { getLLMConfig, saveLLMConfig, getLLMModels } from "../backend/fetchUserData";
+import PageHeader from "../components/PageHeader";
 
 export default function MobiLLMPage() {
   const theme = useTheme();
@@ -82,11 +82,10 @@ export default function MobiLLMPage() {
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 420 }}>
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
-        MobiLLM API Settings
-      </Typography>
+    <Box sx={{ p: 3 }}>
+      <PageHeader title="MobiLLM API Settings" />
 
+      <Box sx={{ maxWidth: 420, mt: 3 }}>
       <FormControl fullWidth sx={{ mb: 2 }}>
         <InputLabel htmlFor="api-key" sx={labelSx}>
           
@@ -156,6 +155,7 @@ export default function MobiLLMPage() {
           {status}
         </Alert>
       )}
+      </Box>
     </Box>
   );
 }
